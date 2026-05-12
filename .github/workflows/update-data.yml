@@ -2,8 +2,8 @@ name: Update Stock Data
 
 on:
   schedule:
-    # 한국 평일(월-금) 9:00 ~ 16:00 KST = UTC 0:00 ~ 7:00, 30분 간격
-    - cron: '0,30 0-7 * * 1-5'
+    # 한국 평일(월-금) 9:00 ~ 16:59 KST = UTC 0:00 ~ 7:59, 15분 간격
+    - cron: '*/15 0-7 * * 1-5'
   workflow_dispatch:
 
 permissions:
