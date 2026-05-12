@@ -1,18 +1,16 @@
 {
-  "version": 2,
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "*.json", "use": "@vercel/static" },
-    { "src": "css/**", "use": "@vercel/static" },
-    { "src": "js/**", "use": "@vercel/static" },
-    { "src": "api/*.py", "use": "@vercel/python", "config": { "includeFiles": "api/_lib.py" } }
-  ],
-  "routes": [
-    { "src": "/api/stock", "dest": "/api/stock.py" },
-    { "src": "/api/news", "dest": "/api/news.py" },
-    { "src": "/api/flow", "dest": "/api/flow.py" },
-    { "src": "/", "dest": "/index.html" },
-    { "src": "/(.*\\.json)", "dest": "/$1", "headers": { "Content-Type": "application/json; charset=utf-8" } },
-    { "src": "/(.*)", "dest": "/$1" }
+  "functions": {
+    "api/*.py": {
+      "runtime": "@vercel/python@4.3.1",
+      "includeFiles": "api/_lib.py"
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*).json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    }
   ]
 }
