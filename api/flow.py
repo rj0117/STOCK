@@ -1,9 +1,12 @@
 """Vercel Serverless Function: GET /api/flow?code=XXXXXX
 종목별 일자별 외국인/기관/개인 순매수 데이터"""
 import json
+import sys
+import os
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from _lib import get_flow
 
 
