@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c \"import ast; ast.parse\\(open\\('src/fetch_data.py', encoding='utf-8'\\).read\\(\\)\\); print\\('fetch_data.py: syntax OK'\\)\")",
+      "Bash(node --check site/js/app.js)"
+    ]
+  }
+}

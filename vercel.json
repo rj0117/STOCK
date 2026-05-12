@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "outputDirectory": "site",
+  "functions": {
+    "api/*.py": {
+      "runtime": "@vercel/python@4.3.1"
+    }
+  },
+  "rewrites": [
+    { "source": "/api/stock", "destination": "/api/stock" },
+    { "source": "/api/news", "destination": "/api/news" },
+    { "source": "/api/flow", "destination": "/api/flow" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*).json",
+      "headers": [
+        { "key": "Content-Type", "value": "application/json; charset=utf-8" }
+      ]
+    }
+  ]
+}

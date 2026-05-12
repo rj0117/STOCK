@@ -1,0 +1,46 @@
+name: Update Stock Data
+
+on:
+  schedule:
+    # 한국 평일(월-금) 9:00 ~ 16:00 KST = UTC 0:00 ~ 7:00, 30분 간격
+    - cron: '0,30 0-7 * * 1-5'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install deps
+        run: pip install -r requirements.txt
+
+      - name: Run fetch_data
+        env:
+          NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
+          NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+        run: python src/fetch_data.py
+
+      - name: Commit & push if changed
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- site/data.json site/stocks.json 2>/dev/null; then
+            echo "No data changes."
+            exit 0
+          fi
+          git add site/data.json site/stocks.json
+          git commit -m "chore(data): auto-update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          git push

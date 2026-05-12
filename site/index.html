@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>한국 주식 대시보드</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <header class="topbar">
+        <div class="brand">
+            <a href="#top30" class="logo">📊 한국 주식 대시보드</a>
+            <span id="generated-at" class="generated"></span>
+        </div>
+        <div class="searchbar">
+            <input id="search-input" type="text" placeholder="종목명 또는 코드 검색 (예: 삼성전자, 005930)" autocomplete="off">
+            <ul id="search-suggestions" class="suggestions" hidden></ul>
+        </div>
+    </header>
+
+    <div class="layout">
+        <nav class="sidebar">
+            <ul class="sidebar-menu">
+                <li data-view="top30"><span class="icon">📊</span> 오늘의 한국 주식 TOP 30</li>
+                <li data-view="news"><span class="icon">📰</span> 뉴스 이슈별 주식 추천</li>
+                <li data-view="flow"><span class="icon">💰</span> 수급 상위</li>
+                <li data-view="sbsbiz"><span class="icon">📺</span> SBS Biz 추천 항목</li>
+                <li data-view="favorites"><span class="icon">⭐</span> 즐겨찾기 <span id="fav-count" class="count">0</span></li>
+            </ul>
+        </nav>
+
+        <main id="view" class="view">
+            <div class="placeholder">로딩 중...</div>
+        </main>
+    </div>
+
+    <footer class="footer">
+        <p>데이터 출처: 네이버 금융 · 네이버 검색 Open API</p>
+        <p>본 정보는 투자 참고용이며 매수/매도 권유가 아닙니다.</p>
+    </footer>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
