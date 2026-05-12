@@ -25,7 +25,7 @@ HEADERS = {
 }
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SITE_DIR = os.path.join(BASE_DIR, "site")
+SITE_DIR = BASE_DIR  # 정적 자산 root 직접 저장
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집

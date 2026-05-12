@@ -1,7 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "echo 'No build required - static site'",
-  "outputDirectory": "site",
   "functions": {
     "api/*.py": {
       "runtime": "@vercel/python@4.3.1",

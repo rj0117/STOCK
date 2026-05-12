@@ -14,7 +14,7 @@ from urllib.parse import urlparse, parse_qs
 
 SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 BASE_DIR = os.path.dirname(SRC_DIR)
-SITE_DIR = os.path.join(BASE_DIR, "site")
+SITE_DIR = BASE_DIR  # 정적 자산 root 직접 서빙
 
 sys.path.insert(0, SRC_DIR)
 from api_handlers import get_stock, get_news, get_flow, load_env_file  # noqa

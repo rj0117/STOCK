@@ -32,7 +32,7 @@ def _decode_resp(resp):
     return resp
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-SITE_DIR = os.path.join(BASE_DIR, "site")
+SITE_DIR = BASE_DIR  # 정적 자산을 root에 직접 저장 (Vercel 호환)
 
 def _load_env():
     env_path = os.path.join(BASE_DIR, ".env")
