@@ -11,7 +11,11 @@ import json
 import time
 import requests
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+KST = timezone(timedelta(hours=9))
+def now_kst():
+    return datetime.now(KST)
 
 CHANNEL_HANDLE_URL = "https://www.youtube.com/@SBSBizStock"
 RSS_URL_TEMPLATE = "https://www.youtube.com/feeds/videos.xml?channel_id={}"
@@ -263,7 +267,7 @@ def _save(data):
 def update(stocks_master):
     """전체 갱신 엔트리포인트"""
     print("=" * 60)
-    print(f"📺 SBS Biz YouTube 추천 종목 수집 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"📺 SBS Biz YouTube 추천 종목 수집 - {now_kst().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
 
     data = _load_existing()
@@ -313,7 +317,7 @@ def update(stocks_master):
     data["videos"].sort(key=lambda x: x.get("published", ""), reverse=True)
     data["videos"] = data["videos"][:200]  # 최대 200개 누적
 
-    data["updated_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    data["updated_at"] = now_kst().strftime("%Y-%m-%d %H:%M:%S")
     _save(data)
     print(f"   ✅ 저장: {JSON_PATH} (총 {len(data['videos'])}개 영상)")
     return data

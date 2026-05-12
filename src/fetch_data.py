@@ -11,9 +11,13 @@ from bs4 import BeautifulSoup
 import json
 import re
 import html
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import os
 import time
+
+KST = timezone(timedelta(hours=9))
+def now_kst():
+    return datetime.now(KST)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -727,7 +731,7 @@ def build_news_by_stock(news_list, flow_by_code, name_map, top_n=30):
 # ============================================================
 def run():
     print("=" * 60)
-    print(f"📊 한국 주식 데이터 수집 시작 - {datetime.now().strftime('%Y-%m-%d %H:%M')}")
+    print(f"📊 한국 주식 데이터 수집 시작 - {now_kst().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
     os.makedirs(SITE_DIR, exist_ok=True)
 
@@ -804,8 +808,8 @@ def run():
     print(f"   → 뉴스 종목 카드 {len(news_by_stock)}개 생성")
 
     data = {
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "generated_date": datetime.now().strftime("%Y-%m-%d"),
+        "generated_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
+        "generated_date": now_kst().strftime("%Y-%m-%d"),
         "top_stocks": top30,
         "category_stocks": category_stocks,
         "news": news[:100],

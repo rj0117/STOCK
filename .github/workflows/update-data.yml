@@ -16,6 +16,8 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
     steps:
       - uses: actions/checkout@v4
 

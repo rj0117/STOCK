@@ -7,7 +7,11 @@ import re
 import html
 import requests
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
+
+KST = timezone(timedelta(hours=9))
+def now_kst():
+    return datetime.now(KST)
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -73,7 +77,7 @@ def get_stock(code):
         "prev_close": int(prev_close) if prev_close else 0,
         "change": int(round(change)),
         "change_pct": round(change_pct, 2),
-        "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 
@@ -122,7 +126,7 @@ def get_flow(code):
         "code": code,
         "name": j.get("stockName", ""),
         "days": days,
-        "fetched_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 
