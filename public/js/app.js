@@ -508,6 +508,7 @@ function render() {
         if (params.get("kw")) renderKeywordDetail(main, params.get("kw"));
         else renderNewsKeywords(main);
     }
+    else if (view === "recommend") renderRecommendBuy(main);
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
     else if (view === "favorites") renderFavorites(main);
@@ -577,6 +578,110 @@ function renderTop30(main) {
 }
 
 // ============ 뷰: 뉴스 이슈별 ============
+// ============ 뷰: 매수 추천 (시장 분위기 + 기술적 지표 둘 다 매수) ============
+function renderRecommendBuy(main) {
+    const data = state.data;
+    const byCode = data && data.flow && data.flow.by_code;
+    if (!data || !byCode) {
+        main.innerHTML = `<h2>🎯 매수 추천</h2><div class="placeholder">데이터 로딩 실패</div>`;
+        return;
+    }
+
+    // 시장 분위기 매수 클래스
+    const buyMarket = new Set(["signal-strong-buy", "signal-buy", "signal-weak-buy"]);
+    // 기술 지표 매수 클래스
+    const buyTech = new Set(["signal-strong-buy", "signal-buy"]);
+    // 시장 분위기 강도 순서 (정렬용)
+    const marketRank = { "signal-strong-buy": 3, "signal-buy": 2, "signal-weak-buy": 1 };
+    const techRank = { "signal-strong-buy": 2, "signal-buy": 1 };
+
+    const candidates = [];
+    for (const code in byCode) {
+        const info = byCode[code];
+        if (!info.days || info.days.length === 0) continue;
+        const sig = calcSignal(info.days, getSentimentForCode(code));
+        if (!buyMarket.has(sig.cls)) continue;
+        const tech = info.prices_60d && info.prices_60d.length >= 5 ? calcTechnicals(info.prices_60d) : null;
+        const techSum = summarizeTechnicals(tech);
+        if (!techSum || !buyTech.has(techSum.cls)) continue;
+        const today = info.days[0];
+        const prev = (today.close || 0) - (today.change || 0);
+        const ch_pct = prev > 0 ? (today.change / prev * 100) : 0;
+        candidates.push({
+            code,
+            name: info.name || code,
+            close: today.close,
+            change: today.change,
+            change_pct: ch_pct,
+            foreign_net: today.foreign_net,
+            organ_net: today.organ_net,
+            individual_net: today.individual_net,
+            sig,
+            techSum,
+            tech,
+            rankScore: (marketRank[sig.cls] || 0) * 3 + (techRank[techSum.cls] || 0),
+            days: info.days,
+        });
+    }
+    candidates.sort((a, b) => b.rankScore - a.rankScore);
+
+    main.innerHTML = `
+        <h2>🎯 매수 추천 (둘 다 매수 신호)</h2>
+        <div class="subtitle">
+            <strong>시장 분위기 = 매수 우위</strong> 그리고 <strong>기술 지표 = 매수 신호</strong>인 종목만.
+            추적 풀 ${Object.keys(byCode).length}개 중 ${candidates.length}개 매칭 · 강한 신호 순 정렬 ·
+            <span class="disclaimer">* 단순 휴리스틱 참고용, 투자 권유 아님</span>
+        </div>
+        ${candidates.length === 0 ? `
+            <div class="placeholder" style="padding:60px;text-align:center">
+                현재 두 신호 모두 매수인 종목이 없습니다.<br>
+                다음 데이터 갱신 시 다시 확인해보세요.
+            </div>
+        ` : `
+            <div class="rec-grid">
+                ${candidates.map((c, i) => {
+                    const ch = formatChange(c.change, c.change_pct);
+                    return `
+                        <article class="card rec-card" onclick="goSearch('${c.code}')">
+                            <header class="rec-head">
+                                <span class="rec-rank">${i + 1}</span>
+                                <div class="rec-name-block">
+                                    <span class="rec-name">${escapeHtml(c.name)}</span>
+                                    <span class="rec-code">${c.code}</span>
+                                    ${industryBadgeHTML(c.code)}
+                                </div>
+                                ${favIconHTML(c.code)}
+                            </header>
+                            <div class="rec-price-row">
+                                <div class="rec-now">${formatPrice(c.close)}원</div>
+                                <div class="rec-change ${ch.cls}">${ch.text}</div>
+                            </div>
+                            <div class="rec-chart">${chartHTML(c.days, {width: 260, height: 70})}</div>
+                            <div class="rec-signals">
+                                <div class="rec-sig-line">
+                                    <span class="rec-sig-label">📈 시장</span>
+                                    <span class="signal-mini ${c.sig.cls} compact">${c.sig.label}</span>
+                                </div>
+                                <div class="rec-sig-reason">${escapeHtml((c.sig.reasons || [])[0] || "")}</div>
+                                <div class="rec-sig-line">
+                                    <span class="rec-sig-label">📐 기술</span>
+                                    <span class="signal-mini ${c.techSum.cls} compact">${c.techSum.label}</span>
+                                </div>
+                                <div class="rec-sig-reason">${escapeHtml(c.techSum.signals.join(' · '))}</div>
+                            </div>
+                            <div class="rec-flow">
+                                <span class="rec-flow-cell"><span class="rfl">외</span><span class="${netCls(c.foreign_net)}">${formatSignedQty(c.foreign_net)}</span></span>
+                                <span class="rec-flow-cell"><span class="rfl">기</span><span class="${netCls(c.organ_net)}">${formatSignedQty(c.organ_net)}</span></span>
+                                <span class="rec-flow-cell"><span class="rfl">개</span><span class="${netCls(c.individual_net)}">${formatSignedQty(c.individual_net)}</span></span>
+                            </div>
+                        </article>
+                    `;
+                }).join("")}
+            </div>
+        `}
+    `;
+}
+
 function renderNewsKeywords(main) {
     const data = state.data;
     if (!data) { main.innerHTML = `<div class="placeholder">로딩 중...</div>`; return; }
