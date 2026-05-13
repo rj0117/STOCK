@@ -281,8 +281,54 @@ function getSentimentForCode(code) {
     return { pos: found.sentiment_pos || 0, neg: found.sentiment_neg || 0, neu: found.sentiment_neu || 0 };
 }
 
+/** 기술적 지표 종합 라벨 — 미니 시그널과 같은 형식.
+ * @param {Object} tech - calcTechnicals 결과
+ * @returns {{label, cls, score, signals: Array}} 라벨 + 매수/매도 신호 개수 */
+function summarizeTechnicals(tech) {
+    if (!tech) return null;
+    let buyCount = 0, sellCount = 0;
+    const signals = [];
+
+    if (tech.rsi14 !== null) {
+        if (tech.rsi14 <= 30) { buyCount++; signals.push("RSI 저가권"); }
+        else if (tech.rsi14 >= 70) { sellCount++; signals.push("RSI 과열"); }
+    }
+    if (tech.goldenCross) { buyCount++; signals.push("골든크로스"); }
+    if (tech.deadCross) { sellCount++; signals.push("데드크로스"); }
+    if (tech.lowBounce) { buyCount++; signals.push("바닥 반등"); }
+    if (tech.divergence20 !== null) {
+        if (tech.divergence20 <= -10) { buyCount++; signals.push("평균선 이탈"); }
+        else if (tech.divergence20 >= 15) { sellCount++; signals.push("단기 과열"); }
+    }
+
+    const net = buyCount - sellCount;
+    let label, cls;
+    if (net >= 2) { label = "매수 신호 강함"; cls = "signal-strong-buy"; }
+    else if (net === 1) { label = "매수 신호"; cls = "signal-buy"; }
+    else if (net === 0 && buyCount === 0 && sellCount === 0) { label = "중립"; cls = "signal-neutral"; }
+    else if (net === 0) { label = "혼조"; cls = "signal-caution"; }
+    else if (net === -1) { label = "매도 신호"; cls = "signal-sell"; }
+    else { label = "매도 신호 강함"; cls = "signal-strong-sell"; }
+
+    return { label, cls, buyCount, sellCount, signals };
+}
+
 /** 종목의 핵심 기술적 지표 한 줄 요약 (RSI + 발생 이벤트).
  * 모든 종목 카드/행에 컴팩트하게 추가 가능. */
+/** 기술적 지표 종합 뱃지 — 시장 분위기 뱃지와 같은 모양 (한 줄 컴팩트) */
+function techBadgeHTML(code, opts = {}) {
+    const cached = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[code];
+    if (!cached || !cached.prices_60d || cached.prices_60d.length < 5) {
+        return `<span class="signal-mini signal-na ${opts.compact ? 'compact' : ''}">기술 지표 —</span>`;
+    }
+    const tech = calcTechnicals(cached.prices_60d);
+    const sum = summarizeTechnicals(tech);
+    if (!sum) return "";
+    const compact = opts.compact ? "compact" : "";
+    const tip = sum.signals.length > 0 ? sum.signals.join(" · ") : "특별한 시그널 없음";
+    return `<span class="signal-mini ${sum.cls} ${compact}" title="${escapeHtml(tip)}">${sum.label}</span>`;
+}
+
 function techMiniHTML(code) {
     const cached = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[code];
     if (!cached || !cached.prices_60d || cached.prices_60d.length < 5) return "";
@@ -391,7 +437,8 @@ function renderTop30(main) {
                     <tr>
                         <th class="rk">#</th>
                         <th>종목</th>
-                        <th>매매 신호</th>
+                        <th>시장 분위기</th>
+                        <th>기술적 지표</th>
                         <th class="num">현재가</th>
                         <th class="num">전일 대비</th>
                         <th class="num">외국인</th>
@@ -413,7 +460,8 @@ function renderTop30(main) {
                                     <div class="name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</div>
                                     <div class="meta"><span class="code">${s.code}</span> · 뉴스 ${s.news_count || 0}건 · 점수 ${s.total_score || 0}</div>
                                 </td>
-                                <td>${signalBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
+                                <td>${signalBadgeHTML(s.code, {compact: true})}</td>
+                                <td>${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
                                 <td class="num"><strong>${formatPrice(s.price)}</strong>원</td>
                                 <td class="num ${ch.cls}">${ch.text}</td>
                                 <td class="num ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
@@ -459,7 +507,17 @@ function renderNewsKeywords(main) {
                             <div class="snc-badge">📰 ${s.news_count}건</div>
                             ${favIconHTML(s.code)}
                         </header>
-                        <div class="snc-signal-row">${signalBadgeHTML(s.code)}${techMiniHTML(s.code)}</div>
+                        <div class="snc-signal-row">
+                            <div class="snc-sig-block">
+                                <span class="snc-sig-label">시장 분위기</span>
+                                ${signalBadgeHTML(s.code)}
+                            </div>
+                            <div class="snc-sig-block">
+                                <span class="snc-sig-label">기술적 지표</span>
+                                ${techBadgeHTML(s.code)}
+                                ${techMiniHTML(s.code) ? `<div class="snc-tech-mini">${techMiniHTML(s.code)}</div>` : ""}
+                            </div>
+                        </div>
                         <div class="snc-price-block">
                             <div class="snc-now">
                                 <span class="label">현재가</span>
@@ -762,7 +820,8 @@ function renderFlow(main, kind) {
                         <tr>
                             <th class="rk">#</th>
                             <th>종목</th>
-                            <th>매매 신호</th>
+                            <th>시장 분위기</th>
+                            <th>기술적 지표</th>
                             <th class="num">현재가</th>
                             <th class="num">전일비</th>
                             <th class="num">외국인</th>
@@ -782,7 +841,8 @@ function renderFlow(main, kind) {
                                         <span class="stock-name" onclick="goSearch('${r.code}')">${escapeHtml(r.name)}</span>
                                         <span class="stock-code">${r.code}</span>
                                     </td>
-                                    <td>${signalBadgeHTML(r.code, {compact: true})}${techMiniHTML(r.code) ? '<div class="cell-tech">' + techMiniHTML(r.code) + '</div>' : ''}</td>
+                                    <td>${signalBadgeHTML(r.code, {compact: true})}</td>
+                                    <td>${techBadgeHTML(r.code, {compact: true})}${techMiniHTML(r.code) ? '<div class="cell-tech">' + techMiniHTML(r.code) + '</div>' : ''}</td>
                                     <td class="num">${formatPrice(r.close)}</td>
                                     <td class="num ${chCls}">${chTxt}</td>
                                     <td class="num ${netCls(r.foreign_net)}">${formatSignedQty(r.foreign_net)}</td>
@@ -936,15 +996,13 @@ function calcTechnicals(prices60d) {
 }
 
 /**
- * 단순 휴리스틱 — 향후 1-2일 매수/매도 우위 시그널.
- * 근거: 최근 5일 외인·기관 수급 패턴 + 당일 등락 + (선택) 뉴스 호재/악재
- * ⚠ 투자 권유 아님, 참고용 데이터.
+ * 시장 분위기 (단기 시장 동향) — 수급 + 뉴스 + 가격 모멘텀 기반.
+ * 기술적 지표(RSI, 골든/데드 등)는 별도 calcTechnicals로 분리됨.
  *
  * @param {Array} flowDays - 5일 수급 데이터
- * @param {Object} [sentiment] - 옵션. { pos, neg, neu } 종목 관련 뉴스 호재/악재 카운트
- * @param {Array} [prices60d] - 옵션. 60일 일별 시세 (기술적 지표 계산용)
+ * @param {Object} [sentiment] - 옵션. { pos, neg, neu } 종목 관련 뉴스 호재/악재
  */
-function calcSignal(flowDays, sentiment, prices60d) {
+function calcSignal(flowDays, sentiment) {
     if (!flowDays || flowDays.length === 0) {
         return { label: "데이터 없음", cls: "signal-na", score: 0, reasons: [] };
     }
@@ -983,33 +1041,7 @@ function calcSignal(flowDays, sentiment, prices60d) {
         else if (ret5 <= -5) { score -= 2; reasons.push(`5일 ${ret5.toFixed(1)}% 하락`); }
     }
 
-    // 기술적 지표 (60일 데이터 있을 때만)
-    const tech = prices60d && prices60d.length >= 5 ? calcTechnicals(prices60d) : null;
-    if (tech) {
-        // RSI
-        if (tech.rsi14 !== null) {
-            if (tech.rsi14 <= 30) { score += 4; reasons.push(`RSI ${tech.rsi14} 과매도 (저점 매수 기회)`); }
-            else if (tech.rsi14 <= 35) { score += 2; reasons.push(`RSI ${tech.rsi14} 과매도 근접`); }
-            else if (tech.rsi14 >= 70) { score -= 4; reasons.push(`RSI ${tech.rsi14} 과매수 (조정 가능성)`); }
-            else if (tech.rsi14 >= 65) { score -= 2; reasons.push(`RSI ${tech.rsi14} 과매수 근접`); }
-        }
-        // 이격도
-        if (tech.divergence20 !== null) {
-            if (tech.divergence20 <= -10) { score += 3; reasons.push(`20일 이격도 ${tech.divergence20}% (단기 과매도)`); }
-            else if (tech.divergence20 >= 15) { score -= 3; reasons.push(`20일 이격도 +${tech.divergence20}% (단기 과열)`); }
-        }
-        // 골든/데드크로스
-        if (tech.goldenCross) { score += 4; reasons.push(`골든크로스 발생 (5일선 → 20일선 돌파)`); }
-        if (tech.deadCross) { score -= 4; reasons.push(`데드크로스 발생 (5일선 → 20일선 이탈)`); }
-        // 저점 반등
-        if (tech.lowBounce) { score += 3; reasons.push(`저점 반등 시도 (5일 -7%↓ 후 어제 +2%↑)`); }
-        // 거래량 급증
-        if (tech.volSurge) {
-            // 가격이 오르며 거래량 급증은 매수세, 떨어지며 급증은 매도 패닉
-            if (todayPct >= 0) { score += 2; reasons.push(`거래량 급증 + 상승 (매수세 강화)`); }
-            else { score -= 1; reasons.push(`거래량 급증 + 하락 (매도세 강화)`); }
-        }
-    }
+    // ※ 기술적 지표(RSI, 골든/데드크로스 등)는 별도 calcTechnicals로 분리되어 UI에 별도 영역으로 표시.
 
     // 뉴스 호재/악재 영향도 — 압도적 호재는 큰 가중치 (수급 약세도 뒤집을 수 있게)
     if (sentiment && (sentiment.pos > 0 || sentiment.neg > 0)) {
@@ -1098,7 +1130,8 @@ function renderSbsBiz(main) {
                             <thead>
                                 <tr>
                                     <th class="col-name">종목</th>
-                                    <th>매매 신호</th>
+                                    <th>시장 분위기</th>
+                                    <th>기술적 지표</th>
                                     <th class="col-price">현재가</th>
                                     <th class="col-prev">전일</th>
                                     <th class="col-change">등락</th>
@@ -1114,7 +1147,8 @@ function renderSbsBiz(main) {
                                             <span class="stock-code">${st.code}</span>
                                             <span class="mentions" title="자막/텍스트 언급 횟수">×${st.mentions}</span>
                                         </td>
-                                        <td>${signalBadgeHTML(st.code, {compact: true})}${techMiniHTML(st.code) ? '<div class="cell-tech">' + techMiniHTML(st.code) + '</div>' : ''}</td>
+                                        <td>${signalBadgeHTML(st.code, {compact: true})}</td>
+                                        <td>${techBadgeHTML(st.code, {compact: true})}${techMiniHTML(st.code) ? '<div class="cell-tech">' + techMiniHTML(st.code) + '</div>' : ''}</td>
                                         <td class="col-price" data-field="price">…</td>
                                         <td class="col-prev" data-field="prev">…</td>
                                         <td class="col-change" data-field="change">…</td>
@@ -1227,11 +1261,18 @@ async function renderFavorites(main) {
                     </div>
                 ` : ""}
                 ${days.length ? `
-                    <div class="fav-signal ${sig.cls}" title="${escapeHtml(sig.reasons.join(' · '))}">
-                        <span class="sig-arrow">${sig.cls.includes('buy') ? '▲' : sig.cls.includes('sell') ? '▼' : '•'}</span>
-                        <span class="sig-label">${sig.label}</span>
+                    <div class="fav-sig-section">
+                        <div class="fav-sig-title">📈 시장 분위기</div>
+                        <div class="fav-signal ${sig.cls}" title="${escapeHtml(sig.reasons.join(' · '))}">
+                            <span class="sig-arrow">${sig.cls.includes('buy') ? '▲' : sig.cls.includes('sell') ? '▼' : '•'}</span>
+                            <span class="sig-label">${sig.label}</span>
+                        </div>
                     </div>
-                    ${techMiniHTML(s.code) ? `<div class="fav-tech-mini">${techMiniHTML(s.code)}</div>` : ""}
+                    <div class="fav-sig-section">
+                        <div class="fav-sig-title">📐 기술적 지표</div>
+                        ${techBadgeHTML(s.code)}
+                        ${techMiniHTML(s.code) ? `<div class="fav-tech-mini">${techMiniHTML(s.code)}</div>` : ""}
+                    </div>
                     <div class="fav-flow">
                         <div class="ff-row">
                             <span class="ff-label">외인</span>
@@ -1316,12 +1357,20 @@ async function renderSearchResult(main, code) {
                     ${flow && flow.days && flow.days.length ? `
                         <div class="search-signal-block">
                             <div class="signal-line">
-                                <span class="signal-line-label">매매 신호</span>
+                                <span class="signal-line-label">📈 시장 분위기</span>
                                 <span class="signal-mini ${sig.cls}">${sig.label}</span>
-                                ${techMiniHTML(code)}
                             </div>
                             <div class="signal-reason">${escapeHtml(sig.reasons.join(' · '))}</div>
                         </div>
+                        ${tech ? `
+                            <div class="search-tech-block">
+                                <div class="signal-line">
+                                    <span class="signal-line-label">📐 기술적 지표</span>
+                                    ${techBadgeHTML(code)}
+                                </div>
+                                ${techMiniHTML(code) ? `<div class="search-tech-mini">${techMiniHTML(code)}</div>` : ""}
+                            </div>
+                        ` : ""}
                     ` : ""}
                 </div>
                 ${tech ? `

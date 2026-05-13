@@ -38,7 +38,7 @@
             </div>
 
             <details class="sidebar-logic">
-                <summary>📈 매매 신호 산정 로직</summary>
+                <summary>📈 시장 분위기 산정 로직</summary>
                 <div class="sl-body">
                     <div class="sl-section">
                         <div class="sl-section-title">🟢 가산 (매수 우위)</div>
@@ -50,11 +50,6 @@
                             <li><span class="sl-item">뉴스 호재 우세 (5~9)</span><span class="sl-score plus">+6</span></li>
                             <li><span class="sl-item">5일 +10% 이상 상승</span><span class="sl-score plus">+3</span></li>
                             <li><span class="sl-item">5일 +5~10% 상승</span><span class="sl-score plus">+2</span></li>
-                            <li><span class="sl-item">RSI 30↓ (너무 떨어짐=저점매수)</span><span class="sl-score plus">+4</span></li>
-                            <li><span class="sl-item">20일 평균보다 -10%↓ 낮음</span><span class="sl-score plus">+3</span></li>
-                            <li><span class="sl-item">평균선 위로 뚫음 (골든)</span><span class="sl-score plus">+4</span></li>
-                            <li><span class="sl-item">바닥 반등 (-7%↓후 +2%↑)</span><span class="sl-score plus">+3</span></li>
-                            <li><span class="sl-item">거래량 급증 + 상승</span><span class="sl-score plus">+2</span></li>
                         </ul>
                     </div>
                     <div class="sl-section">
@@ -67,9 +62,6 @@
                             <li><span class="sl-item">5일 -10% 이상 하락</span><span class="sl-score minus">-3</span></li>
                             <li><span class="sl-item">당일 +7% 급등 (과열)</span><span class="sl-score minus">-2</span></li>
                             <li><span class="sl-item">당일 -7% 급락</span><span class="sl-score minus">-1</span></li>
-                            <li><span class="sl-item">RSI 70↑ (너무 오름=과열)</span><span class="sl-score minus">-4</span></li>
-                            <li><span class="sl-item">20일 평균보다 +15%↑ 높음</span><span class="sl-score minus">-3</span></li>
-                            <li><span class="sl-item">평균선 아래로 (데드)</span><span class="sl-score minus">-4</span></li>
                         </ul>
                     </div>
                     <div class="sl-section">
@@ -82,6 +74,41 @@
                             <li><span class="signal-mini signal-neutral compact">중립</span><span class="sl-range">-3 ~ 2</span></li>
                             <li><span class="signal-mini signal-sell compact">매도 우위</span><span class="sl-range">-10 ~ -4</span></li>
                             <li><span class="signal-mini signal-strong-sell compact">강한 매도 우위</span><span class="sl-range">≤ -11</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-foot">⚠ 단순 휴리스틱 · 투자 권유 아님</div>
+                </div>
+            </details>
+
+            <details class="sidebar-logic">
+                <summary>📐 기술적 지표 산정 로직</summary>
+                <div class="sl-body">
+                    <div class="sl-section">
+                        <div class="sl-section-title">🟢 매수 신호</div>
+                        <ul>
+                            <li><span class="sl-item">RSI ≤30 (너무 떨어짐=저가권)</span><span class="sl-score plus">매수</span></li>
+                            <li><span class="sl-item">골든크로스 (평균선 위로 뚫음)</span><span class="sl-score plus">매수</span></li>
+                            <li><span class="sl-item">바닥 반등 (-7%↓후 +2%↑)</span><span class="sl-score plus">매수</span></li>
+                            <li><span class="sl-item">20일 평균보다 -10%↓ 낮음</span><span class="sl-score plus">매수</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-section">
+                        <div class="sl-section-title">🔴 매도 신호</div>
+                        <ul>
+                            <li><span class="sl-item">RSI ≥70 (너무 오름=과열)</span><span class="sl-score minus">매도</span></li>
+                            <li><span class="sl-item">데드크로스 (평균선 아래로)</span><span class="sl-score minus">매도</span></li>
+                            <li><span class="sl-item">20일 평균보다 +15%↑ 높음</span><span class="sl-score minus">매도</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-section">
+                        <div class="sl-section-title">🏷️ 종합 라벨</div>
+                        <ul class="sl-labels">
+                            <li><span class="signal-mini signal-strong-buy compact">매수 신호 강함</span><span class="sl-range">매수 2개↑</span></li>
+                            <li><span class="signal-mini signal-buy compact">매수 신호</span><span class="sl-range">매수 1개</span></li>
+                            <li><span class="signal-mini signal-caution compact">혼조</span><span class="sl-range">매수=매도</span></li>
+                            <li><span class="signal-mini signal-neutral compact">중립</span><span class="sl-range">신호 없음</span></li>
+                            <li><span class="signal-mini signal-sell compact">매도 신호</span><span class="sl-range">매도 1개</span></li>
+                            <li><span class="signal-mini signal-strong-sell compact">매도 신호 강함</span><span class="sl-range">매도 2개↑</span></li>
                         </ul>
                     </div>
                     <div class="sl-foot">⚠ 단순 휴리스틱 · 투자 권유 아님</div>
