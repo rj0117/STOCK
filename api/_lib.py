@@ -122,10 +122,31 @@ def get_flow(code):
             "foreign_hold_ratio": d.get("foreignerHoldRatio", ""),
             "volume": _parse_signed_int(d.get("accumulatedTradingVolume", "0")),
         })
+    # 60일 일별 시세도 함께 (기술적 지표 계산용)
+    prices_60d = []
+    try:
+        url2 = f"https://m.stock.naver.com/api/stock/{code}/price?pageSize=60"
+        resp2 = requests.get(url2, headers=HEADERS, timeout=8)
+        if resp2.status_code == 200:
+            items = resp2.json()
+            if isinstance(items, list):
+                for d in items:
+                    prices_60d.append({
+                        "date": d.get("localTradedAt", ""),
+                        "close": _parse_signed_int(d.get("closePrice", 0)),
+                        "open": _parse_signed_int(d.get("openPrice", 0)),
+                        "high": _parse_signed_int(d.get("highPrice", 0)),
+                        "low": _parse_signed_int(d.get("lowPrice", 0)),
+                        "volume": _parse_signed_int(d.get("accumulatedTradingVolume", 0)),
+                    })
+    except Exception:
+        pass
+
     return {
         "code": code,
         "name": j.get("stockName", ""),
         "days": days,
+        "prices_60d": prices_60d,
         "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
