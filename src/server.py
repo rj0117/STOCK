@@ -68,7 +68,12 @@ class Handler(SimpleHTTPRequestHandler):
                     self._send_json(HTTPStatus.OK, get_intraday(code))
                 elif parsed.path == "/api/ai_analyze":
                     code = qs.get("code", [""])[0]
-                    self._send_json(HTTPStatus.OK, get_ai_analysis(code))
+                    xff = self.headers.get("x-forwarded-for", "")
+                    client_ip = (xff.split(",")[0].strip() if xff
+                                 else (self.client_address[0] if self.client_address else ""))
+                    result = get_ai_analysis(code, client_ip=client_ip)
+                    status = result.pop("_http_status", HTTPStatus.OK)
+                    self._send_json(status, result)
                 else:
                     self._send_json(HTTPStatus.NOT_FOUND, {"error": "unknown api"})
             except Exception as e:

@@ -25,6 +25,108 @@ HEADERS = {
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
+# ============================================================
+# Upstash Redis REST 헬퍼 (api/_lib.py 와 동기 유지)
+# ============================================================
+_UPSTASH_URL = os.environ.get("UPSTASH_REDIS_REST_URL", "").rstrip("/")
+_UPSTASH_TOKEN = os.environ.get("UPSTASH_REDIS_REST_TOKEN", "")
+
+
+def _kv_available():
+    return bool(_UPSTASH_URL and _UPSTASH_TOKEN)
+
+
+def _upstash_cmd(cmd_list):
+    if not _kv_available():
+        return None
+    try:
+        r = requests.post(
+            _UPSTASH_URL,
+            headers={
+                "Authorization": f"Bearer {_UPSTASH_TOKEN}",
+                "Content-Type": "application/json",
+            },
+            json=cmd_list,
+            timeout=3,
+        )
+        if r.status_code != 200:
+            return None
+        return r.json().get("result")
+    except Exception:
+        return None
+
+
+def _kv_get(key):
+    return _upstash_cmd(["GET", key])
+
+
+def _kv_set(key, value, ex_seconds=None):
+    cmd = ["SET", key, value]
+    if ex_seconds:
+        cmd += ["EX", str(int(ex_seconds))]
+    return _upstash_cmd(cmd)
+
+
+def _kv_incrby(key, amount):
+    return _upstash_cmd(["INCRBY", key, str(int(amount))])
+
+
+def _kv_expire(key, seconds):
+    return _upstash_cmd(["EXPIRE", key, str(int(seconds))])
+
+
+def _seconds_until_midnight_kst():
+    now = now_kst()
+    nxt = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+    return int((nxt - now).total_seconds())
+
+
+def _calc_ai_cache_ttl():
+    now = now_kst()
+    h, weekday = now.hour, now.weekday()
+    if weekday < 5 and 9 <= h < 16:
+        return 3600
+    target = now.replace(hour=9, minute=0, second=0, microsecond=0)
+    while target <= now or target.weekday() >= 5:
+        target += timedelta(days=1)
+    return int((target - now).total_seconds())
+
+
+_SONNET_IN_USD_MTOK = 3.0
+_SONNET_OUT_USD_MTOK = 15.0
+
+
+def _estimate_cost_krw(input_tokens, output_tokens):
+    usd_krw = float(os.environ.get("ANTHROPIC_USD_KRW", "1380"))
+    in_t = int(input_tokens or 0)
+    out_t = int(output_tokens or 0)
+    usd = (in_t * _SONNET_IN_USD_MTOK + out_t * _SONNET_OUT_USD_MTOK) / 1_000_000
+    return round(usd * usd_krw)
+
+
+_RL_PER_MIN = 5
+_RL_PER_DAY = 50
+
+
+def _check_rate_limit(client_ip):
+    if not _kv_available() or not client_ip:
+        return None
+    now = now_kst()
+    m_key = f"rl:m:{client_ip}:{now.strftime('%Y-%m-%dT%H:%M')}"
+    d_key = f"rl:d:{client_ip}:{now.strftime('%Y-%m-%d')}"
+    m_count = _kv_incrby(m_key, 1)
+    if m_count == 1:
+        _kv_expire(m_key, 70)
+    if m_count and int(m_count) > _RL_PER_MIN:
+        return {"limit": f"{_RL_PER_MIN}/min", "retry_after_seconds": max(1, 60 - now.second)}
+    d_count = _kv_incrby(d_key, 1)
+    if d_count == 1:
+        _kv_expire(d_key, _seconds_until_midnight_kst())
+    if d_count and int(d_count) > _RL_PER_DAY:
+        return {"limit": f"{_RL_PER_DAY}/day", "retry_after_seconds": _seconds_until_midnight_kst()}
+    return None
+
+
 # AI 분석 system 프롬프트 — api/_lib.py 와 동기 유지
 AI_SYSTEM_PROMPT = """당신은 한국 주식 데이터 분석 보조 도구입니다.
 
@@ -587,12 +689,45 @@ def _ai_tech_summary(t):
     return ", ".join(parts) if parts else "(특별한 시그널 없음)"
 
 
-def get_ai_analysis(code: str) -> dict:
-    """Claude AI에게 종목 종합 판단 요청."""
+def get_ai_analysis(code: str, client_ip: str = None) -> dict:
+    """Claude AI에게 종목 종합 판단 요청. (캐싱 + rate limit + 일일 비용 한도 포함)"""
     import json as _json
     code = (code or "").strip()
     if not re.fullmatch(r"\d{6}", code):
         return {"error": "유효한 6자리 종목 코드가 필요합니다"}
+
+    rl = _check_rate_limit(client_ip)
+    if rl:
+        return {
+            "error": "요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.",
+            "limit": rl["limit"],
+            "retry_after_seconds": rl["retry_after_seconds"],
+            "_http_status": 429,
+        }
+
+    cache_key = f"ai:{code}:{now_kst().strftime('%Y-%m-%d')}"
+    cached_raw = _kv_get(cache_key)
+    if cached_raw:
+        try:
+            cached_result = _json.loads(cached_raw)
+            cached_result["cached"] = True
+            return cached_result
+        except Exception:
+            pass
+
+    budget_krw = int(os.environ.get("DAILY_BUDGET_KRW", "2000"))
+    cost_key = f"cost:{now_kst().strftime('%Y-%m-%d')}"
+    used_raw = _kv_get(cost_key)
+    used_krw = int(used_raw) if used_raw else 0
+    if used_krw >= budget_krw:
+        return {
+            "error": "오늘의 AI 분석 일일 사용 한도에 도달했습니다.",
+            "used_krw": used_krw,
+            "budget_krw": budget_krw,
+            "reset_in_seconds": _seconds_until_midnight_kst(),
+            "_http_status": 503,
+        }
+
     api_key = os.environ.get("ANTHROPIC_API_KEY", "")
     if not api_key:
         return {"error": "Anthropic API key 미설정", "detail": "Vercel 환경변수에 ANTHROPIC_API_KEY를 추가해주세요."}
@@ -777,7 +912,15 @@ def get_ai_analysis(code: str) -> dict:
             return {"error": "AI 응답 파싱 실패", "detail": text[:200]}
         result = _json.loads(m.group(0))
         usage = data.get("usage", {}) or {}
-        return {
+
+        cost_krw = _estimate_cost_krw(usage.get("input_tokens"), usage.get("output_tokens"))
+        if cost_krw > 0 and _kv_available():
+            new_total = _kv_incrby(cost_key, cost_krw)
+            if new_total and int(new_total) == cost_krw:
+                _kv_expire(cost_key, _seconds_until_midnight_kst())
+
+        fetched_at = now_kst().strftime("%Y-%m-%dT%H:%M:%S%z")
+        final_result = {
             "code": code,
             "name": name,
             "action": result.get("action", "hold"),
@@ -788,8 +931,17 @@ def get_ai_analysis(code: str) -> dict:
                 "input_tokens": usage.get("input_tokens"),
                 "output_tokens": usage.get("output_tokens"),
             },
-            "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
+            "cost_krw": cost_krw,
+            "cached": False,
+            "cached_at": fetched_at,
+            "fetched_at": fetched_at,
         }
+
+        if _kv_available():
+            ttl = _calc_ai_cache_ttl()
+            _kv_set(cache_key, _json.dumps(final_result, ensure_ascii=False), ex_seconds=ttl)
+
+        return final_result
     except Exception as e:
         return {"error": "Claude API 호출 실패", "detail": str(e)[:200]}
 

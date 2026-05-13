@@ -4,7 +4,7 @@
 > `README.md`, `public/index.html` 의 details 섹션, 코드 주석 등은 모두 이 문서와 일치해야 합니다.
 > 변경 시 *코드 → 이 문서 → README → index.html details* 순서로 동기화하세요. ([.claude/CLAUDE.md §5](.claude/CLAUDE.md) 참조)
 
-**📅 마지막 동기화 일자: 2026-05-14**
+**📅 마지막 동기화 일자: 2026-05-14** (AI 안전장치 추가)
 **🔖 다음 점검 권장 시기:** 점수 로직 변경 시 즉시 / 그 외 월 1회 자율 점검
 
 ---
@@ -286,8 +286,26 @@ rankScore = marketRank × 3 + techRank
 
 - 모델: **`claude-sonnet-4-6`**
 - `max_tokens`: 800
+- **system 프롬프트** (`AI_SYSTEM_PROMPT`): 투자 자문 아님 / 미공개 정보 추측 금지 / 단정 표현 금지 / 학습 데이터 한계 인지 / 불확실 명시 / JSON 스키마 준수
 - 사용자가 "🤖 AI 분석 받기" 버튼을 누를 때만 호출 (수동 트리거)
 - prompt 입력 토큰: 약 5,000 (시세·펀더멘털·시장 환경·거시·기술 지표·신뢰구간·수급·뉴스 본문 포함)
+- 출력 스키마: `{ action, confidence, analysis }` + `cached`, `cached_at`, `cost_krw`, `usage` 부가 필드
+
+### AI 안전장치 (Upstash Redis 기반)
+
+| 항목 | 동작 | 위치 |
+|---|---|---|
+| **캐싱** | 같은 종목 + 같은 날짜는 캐시 응답. TTL: 평일 장중(KST 09~16) 1시간, 그 외 다음 09시까지 | `_kv_get/set` + `_calc_ai_cache_ttl` |
+| **Rate Limit** | IP당 분당 **5회**, 일당 **50회**. 초과 시 HTTP 429 + Retry-After 헤더 | `_check_rate_limit`, 상수 `_RL_PER_MIN=5`, `_RL_PER_DAY=50` |
+| **일일 비용 한도** | `DAILY_BUDGET_KRW`(기본 2000원) 초과 시 HTTP 503. Sonnet 4.6 토큰가로 매 호출 비용 추정 → 자정 KST 리셋 | `_estimate_cost_krw`, 키 `cost:{YYYY-MM-DD}` |
+
+**환경변수:**
+| 이름 | 기본값 | 설명 |
+|---|---|---|
+| `UPSTASH_REDIS_REST_URL` | (필수, 없으면 안전장치 비활성) | Upstash Redis REST endpoint |
+| `UPSTASH_REDIS_REST_TOKEN` | (필수) | Upstash 인증 토큰 |
+| `DAILY_BUDGET_KRW` | `2000` | AI 분석 일일 한도 (KRW) |
+| `ANTHROPIC_USD_KRW` | `1380` | USD → KRW 환산율 (Sonnet 가격 산정용) |
 
 ---
 

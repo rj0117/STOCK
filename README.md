@@ -21,7 +21,7 @@
 - [x] **시장 분위기 라벨** — 수급+모멘텀+뉴스 휴리스틱 (강한 매수 우위 ~ 강한 매도 우위)
 - [x] **기술 지표 라벨** — RSI/MA/골든·데드크로스/이격도/저점반등 종합
 - [x] **1·2주 통계 전망** — Historical VaR + GBM 50:50, 모멘텀·RSI 보정, 신뢰도 등급
-- [x] **Claude AI 분석** — 시세·수급·뉴스·기술·거시·펀더멘털을 종합한 매수/매도/관망 판단 (Sonnet 4.6)
+- [x] **Claude AI 분석** — 시세·수급·뉴스·기술·거시·펀더멘털을 종합한 매수/매도/관망 판단 (Sonnet 4.6). system 프롬프트로 단정 표현·미공개 정보 추측 차단. Upstash Redis 기반 캐싱/IP 분당 5·일당 50 rate limit/일일 2,000원 비용 한도
 - [x] **매수 참고 트렌드 추적** — 일별 스냅샷 누적, 신호 시점 forecast 곡선과 실제 종가 비교
 - [x] **백테스트** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
 - [x] **GitHub Actions 자동 갱신** — 매시 7분/37분 cron
@@ -92,8 +92,14 @@ pip install -r requirements.txt
 ```
 NAVER_CLIENT_ID=...
 NAVER_CLIENT_SECRET=...
-ANTHROPIC_API_KEY=...   # AI 분석 기능을 쓸 때만
+ANTHROPIC_API_KEY=...                 # AI 분석 기능을 쓸 때만
+UPSTASH_REDIS_REST_URL=...            # AI 분석 캐싱/rate limit/비용 한도용 (선택)
+UPSTASH_REDIS_REST_TOKEN=...
+DAILY_BUDGET_KRW=2000                 # AI 분석 일일 한도 (기본 2000원)
+ANTHROPIC_USD_KRW=1380                # USD→KRW 환산율 (Sonnet 비용 산정)
 ```
+
+> Upstash 환경변수 없이도 AI 분석은 작동합니다 (안전장치만 자동 비활성, 단 비용 한도·rate limit 보호 없음).
 
 데이터 갱신 + 로컬 서버 실행:
 ```bash
@@ -230,4 +236,4 @@ update.bat
 
 ---
 
-**📅 README 최종 업데이트:** 2026-05-14
+**📅 README 최종 업데이트:** 2026-05-14 (AI 안전장치 추가: system 프롬프트 + 캐싱/rate limit/비용 한도)

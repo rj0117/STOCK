@@ -2461,31 +2461,69 @@ async function renderSearchResult(main, code) {
 }
 
 // ============ 네비게이션 헬퍼 ============
+function _formatRetrySeconds(s) {
+    if (!s || s <= 0) return "잠시 후";
+    if (s < 60) return `${Math.ceil(s)}초 후`;
+    if (s < 3600) return `${Math.ceil(s / 60)}분 후`;
+    return `${Math.ceil(s / 3600)}시간 후`;
+}
+
 async function requestAiAnalysis(code) {
     const body = document.getElementById("ai-analysis-body");
     if (!body) return;
-    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (3~8초 소요)</div>`;
+    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (3~8초 소요, 캐시된 결과는 즉시)</div>`;
     try {
-        const r = await fetchJsonUtf8(`/api/ai_analyze?code=${code}`, { error: "응답 없음" });
-        if (r.error) {
-            body.innerHTML = `<div class="ai-error">❌ ${escapeHtml(r.error)}${r.detail ? `<br><small>${escapeHtml(r.detail)}</small>` : ''}</div>`;
+        // 직접 fetch 로 status code 확인 (429/503 분기 위해)
+        const resp = await fetch(`/api/ai_analyze?code=${code}`);
+        let r;
+        try {
+            const buf = await resp.arrayBuffer();
+            r = JSON.parse(new TextDecoder("utf-8").decode(buf));
+        } catch (parseErr) {
+            r = { error: "응답 파싱 실패" };
+        }
+
+        // 429: rate limit
+        if (resp.status === 429) {
+            const retry = _formatRetrySeconds(r.retry_after_seconds);
+            body.innerHTML = `<div class="ai-error">
+                ⏱️ 요청이 잠시 몰렸어요. <strong>${escapeHtml(retry)}</strong> 다시 시도해주세요.
+                <br><small>한도: ${escapeHtml(r.limit || "")}</small>
+            </div>`;
             return;
         }
+        // 503: 일일 비용 한도
+        if (resp.status === 503) {
+            const reset = _formatRetrySeconds(r.reset_in_seconds);
+            body.innerHTML = `<div class="ai-error">
+                💰 오늘의 AI 분석 한도에 도달했습니다 (${r.used_krw || "?"}원 / ${r.budget_krw || "?"}원).
+                <br><small>${escapeHtml(reset)} 자정에 한도가 리셋됩니다.</small>
+            </div>`;
+            return;
+        }
+        if (!resp.ok || r.error) {
+            body.innerHTML = `<div class="ai-error">❌ ${escapeHtml(r.error || `HTTP ${resp.status}`)}${r.detail ? `<br><small>${escapeHtml(r.detail)}</small>` : ''}</div>`;
+            return;
+        }
+
         const cls = r.action === "buy" ? "signal-buy" : r.action === "sell" ? "signal-sell" : "signal-neutral";
         const label = r.action === "buy" ? "🟢 매수" : r.action === "sell" ? "🔴 매도" : "⚪ 관망";
         const usage = r.usage || {};
         const tokenInfo = (usage.input_tokens || usage.output_tokens)
             ? ` · 토큰 in ${usage.input_tokens || "?"} / out ${usage.output_tokens || "?"}`
             : "";
+        const cacheBadge = r.cached
+            ? ` · <span class="ai-cache-badge">캐시</span>`
+            : (r.cost_krw ? ` · 비용 ${r.cost_krw}원` : "");
         body.innerHTML = `
             <div class="ai-result">
                 <div class="ai-verdict ${cls}">${label} · 확신도 ${r.confidence || "—"}/10</div>
                 <div class="ai-analysis">${escapeHtml(r.analysis || "").replace(/\n/g, "<br>")}</div>
-                <div class="ai-meta">📌 ${escapeHtml(r.model || "")}${tokenInfo} · ${escapeHtml(r.fetched_at || "")}</div>
+                <div class="ai-meta">📌 ${escapeHtml(r.model || "")}${tokenInfo}${cacheBadge} · ${escapeHtml(r.cached_at || r.fetched_at || "")}</div>
             </div>
         `;
     } catch (e) {
-        body.innerHTML = `<div class="ai-error">❌ 오류: ${escapeHtml(String(e))}</div>`;
+        body.innerHTML = `<div class="ai-error">❌ 네트워크 오류: ${escapeHtml(String(e))}</div>`;
     }
 }
 window.requestAiAnalysis = requestAiAnalysis;
