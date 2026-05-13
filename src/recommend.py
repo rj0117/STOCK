@@ -10,7 +10,10 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 KST = ZoneInfo("Asia/Seoul")
-MAX_DAYS_KEPT = 14  # 슬라이딩 윈도우 한도
+# buy_history.json 의 by_date 키 보존 한도 (캘린더일 기준 슬라이딩 윈도우).
+# 백테스트에 필요한 표본을 충분히 누적하기 위해 90일.
+# 변경 시 README.md / SCORING.md / public/index.html details 도 함께 점검.
+KEEP_DAYS = 90
 
 
 # -------- 기술적 지표 ----------------------------------------------------
@@ -392,8 +395,7 @@ def update_buy_history(site_dir, by_code, news_by_stock=None, indexes=None):
         }
         print(f"   → buy_history 저장: {today_key} {len(candidates)}개 매수 후보")
 
-    # 백테스트용으로 90일까지 보존
-    KEEP_DAYS = 90
+    # 모듈 상단 KEEP_DAYS (현재 90) 까지 보존 (단일 진실의 원천)
     keys = sorted(history["by_date"].keys(), reverse=True)[:KEEP_DAYS]
     history["by_date"] = {k: history["by_date"][k] for k in keys}
 

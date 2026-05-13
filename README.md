@@ -118,6 +118,8 @@ update.bat
 
 라벨 시스템은 5개로 분리되어 있습니다. 사이트 사이드바 **"📈 시장 분위기 산정 로직"** / **"📐 기술적 지표 산정 로직"** details 섹션에 시각적으로 정리되어 있으니 같이 확인하시면 편합니다.
 
+> 📌 **정확한 임계값·라벨 기준의 단일 진실의 원천은 [SCORING.md](SCORING.md)** 입니다. 이 README 의 표와 SCORING.md 가 어긋나면 SCORING.md 를 기준으로 봐주세요.
+
 ### A. TOP 50 종목 선정 ([src/fetch_data.py](src/fetch_data.py) `score_stocks`)
 **1~30위 (인기 검색 + 뉴스 점수):**
 - 인기 순위 점수: 1등 30점 ~ 30등 1점 (`RANK_SCORE_MAX = 30`)

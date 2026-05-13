@@ -25,10 +25,63 @@
   - 호출이 실패해도 **전체 갱신 파이프라인이 무너지지 않게** fallback (`continue`, `return None` 등) 처리.
   - HTTP 응답 코드, 타임아웃, 인코딩 (`euc-kr` vs `utf-8`) 같은 알려진 함정도 함께 처리.
 
-## 5. README ↔ 실제 코드 일치
-- 점수 산정 방식, 데이터 흐름, 메뉴 구성 등 사용자가 보는 문서와 실제 동작은 **항상 동기화**한다.
-- 실제 코드를 변경하고 README 가 옛 설명을 가지고 있다면 그 turn 안에서 README 도 함께 갱신한다.
-- "README 는 다음 작업에서…" 같은 미루기를 하지 않는다.
+## 5. README ↔ 실제 코드 일치 (절차 + 자동 트리거)
+
+`SCORING.md` 가 점수/임계값의 **single source of truth** 다.
+README.md 와 사이트 `public/index.html` 의 details 섹션은 SCORING.md 와 일치해야 한다.
+
+### 5-1. 핵심 동기화 대상 파일
+
+다음 중 **하나라도 수정**되면 SCORING.md / README.md / public/index.html details 의 영향을 점검해야 한다:
+
+| 시스템 | 코드 위치 | 영향 받는 문서 |
+|---|---|---|
+| **A. TOP 50 선정** | `src/fetch_data.py` (`score_stocks`, `RANK_SCORE_MAX`, `NEWS_SCORE_PER_ARTICLE`) | SCORING.md §A, README §A |
+| **B. 시장 분위기** | `src/recommend.py` (`calc_signal`), `public/js/app.js` (`calcSignal`) | SCORING.md §B, README §B, index.html details "시장 분위기 산정 로직" |
+| **C. 기술 지표** | `src/recommend.py` (`calc_technicals`, `summarize_technicals`), `public/js/app.js` (`calcTechnicals`, `summarizeTechnicals`) | SCORING.md §C, README §C, index.html details "기술적 지표 산정 로직" |
+| **D. 1·2주 전망** | `src/recommend.py` (`calc_forecast`), `public/js/app.js` (`calcForecast`), `api/_lib.py` / `src/api_handlers.py` (`_ai_calc_forecast`) | SCORING.md §D, README §D |
+| **E. 매수 참고 필터** | `public/js/app.js` (`renderRecommendBuy`) | SCORING.md §E, README §E, 메뉴 부제 |
+| **보존/측정 기간** | `src/recommend.py` (`KEEP_DAYS`), `src/backtest.py` (`horizons`, `COOLDOWN_DAYS`, `ABNORMAL_DAILY_THRESHOLD`, `TRADING_COST_PCT`) | SCORING.md §보존, README 백테스트 섹션 |
+| **데이터 파이프라인/배포** | `.github/workflows/*.yml`, `vercel.json`, `requirements.txt` | README "사용 방법" / "자동 갱신" 섹션 |
+
+### 5-2. 작업 사이클 절차
+
+**작업 시작 시 (자기 확인):**
+- 변경할 파일이 위 표에 해당하는가?
+- 해당하면: 작업 *시작 단계에 사용자에게 알림* — 형식:
+  > ⚠️ [파일]의 [함수/상수] 수정 예정. [X 시스템] 해당.
+  > 동기화 필요: SCORING.md [섹션] / README.md [섹션] / index.html details.
+  > 계속 진행할까요?
+- 같은 세션에서 동일 파일에 대해서는 한 번만 표시.
+
+**작업 종료 시 (매핑 체크리스트 보고):**
+변경 후 한 줄 보고 — 형식:
+- ✅ `src/recommend.py KEEP_DAYS` 변경 → SCORING.md §보존 / README 백테스트 섹션 동기화 완료
+- ⚠️ 동기화 보류된 항목이 있으면 명시 (왜 지금 못 하는지 + 언제 처리할지)
+
+### 5-3. Commit 메시지 규칙
+
+핵심 파일 (위 표) 수정 시 commit 메시지 본문 끝에 다음 라인 포함:
+
+```
+📝 README 영향: 있음
+   - SCORING.md §B (시장 분위기 점수 임계값 변경)
+   - README.md §점수 산정 / B
+   - public/index.html details "시장 분위기 산정 로직"
+```
+
+또는
+
+```
+📝 README 영향: 없음 (내부 함수 리팩토링, 외부 동작 불변)
+```
+
+"있음" 으로 적었다면 **같은 commit 안에 동기화 변경이 포함**되어야 한다. 분리 commit 금지.
+
+### 5-4. "다음 작업에서…" 금지
+
+실제 코드를 변경했는데 README 가 옛 설명을 가지고 있다면 같은 turn 안에 갱신.
+미루기 패턴을 발견하면 즉시 작업 중단하고 사용자에게 알릴 것.
 
 ## 6. 시크릿·API 키 관리
 - `ANTHROPIC_API_KEY`, `NAVER_CLIENT_ID`, `NAVER_CLIENT_SECRET` 등 모든 키는 **환경변수로만 처리**한다.
