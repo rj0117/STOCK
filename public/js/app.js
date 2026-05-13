@@ -1816,7 +1816,7 @@ async function renderSearchResult(main, code) {
                         <button class="ai-btn" id="ai-analyze-btn" onclick="requestAiAnalysis('${code}')">🤖 AI 분석 받기</button>
                         <div class="ai-note">버튼을 누르면 Claude(Anthropic)에 종목 종합 정보를 보내 매수/매도/관망 판단과 한 문단 설명을 받습니다. 응답 1~5초 소요.</div>
                     </div>
-                </div>`
+                </div>
                 <div class="flow-section">
                     <h3>💰 외국인·기관·개인 일별 수급 (최근 ${(flow.days || []).length}일)</h3>
                     ${renderFlowTableForStock(flow)}
