@@ -315,13 +315,20 @@ function summarizeTechnicals(tech) {
 
 /** 종목의 핵심 기술적 지표 한 줄 요약 (RSI + 발생 이벤트).
  * 모든 종목 카드/행에 컴팩트하게 추가 가능. */
+/** 종목 코드 → 60일 시세 배열 lookup (캐시 → API 응답 직접 전달 우선) */
+function _getPrices60dForCode(code, override) {
+    if (override && override.length >= 5) return override;
+    const cached = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[code];
+    return cached && cached.prices_60d && cached.prices_60d.length >= 5 ? cached.prices_60d : null;
+}
+
 /** 기술적 지표 종합 뱃지 — 시장 분위기 뱃지와 같은 모양 (한 줄 컴팩트) */
 function techBadgeHTML(code, opts = {}) {
-    const cached = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[code];
-    if (!cached || !cached.prices_60d || cached.prices_60d.length < 5) {
+    const prices = _getPrices60dForCode(code, opts.prices60d);
+    if (!prices) {
         return `<span class="signal-mini signal-na ${opts.compact ? 'compact' : ''}">기술 지표 —</span>`;
     }
-    const tech = calcTechnicals(cached.prices_60d);
+    const tech = calcTechnicals(prices);
     const sum = summarizeTechnicals(tech);
     if (!sum) return "";
     const compact = opts.compact ? "compact" : "";
@@ -329,10 +336,10 @@ function techBadgeHTML(code, opts = {}) {
     return `<span class="signal-mini ${sum.cls} ${compact}" title="${escapeHtml(tip)}">${sum.label}</span>`;
 }
 
-function techMiniHTML(code) {
-    const cached = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[code];
-    if (!cached || !cached.prices_60d || cached.prices_60d.length < 5) return "";
-    const t = calcTechnicals(cached.prices_60d);
+function techMiniHTML(code, opts = {}) {
+    const prices = _getPrices60dForCode(code, opts.prices60d);
+    if (!prices) return "";
+    const t = calcTechnicals(prices);
     if (!t) return "";
 
     const parts = [];
@@ -1270,8 +1277,8 @@ async function renderFavorites(main) {
                     </div>
                     <div class="fav-sig-section">
                         <div class="fav-sig-title">📐 기술적 지표</div>
-                        ${techBadgeHTML(s.code)}
-                        ${techMiniHTML(s.code) ? `<div class="fav-tech-mini">${techMiniHTML(s.code)}</div>` : ""}
+                        ${techBadgeHTML(s.code, { prices60d: flow && flow.prices_60d })}
+                        ${techMiniHTML(s.code, { prices60d: flow && flow.prices_60d }) ? `<div class="fav-tech-mini">${techMiniHTML(s.code, { prices60d: flow && flow.prices_60d })}</div>` : ""}
                     </div>
                     <div class="fav-flow">
                         <div class="ff-row">
@@ -1366,9 +1373,9 @@ async function renderSearchResult(main, code) {
                             <div class="search-tech-block">
                                 <div class="signal-line">
                                     <span class="signal-line-label">📐 기술적 지표</span>
-                                    ${techBadgeHTML(code)}
+                                    ${techBadgeHTML(code, { prices60d: flow.prices_60d })}
                                 </div>
-                                ${techMiniHTML(code) ? `<div class="search-tech-mini">${techMiniHTML(code)}</div>` : ""}
+                                ${techMiniHTML(code, { prices60d: flow.prices_60d }) ? `<div class="search-tech-mini">${techMiniHTML(code, { prices60d: flow.prices_60d })}</div>` : ""}
                             </div>
                         ` : ""}
                     ` : ""}
