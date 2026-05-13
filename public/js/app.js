@@ -290,18 +290,32 @@ function techMiniHTML(code) {
     if (!t) return "";
 
     const parts = [];
+    // RSI: 30 이하 = 매수 기회, 70 이상 = 매도 신호
     if (t.rsi14 !== null) {
-        const cls = t.rsi14 <= 30 ? "up" : t.rsi14 >= 70 ? "down" : "muted";
-        const icon = t.rsi14 <= 30 ? "🟢" : t.rsi14 >= 70 ? "🔴" : "⚪";
-        const note = t.rsi14 <= 30 ? "과매도" : t.rsi14 >= 70 ? "과매수" : "";
-        parts.push(`<span class="tm-rsi ${cls}" title="RSI 14일 ${note}">${icon} RSI ${Math.round(t.rsi14)}</span>`);
+        if (t.rsi14 <= 30) {
+            parts.push(`<span class="tm-evt up" title="RSI ${Math.round(t.rsi14)} - 너무 많이 떨어진 상태. 저가에 들어갈 만한 자리로 자주 활용됩니다">🟢 매수 <span class="tm-why">RSI ${Math.round(t.rsi14)} 저가권</span></span>`);
+        } else if (t.rsi14 >= 70) {
+            parts.push(`<span class="tm-evt down" title="RSI ${Math.round(t.rsi14)} - 너무 많이 오른 상태. 단기 조정 가능성 있어 차익실현 고려">🔴 매도 <span class="tm-why">RSI ${Math.round(t.rsi14)} 과열</span></span>`);
+        }
     }
-    if (t.goldenCross) parts.push(`<span class="tm-evt up" title="골든크로스: 5일선이 20일선을 상향 돌파 → 추세 상승 전환">⭐ 골든</span>`);
-    if (t.deadCross) parts.push(`<span class="tm-evt down" title="데드크로스: 5일선이 20일선을 하향 이탈 → 추세 하락 전환">⚠ 데드</span>`);
-    if (t.lowBounce) parts.push(`<span class="tm-evt up" title="저점 반등 시도: 5일 -7% 하락 후 어제 +2% 반등">📈 반등</span>`);
+    // 골든크로스 = 매수, 데드크로스 = 매도
+    if (t.goldenCross) {
+        parts.push(`<span class="tm-evt up" title="단기 평균선이 중기 평균선을 위로 뚫음. 추세가 상승으로 바뀌는 강한 매수 신호">🟢 매수 <span class="tm-why">평균선 위로 뚫음(골든)</span></span>`);
+    }
+    if (t.deadCross) {
+        parts.push(`<span class="tm-evt down" title="단기 평균선이 중기 평균선을 아래로 뚫음. 추세가 하락으로 바뀌는 강한 매도 신호">🔴 매도 <span class="tm-why">평균선 아래로(데드)</span></span>`);
+    }
+    // 저점 반등 = 매수
+    if (t.lowBounce) {
+        parts.push(`<span class="tm-evt up" title="5일 동안 -7% 이상 떨어진 후 어제 +2% 이상 반등. 바닥에서 올라오기 시작하는 저점 매수 후보">🟢 매수 <span class="tm-why">바닥 반등</span></span>`);
+    }
+    // 이격도
     if (t.divergence20 !== null) {
-        if (t.divergence20 <= -10) parts.push(`<span class="tm-evt up" title="20일 이격도 ${t.divergence20}% (단기 과매도)">📉 이격↓</span>`);
-        else if (t.divergence20 >= 15) parts.push(`<span class="tm-evt down" title="20일 이격도 +${t.divergence20}% (단기 과열)">📊 이격↑</span>`);
+        if (t.divergence20 <= -10) {
+            parts.push(`<span class="tm-evt up" title="20일 평균보다 ${Math.abs(t.divergence20)}% 낮음. 평균으로 돌아갈 가능성(저점 매수)">🟢 매수 <span class="tm-why">평균보다 ${Math.abs(t.divergence20).toFixed(0)}% 낮음</span></span>`);
+        } else if (t.divergence20 >= 15) {
+            parts.push(`<span class="tm-evt down" title="20일 평균보다 ${t.divergence20}% 높음. 단기 과열 → 차익실현 고려">🔴 매도 <span class="tm-why">평균보다 +${t.divergence20.toFixed(0)}% 높음</span></span>`);
+        }
     }
     if (parts.length === 0) return "";
     return `<span class="tech-mini">${parts.join("")}</span>`;
@@ -1369,7 +1383,12 @@ async function renderSearchResult(main, code) {
                             </div>
                         ` : ""}
                         <div class="tech-note-small">
-                            💡 <strong>해석 가이드</strong>: RSI 30↓ 과매도 (저점 매수 후보) · RSI 70↑ 과매수 (조정 가능) · 골든크로스 = 5일선이 20일선을 위로 돌파 (추세 상승 전환) · 데드크로스 = 반대 (추세 하락 전환)
+                            💡 <strong>이게 뭐죠?</strong><br>
+                            <strong>RSI</strong>: 0~100 사이 점수. <span class="up">30 이하 = 많이 떨어진 상태(저가에 사기 좋음)</span>, <span class="down">70 이상 = 많이 오른 상태(차익실현 고려)</span><br>
+                            <strong>골든크로스</strong>: 단기(5일) 평균선이 중기(20일) 평균선을 위로 뚫음 → <span class="up">강한 매수 신호</span><br>
+                            <strong>데드크로스</strong>: 반대 (5일선이 20일선 아래로) → <span class="down">강한 매도 신호</span><br>
+                            <strong>저점 반등</strong>: 며칠 떨어진 뒤 다시 오르기 시작 → <span class="up">저점 매수 후보</span><br>
+                            <strong>이격도</strong>: 현재가가 20일 평균보다 얼마나 떨어져 있는지. <span class="up">-10% 이상 차이 = 저가권(저점 매수)</span>, <span class="down">+15% 이상 = 과열(주의)</span>
                         </div>
                     </div>
                 ` : ""}
