@@ -198,7 +198,9 @@ def calc_signal(flow_days, sentiment=None):
 
 
 # -------- 통계 신뢰구간 (1·2주) -------------------------------------------
-def calc_forecast(prices_60d, current_price):
+def calc_forecast(prices_60d, current_price, tech=None, earnings_days_away=None):
+    """1-2주 신뢰구간 (Historical VaR + GBM 50:50 가중, 모멘텀 보정, RSI mean reversion,
+    실적 임박 σ 확장, 신뢰도 등급)."""
     if not prices_60d or len(prices_60d) < 20 or not current_price:
         return None
     ordered = list(reversed(prices_60d))
@@ -209,32 +211,96 @@ def calc_forecast(prices_60d, current_price):
             returns.append(math.log(ordered[i].get("close", 0) / prev))
     if len(returns) < 10:
         return None
-    mean = sum(returns) / len(returns)
-    variance = sum((r - mean) ** 2 for r in returns) / len(returns)
-    sd = math.sqrt(variance)
+
+    base_mean = sum(returns) / len(returns)
+    base_sd = math.sqrt(sum((r - base_mean) ** 2 for r in returns) / len(returns))
+
+    # 1) 모멘텀 보정
+    mu_adj = base_mean
+    if len(returns) >= 5:
+        recent_mean = sum(returns[-5:]) / 5
+        mu_adj = base_mean * 0.6 + recent_mean * 0.4
+
+    # 2) RSI mean reversion
+    rsi = tech.get("rsi14") if tech else None
+    if rsi is not None:
+        if rsi >= 70:
+            mu_adj -= 0.001 * (rsi - 70) / 30
+        elif rsi <= 30:
+            mu_adj += 0.001 * (30 - rsi) / 30
+
+    # 3) 이벤트 리스크
+    sd_adj = base_sd
+    if earnings_days_away is not None and 0 <= earnings_days_away <= 7:
+        sd_adj = base_sd * 1.5
+
+    # 4) Historical VaR
+    sorted_r = sorted(returns)
+    def quantile(q):
+        idx = q * (len(sorted_r) - 1)
+        lo, hi = int(idx), min(int(idx) + 1, len(sorted_r) - 1)
+        if lo == hi: return sorted_r[lo]
+        return sorted_r[lo] + (sorted_r[hi] - sorted_r[lo]) * (idx - lo)
+    r025 = quantile(0.025)
+    r975 = quantile(0.975)
 
     def at(days):
-        mu = mean * days
-        sigma = sd * math.sqrt(days)
-        expected = round(current_price * math.exp(mu))
-        lower = round(current_price * math.exp(mu - 1.96 * sigma))
-        upper = round(current_price * math.exp(mu + 1.96 * sigma))
+        mu_t = mu_adj * days
+        sigma_t = sd_adj * math.sqrt(days)
+        low_norm = mu_t - 1.96 * sigma_t
+        up_norm = mu_t + 1.96 * sigma_t
+        low_hist = (r025 - base_mean) * math.sqrt(days) + mu_t
+        up_hist = (r975 - base_mean) * math.sqrt(days) + mu_t
+        lower = (low_norm + low_hist) / 2
+        upper = (up_norm + up_hist) / 2
+        expected = round(current_price * math.exp(mu_t))
         return {
-            "expected": expected, "lower": lower, "upper": upper,
+            "expected": expected,
+            "lower": round(current_price * math.exp(lower)),
+            "upper": round(current_price * math.exp(upper)),
             "ret_pct": round((expected / current_price - 1) * 1000) / 10,
-            "lower_pct": round((lower / current_price - 1) * 1000) / 10,
-            "upper_pct": round((upper / current_price - 1) * 1000) / 10,
+            "lower_pct": round((math.exp(lower) - 1) * 1000) / 10,
+            "upper_pct": round((math.exp(upper) - 1) * 1000) / 10,
         }
+
+    # 5) 신뢰도 등급
+    grade = "stable"
+    warnings = []
+    reasons = []
+    if len(returns) < 30:
+        grade = "limited"
+        warnings.append(f"표본 {len(returns)}개 (충분치 않음)")
+    half = len(returns) // 2
+    if half >= 10:
+        r1, r2 = returns[:half], returns[half:]
+        m1 = sum(r1) / len(r1); m2 = sum(r2) / len(r2)
+        s1 = math.sqrt(sum((r - m1) ** 2 for r in r1) / len(r1))
+        s2 = math.sqrt(sum((r - m2) ** 2 for r in r2) / len(r2))
+        if s1 > 0:
+            ratio = s2 / s1
+            if ratio > 1.5 or ratio < 0.67:
+                if grade == "stable": grade = "caution"
+                warnings.append(f"변동성 변화 {ratio:.2f}× (전반기 → 후반기)")
+    if earnings_days_away is not None and 0 <= earnings_days_away <= 7:
+        grade = "uncertain"
+        warnings.append(f"실적 발표 D-{earnings_days_away} (σ 1.5배 확장)")
+    if rsi is not None:
+        if rsi >= 75: reasons.append(f"RSI {rsi:.0f} 과열 → 회귀 압력 반영")
+        elif rsi <= 25: reasons.append(f"RSI {rsi:.0f} 과매도 → 반등 압력 반영")
 
     return {
         "oneWeek": at(5),
         "twoWeek": at(10),
-        "dailyMeanPct": round(mean * 1000) / 10,
-        "dailySdPct": round(sd * 1000) / 10,
+        "dailyMeanPct": round(mu_adj * 1000) / 10,
+        "dailySdPct": round(sd_adj * 1000) / 10,
         "sampleSize": len(returns),
-        # 곡선 그릴 때 필요한 원본 파라미터
-        "mu_daily": mean,
-        "sigma_daily": sd,
+        "baseMeanPct": round(base_mean * 1000) / 10,
+        "baseSdPct": round(base_sd * 1000) / 10,
+        "grade": grade,
+        "warnings": warnings,
+        "reasons": reasons,
+        "mu_daily": mu_adj,
+        "sigma_daily": sd_adj,
     }
 
 
@@ -273,7 +339,7 @@ def find_buy_candidates(by_code, news_by_stock=None):
             continue
         today = days[0]
         current_price = today.get("close") or 0
-        forecast = calc_forecast(prices_60d, current_price) if current_price else None
+        forecast = calc_forecast(prices_60d, current_price, tech=tech) if current_price else None
         candidates.append({
             "code": code,
             "name": info.get("name") or code,

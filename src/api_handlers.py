@@ -476,7 +476,8 @@ def _ai_calc_technicals(prices_60d):
             "dead_cross": dead, "low_bounce": low_bounce}
 
 
-def _ai_calc_forecast(prices_60d, current_price):
+def _ai_calc_forecast(prices_60d, current_price, tech=None, earnings_days_away=None):
+    """Historical VaR + GBM 50:50, 모멘텀/RSI 보정, 실적 σ 확장, 신뢰도 등급."""
     if not prices_60d or len(prices_60d) < 20 or not current_price:
         return None
     ordered = list(reversed(prices_60d))
@@ -487,20 +488,73 @@ def _ai_calc_forecast(prices_60d, current_price):
             returns.append(math.log(ordered[i].get("close", 0) / prev))
     if len(returns) < 10:
         return None
-    mu = sum(returns) / len(returns)
-    var = sum((r - mu) ** 2 for r in returns) / len(returns)
-    sd = math.sqrt(var)
+    base_mean = sum(returns) / len(returns)
+    base_sd = math.sqrt(sum((r - base_mean) ** 2 for r in returns) / len(returns))
+
+    mu_adj = base_mean
+    if len(returns) >= 5:
+        recent_mean = sum(returns[-5:]) / 5
+        mu_adj = base_mean * 0.6 + recent_mean * 0.4
+
+    rsi = tech.get("rsi14") if tech else None
+    if rsi is not None:
+        if rsi >= 70: mu_adj -= 0.001 * (rsi - 70) / 30
+        elif rsi <= 30: mu_adj += 0.001 * (30 - rsi) / 30
+
+    sd_adj = base_sd
+    if earnings_days_away is not None and 0 <= earnings_days_away <= 7:
+        sd_adj = base_sd * 1.5
+
+    sorted_r = sorted(returns)
+    def quantile(q):
+        idx = q * (len(sorted_r) - 1)
+        lo, hi = int(idx), min(int(idx) + 1, len(sorted_r) - 1)
+        if lo == hi: return sorted_r[lo]
+        return sorted_r[lo] + (sorted_r[hi] - sorted_r[lo]) * (idx - lo)
+    r025 = quantile(0.025); r975 = quantile(0.975)
+
     def at(t):
-        sig = sd * math.sqrt(t)
-        exp = current_price * math.exp(mu * t)
+        mu_t = mu_adj * t
+        sigma_t = sd_adj * math.sqrt(t)
+        low_norm = mu_t - 1.96 * sigma_t; up_norm = mu_t + 1.96 * sigma_t
+        low_hist = (r025 - base_mean) * math.sqrt(t) + mu_t
+        up_hist = (r975 - base_mean) * math.sqrt(t) + mu_t
+        lower = (low_norm + low_hist) / 2; upper = (up_norm + up_hist) / 2
+        exp = current_price * math.exp(mu_t)
         return {
             "expected_pct": round((exp/current_price - 1) * 100, 1),
-            "lower_pct": round((math.exp(mu*t - 1.96*sig) - 1) * 100, 1),
-            "upper_pct": round((math.exp(mu*t + 1.96*sig) - 1) * 100, 1),
+            "lower_pct": round((math.exp(lower) - 1) * 100, 1),
+            "upper_pct": round((math.exp(upper) - 1) * 100, 1),
         }
-    return {"oneWeek": at(5), "twoWeek": at(10),
-            "daily_mean_pct": round(mu * 100, 2),
-            "daily_sd_pct": round(sd * 100, 2)}
+
+    grade = "stable"
+    warnings = []
+    if len(returns) < 30:
+        grade = "limited"; warnings.append(f"표본 {len(returns)}개")
+    half = len(returns) // 2
+    if half >= 10:
+        r1, r2 = returns[:half], returns[half:]
+        m1 = sum(r1)/len(r1); m2 = sum(r2)/len(r2)
+        s1 = math.sqrt(sum((r-m1)**2 for r in r1)/len(r1))
+        s2 = math.sqrt(sum((r-m2)**2 for r in r2)/len(r2))
+        if s1 > 0:
+            ratio = s2/s1
+            if ratio > 1.5 or ratio < 0.67:
+                if grade == "stable": grade = "caution"
+                warnings.append(f"변동성 변화 {ratio:.2f}배")
+    if earnings_days_away is not None and 0 <= earnings_days_away <= 7:
+        grade = "uncertain"
+        warnings.append(f"실적 D-{earnings_days_away}, σ 1.5배 확장")
+
+    return {
+        "oneWeek": at(5), "twoWeek": at(10),
+        "daily_mean_pct": round(mu_adj * 100, 2),
+        "daily_sd_pct": round(sd_adj * 100, 2),
+        "base_mean_pct": round(base_mean * 100, 2),
+        "base_sd_pct": round(base_sd * 100, 2),
+        "grade": grade,
+        "warnings": warnings,
+    }
 
 
 def _ai_tech_summary(t):
@@ -573,14 +627,30 @@ def get_ai_analysis(code: str) -> dict:
 
     tech = _ai_calc_technicals(prices_60d)
     tech_text = _ai_tech_summary(tech)
-    forecast = _ai_calc_forecast(prices_60d, price)
+
+    earnings_days_away = None
+    if next_earnings:
+        try:
+            e_str = next_earnings.replace(".", "-").replace("/", "-")
+            e_date = datetime.strptime(e_str, "%Y-%m-%d").date()
+            delta = (e_date - now_kst().date()).days
+            if delta >= 0: earnings_days_away = delta
+        except Exception:
+            pass
+
+    forecast = _ai_calc_forecast(prices_60d, price, tech=tech, earnings_days_away=earnings_days_away)
     if forecast:
+        grade_kr = {"stable": "안정", "caution": "주의", "limited": "표본부족", "uncertain": "불확실"}.get(forecast["grade"], forecast["grade"])
+        warn_line = (" · 경고: " + "; ".join(forecast["warnings"])) if forecast["warnings"] else ""
         forecast_text = (
+            f"신뢰도 등급: {grade_kr}{warn_line}\n"
             f"1주(5거래일): 기대 {forecast['oneWeek']['expected_pct']:+.1f}% / "
             f"95% 범위 {forecast['oneWeek']['lower_pct']:+.1f}% ~ {forecast['oneWeek']['upper_pct']:+.1f}%\n"
             f"2주(10거래일): 기대 {forecast['twoWeek']['expected_pct']:+.1f}% / "
             f"95% 범위 {forecast['twoWeek']['lower_pct']:+.1f}% ~ {forecast['twoWeek']['upper_pct']:+.1f}%\n"
-            f"(일일 평균 수익률 {forecast['daily_mean_pct']:+.2f}%, 일일 변동성 ±{forecast['daily_sd_pct']:.2f}%)"
+            f"(보정 μ {forecast['daily_mean_pct']:+.2f}%/일, 보정 σ ±{forecast['daily_sd_pct']:.2f}%/일 — "
+            f"기본값: μ {forecast['base_mean_pct']:+.2f}%, σ ±{forecast['base_sd_pct']:.2f}%)\n"
+            f"모델: Historical VaR + GBM 50:50, 5일 모멘텀 보정, RSI mean reversion, 실적 σ 확장"
         )
     else:
         forecast_text = "(데이터 부족)"

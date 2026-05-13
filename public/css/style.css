@@ -574,6 +574,25 @@ a { color: inherit; text-decoration: none; }
 .lg-expected { background: #ff9800; border-top: 1px dashed #ff9800; height: 0; border-bottom: 1px dashed #ff9800; }
 .lg-band { background: rgba(255,152,0,0.4); height: 8px; border-radius: 2px; }
 
+/* ============ 신뢰도 등급 (forecast grade) ============ */
+.fc-grade {
+    display: inline-block; padding: 1px 6px; border-radius: 8px;
+    font-size: 10px; font-weight: 700; margin-left: 4px;
+}
+.fc-grade-stable { background: rgba(67,160,71,0.15); color: #2e7d32; }
+.fc-grade-caution { background: rgba(251,140,0,0.15); color: #ef6c00; }
+.fc-grade-limited { background: rgba(120,120,120,0.15); color: #616161; }
+.fc-grade-uncertain { background: rgba(229,57,53,0.18); color: #c62828; }
+.fc-mini .fc-grade { display: block; margin: 0 0 2px 0; text-align: left; width: fit-content; }
+.forecast-meta {
+    list-style: none; padding: 0; margin: 8px 0 0;
+    display: flex; flex-direction: column; gap: 2px;
+    font-size: 12px;
+}
+.forecast-meta li { color: var(--color-muted); }
+.forecast-meta .fc-warn { color: #ef6c00; }
+.forecast-meta .fc-reason { color: var(--color-text); }
+
 /* 뉴스 종목 카드 - 시그널 두 블록 */
 .snc-signal-row {
     display: grid;

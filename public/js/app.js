@@ -489,15 +489,24 @@ function forecastMiniHTML(code, opts = {}) {
     if (!prices || prices.length < 20) return "";
     const currentPrice = prices[0] && prices[0].close;
     if (!currentPrice) return "";
-    const f = calcForecast(prices, currentPrice);
+    const f = calcForecast(prices, currentPrice, opts);
     if (!f) return "";
     function line(label, r) {
         const expCls = r.ret_pct >= 0 ? "up" : "down";
         const expSign = r.ret_pct >= 0 ? "+" : "";
         const lowSign = r.lower_pct >= 0 ? "+" : "";
-        return `<div class="fc-mini-line" title="기준일 종가 기준 ${label} 95% 신뢰구간 · 최근 ${f.sampleSize}일 변동성(일 ±${f.dailySdPct}%) 기반"><span class="fc-mini-label">${label}</span><span class="fc-mini-exp ${expCls}">${expSign}${r.ret_pct}%</span><span class="fc-mini-range">${lowSign}${r.lower_pct}% ~ +${r.upper_pct}%</span></div>`;
+        return `<div class="fc-mini-line" title="${label} 95% 신뢰구간 · 일일 σ ±${f.dailySdPct}% / μ ${f.dailyMeanPct >= 0 ? '+' : ''}${f.dailyMeanPct}%"><span class="fc-mini-label">${label}</span><span class="fc-mini-exp ${expCls}">${expSign}${r.ret_pct}%</span><span class="fc-mini-range">${lowSign}${r.lower_pct}% ~ +${r.upper_pct}%</span></div>`;
     }
-    return `<div class="fc-mini">${line("1주", f.oneWeek)}${line("2주", f.twoWeek)}</div>`;
+    const gradeMap = {
+        stable: { label: "안정", cls: "fc-grade-stable" },
+        caution: { label: "주의", cls: "fc-grade-caution" },
+        limited: { label: "표본부족", cls: "fc-grade-limited" },
+        uncertain: { label: "불확실", cls: "fc-grade-uncertain" },
+    };
+    const g = gradeMap[f.grade] || gradeMap.stable;
+    const tooltip = [...(f.warnings || []), ...(f.reasons || [])].join("\n");
+    const badge = `<span class="fc-grade ${g.cls}" title="${escapeHtml(tooltip || '안정')}">${g.label}</span>`;
+    return `<div class="fc-mini">${badge}${line("1주", f.oneWeek)}${line("2주", f.twoWeek)}</div>`;
 }
 
 /** 5일 수급 데이터를 캐시에서 가져와 시그널 뱃지 HTML 반환.
@@ -1394,42 +1403,142 @@ function fetchFlowCached(code) {
  * @param {number} currentPrice - 현재가
  * @returns {Object|null} { oneWeek: {expected, lower, upper, ret_pct}, twoWeek: {...}, dailySdPct }
  */
-function calcForecast(prices60d, currentPrice) {
+/**
+ * 1-2주 통계 신뢰구간. 다섯 가지 보정 포함:
+ *  1) Historical VaR(정규성 가정 완화: 실제 분포의 2.5%/97.5% 분위수 50% 가중)
+ *  2) 모멘텀 보정(최근 5일 수익률을 μ에 가중)
+ *  3) RSI mean reversion(과열/과매도 시 μ 회귀 압력)
+ *  4) 이벤트 리스크(실적 발표 D-7 이내면 σ × 1.5)
+ *  5) 신뢰도 등급(stable/caution/limited/uncertain)
+ * opts: { tech?, earningsDaysAway? }
+ */
+function calcForecast(prices60d, currentPrice, opts = {}) {
     if (!prices60d || prices60d.length < 20 || !currentPrice) return null;
-    const ordered = [...prices60d].reverse();  // 과거 → 최신
+    const ordered = [...prices60d].reverse();
     const returns = [];
     for (let i = 1; i < ordered.length; i++) {
         const prev = ordered[i - 1].close;
         if (prev > 0) {
-            returns.push(Math.log(ordered[i].close / prev));  // 로그 수익률
+            returns.push(Math.log(ordered[i].close / prev));
         }
     }
     if (returns.length < 10) return null;
-    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
-    const sd = Math.sqrt(variance);
+
+    const baseMean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const baseSd = Math.sqrt(returns.reduce((a, b) => a + (b - baseMean) ** 2, 0) / returns.length);
+
+    // === 1. 모멘텀 보정: 60일 평균 0.6 + 최근 5일 평균 0.4 ===
+    let muAdj = baseMean;
+    if (returns.length >= 5) {
+        const recent5 = returns.slice(-5);
+        const recentMean = recent5.reduce((a, b) => a + b, 0) / recent5.length;
+        muAdj = baseMean * 0.6 + recentMean * 0.4;
+    }
+
+    // === 2. RSI mean reversion ===
+    const tech = opts.tech || calcTechnicals(prices60d);
+    const rsi = tech ? tech.rsi14 : null;
+    if (rsi !== null && rsi !== undefined) {
+        if (rsi >= 70) {
+            // 과열 → 회귀 압력. RSI 100이면 일일 -0.1%
+            muAdj -= 0.001 * (rsi - 70) / 30;
+        } else if (rsi <= 30) {
+            // 과매도 → 반등 압력
+            muAdj += 0.001 * (30 - rsi) / 30;
+        }
+    }
+
+    // === 3. 이벤트 리스크: 실적 발표 D-7 이내면 σ × 1.5 ===
+    let sdAdj = baseSd;
+    const dE = opts.earningsDaysAway;
+    if (dE !== undefined && dE !== null && dE >= 0 && dE <= 7) {
+        sdAdj = baseSd * 1.5;
+    }
+
+    // === 4. Historical VaR: 1일 분포의 분위수 추출 (정규성 가정 완화) ===
+    const sortedR = [...returns].sort((a, b) => a - b);
+    function quantile(q) {
+        const idx = q * (sortedR.length - 1);
+        const lo = Math.floor(idx), hi = Math.ceil(idx);
+        if (lo === hi) return sortedR[lo];
+        return sortedR[lo] + (sortedR[hi] - sortedR[lo]) * (idx - lo);
+    }
+    const r025 = quantile(0.025);
+    const r975 = quantile(0.975);
 
     function rangeAt(days) {
-        const mu = mean * days;
-        const sigma = sd * Math.sqrt(days);
-        const expected = Math.round(currentPrice * Math.exp(mu));
-        const lower = Math.round(currentPrice * Math.exp(mu - 1.96 * sigma));
-        const upper = Math.round(currentPrice * Math.exp(mu + 1.96 * sigma));
+        const muT = muAdj * days;
+        const sigmaT = sdAdj * Math.sqrt(days);
+        // 정규 모델 기반
+        const lowNorm = muT - 1.96 * sigmaT;
+        const upNorm = muT + 1.96 * sigmaT;
+        // Historical VaR — √t 스케일링 (조잡하지만 보수적인 추정)
+        const lowHist = (r025 - baseMean) * Math.sqrt(days) + muT;
+        const upHist = (r975 - baseMean) * Math.sqrt(days) + muT;
+        // 50:50 가중 평균
+        const lower = (lowNorm + lowHist) / 2;
+        const upper = (upNorm + upHist) / 2;
+        const expected = Math.round(currentPrice * Math.exp(muT));
         return {
             expected,
-            lower,
-            upper,
+            lower: Math.round(currentPrice * Math.exp(lower)),
+            upper: Math.round(currentPrice * Math.exp(upper)),
             ret_pct: Math.round((expected / currentPrice - 1) * 1000) / 10,
-            upper_pct: Math.round((upper / currentPrice - 1) * 1000) / 10,
-            lower_pct: Math.round((lower / currentPrice - 1) * 1000) / 10,
+            upper_pct: Math.round((Math.exp(upper) - 1) * 1000) / 10,
+            lower_pct: Math.round((Math.exp(lower) - 1) * 1000) / 10,
         };
     }
+
+    // === 5. 신뢰도 등급 ===
+    let grade = "stable";
+    const warnings = [];
+    const reasons = [];
+    if (returns.length < 30) {
+        grade = "limited";
+        warnings.push(`표본 ${returns.length}개 (충분치 않음)`);
+    }
+    // 변동성 안정성: 표본을 둘로 나눠 σ 비교
+    const half = Math.floor(returns.length / 2);
+    if (half >= 10) {
+        const r1 = returns.slice(0, half);
+        const r2 = returns.slice(half);
+        const m1 = r1.reduce((a, b) => a + b, 0) / r1.length;
+        const m2 = r2.reduce((a, b) => a + b, 0) / r2.length;
+        const s1 = Math.sqrt(r1.reduce((a, b) => a + (b - m1) ** 2, 0) / r1.length);
+        const s2 = Math.sqrt(r2.reduce((a, b) => a + (b - m2) ** 2, 0) / r2.length);
+        if (s1 > 0) {
+            const ratio = s2 / s1;
+            if (ratio > 1.5 || ratio < 0.67) {
+                if (grade === "stable") grade = "caution";
+                warnings.push(`변동성 변화 ${(ratio).toFixed(2)}× (전반기 → 후반기)`);
+            }
+        }
+    }
+    if (dE !== undefined && dE !== null && dE >= 0 && dE <= 7) {
+        grade = "uncertain";
+        warnings.push(`실적 발표 D-${dE} (σ 1.5배 확장)`);
+    }
+    if (rsi !== null && rsi !== undefined) {
+        if (rsi >= 75) reasons.push(`RSI ${rsi.toFixed(0)} 과열 → 회귀 압력 반영`);
+        else if (rsi <= 25) reasons.push(`RSI ${rsi.toFixed(0)} 과매도 → 반등 압력 반영`);
+    }
+    if (Math.abs(muAdj - baseMean) > Math.abs(baseMean) * 0.5 + 0.0005) {
+        reasons.push(`최근 5일 추세를 μ에 반영 (기본 ${(baseMean*100).toFixed(2)}% → 보정 ${(muAdj*100).toFixed(2)}%)`);
+    }
+
     return {
         oneWeek: rangeAt(5),
         twoWeek: rangeAt(10),
-        dailyMeanPct: Math.round(mean * 1000) / 10,
-        dailySdPct: Math.round(sd * 1000) / 10,
+        dailyMeanPct: Math.round(muAdj * 1000) / 10,
+        dailySdPct: Math.round(sdAdj * 1000) / 10,
         sampleSize: returns.length,
+        baseMeanPct: Math.round(baseMean * 1000) / 10,
+        baseSdPct: Math.round(baseSd * 1000) / 10,
+        grade,
+        warnings,
+        reasons,
+        mu_daily: muAdj,
+        sigma_daily: sdAdj,
     };
 }
 
@@ -2057,9 +2166,17 @@ async function renderSearchResult(main, code) {
                         </div>
                     </div>
                 ` : ""}
-                ${forecast ? `
+                ${forecast ? (() => {
+                    const gradeMap = {
+                        stable: { label: "안정 ✓", cls: "fc-grade-stable", note: "변동성·표본 모두 양호" },
+                        caution: { label: "주의 ⚠", cls: "fc-grade-caution", note: "변동성이 최근 변했음 — 보정값 신뢰도 ↓" },
+                        limited: { label: "표본 부족", cls: "fc-grade-limited", note: "30일 미만 표본 — 보수적으로 해석" },
+                        uncertain: { label: "불확실 ⚠⚠", cls: "fc-grade-uncertain", note: "이벤트 임박 — 신뢰구간 크게 벗어날 위험" },
+                    };
+                    const g = gradeMap[forecast.grade] || gradeMap.stable;
+                    return `
                     <div class="card forecast-card">
-                        <h3 class="forecast-title">📅 1-2주 전망 (통계 추정) <span class="forecast-sub">최근 ${forecast.sampleSize}일 변동성 기반 95% 신뢰구간</span></h3>
+                        <h3 class="forecast-title">📅 1-2주 전망 (통계 추정) <span class="forecast-sub">표본 ${forecast.sampleSize}일 · μ ${forecast.dailyMeanPct >= 0 ? '+' : ''}${forecast.dailyMeanPct}% · σ ±${forecast.dailySdPct}% · <span class="fc-grade ${g.cls}" title="${escapeHtml(g.note)}">${g.label}</span></span></h3>
                         <div class="forecast-grid">
                             <div class="forecast-cell">
                                 <div class="fc-period">📆 1주 후 (5영업일)</div>
@@ -2080,11 +2197,17 @@ async function renderSearchResult(main, code) {
                                 </div>
                             </div>
                         </div>
+                        ${(forecast.warnings && forecast.warnings.length) || (forecast.reasons && forecast.reasons.length) ? `
+                            <ul class="forecast-meta">
+                                ${(forecast.warnings || []).map(w => `<li class="fc-warn">⚠ ${escapeHtml(w)}</li>`).join("")}
+                                ${(forecast.reasons || []).map(r => `<li class="fc-reason">• ${escapeHtml(r)}</li>`).join("")}
+                            </ul>` : ""}
                         <div class="forecast-note">
-                            💡 <strong>이건 예측이 아닌 통계 범위입니다</strong>. 최근 ${forecast.sampleSize}일의 일일 변동성(±${forecast.dailySdPct}%/일)이 유지된다고 가정한 95% 신뢰구간 — 시장 큰 이벤트(실적·정책·해외증시 등) 발생 시 무력해집니다. 평균 기대치 = 최근 추세 연장(일일 ${forecast.dailyMeanPct >= 0 ? '+' : ''}${forecast.dailyMeanPct}%).
+                            💡 <strong>이건 예측이 아닌 통계 범위입니다</strong>. 모델: Historical VaR + GBM 정규모델 50:50 가중, 5일 모멘텀 보정, RSI mean reversion, 실적 임박 σ 확장. 실적·정책·해외증시 큰 이벤트가 발생하면 모델 무력화 가능.
                         </div>
                     </div>
-                ` : ""}
+                    `;
+                })() : ""}
                 <div class="card ai-card">
                     <h3 class="ai-card-title">🤖 Claude AI 분석 <span class="ai-card-sub">시세·수급·뉴스·기술지표 종합 판단</span></h3>
                     <div class="ai-body" id="ai-analysis-body">
