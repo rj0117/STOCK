@@ -831,6 +831,17 @@ function calcSignal(flowDays, sentiment) {
     if (todayPct >= 7) { score -= 2; overheatPenalty = true; reasons.push(`당일 +${todayPct.toFixed(1)}% 급등 (차익실현 압력)`); }
     else if (todayPct <= -7) { score -= 1; dropPenalty = true; reasons.push(`당일 ${todayPct.toFixed(1)}% 급락 (추세 약화)`); }
 
+    // 5일 가격 추세 (모멘텀) — 수급과 별개로 가격 흐름 반영
+    const oldestClose = flowDays[flowDays.length - 1].close;
+    const latestClose = today.close;
+    if (oldestClose > 0 && latestClose > 0) {
+        const ret5 = (latestClose - oldestClose) / oldestClose * 100;
+        if (ret5 >= 10) { score += 3; reasons.push(`5일 +${ret5.toFixed(1)}% 강한 상승`); }
+        else if (ret5 >= 5) { score += 2; reasons.push(`5일 +${ret5.toFixed(1)}% 상승`); }
+        else if (ret5 <= -10) { score -= 3; reasons.push(`5일 ${ret5.toFixed(1)}% 강한 하락`); }
+        else if (ret5 <= -5) { score -= 2; reasons.push(`5일 ${ret5.toFixed(1)}% 하락`); }
+    }
+
     // 뉴스 호재/악재 영향도 (있을 때만)
     if (sentiment && (sentiment.pos > 0 || sentiment.neg > 0)) {
         const net = (sentiment.pos || 0) - (sentiment.neg || 0);
