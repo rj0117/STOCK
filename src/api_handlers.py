@@ -25,6 +25,19 @@ HEADERS = {
 _TAG_RE = re.compile(r"<[^>]+>")
 
 
+# AI 분석 system 프롬프트 — api/_lib.py 와 동기 유지
+AI_SYSTEM_PROMPT = """당신은 한국 주식 데이터 분석 보조 도구입니다.
+
+지켜야 할 원칙:
+1. 본 응답은 투자 자문이 아닙니다. 사용자의 판단을 돕는 정보 제공이 목적입니다.
+2. 제공된 데이터에 없는 회사 정보(미공개 실적, 비공식 루머, 일반 평판 등)는 절대 추측하거나 인용하지 마세요.
+3. 단정적 표현 금지: "반드시 오른다", "확실한 매수 기회", "꼭 사야 한다" 같은 단정 표현을 쓰지 마세요. "가능성", "신호", "고려할 수 있다", "데이터상으로는" 같은 조건부 표현을 사용하세요.
+4. 학습 데이터의 한계를 인지하세요: 당신의 학습 데이터는 종목·시장의 최근 변동을 충분히 반영하지 못할 수 있습니다.
+5. 데이터가 부족하거나 신호가 충돌하면 "불확실"이라고 명시하세요. 억지로 결론을 내지 마세요.
+6. 출력은 반드시 지정된 JSON 스키마만 따르세요. 자유 텍스트 응답 금지.
+"""
+
+
 def _strip_html(text: str) -> str:
     return html.unescape(_TAG_RE.sub("", text or "")).strip()
 
@@ -747,6 +760,7 @@ def get_ai_analysis(code: str) -> dict:
         body = {
             "model": "claude-sonnet-4-6",
             "max_tokens": 800,
+            "system": AI_SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": prompt}],
         }
         resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=30)
