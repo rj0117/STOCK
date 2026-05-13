@@ -36,6 +36,49 @@
                 <div class="su-time" id="sidebar-update-time">—</div>
                 <div class="su-note">실시간 시세는 검색·즐겨찾기 시 즉시 조회</div>
             </div>
+
+            <details class="sidebar-logic">
+                <summary>📈 매매 신호 산정 로직</summary>
+                <div class="sl-body">
+                    <div class="sl-section">
+                        <div class="sl-section-title">🟢 가산 (매수 우위)</div>
+                        <ul>
+                            <li><span class="sl-item">외인+기관 동반 매수일</span><span class="sl-score plus">+3/일</span></li>
+                            <li><span class="sl-item">외국인 매수일</span><span class="sl-score plus">+2/일</span></li>
+                            <li><span class="sl-item">기관 매수일</span><span class="sl-score plus">+1.5/일</span></li>
+                            <li><span class="sl-item">뉴스 호재 압도적 (≥10)</span><span class="sl-score plus">+10</span></li>
+                            <li><span class="sl-item">뉴스 호재 우세 (5~9)</span><span class="sl-score plus">+6</span></li>
+                            <li><span class="sl-item">5일 +10% 이상 상승</span><span class="sl-score plus">+3</span></li>
+                            <li><span class="sl-item">5일 +5~10% 상승</span><span class="sl-score plus">+2</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-section">
+                        <div class="sl-section-title">🔴 감산 (매도 우위)</div>
+                        <ul>
+                            <li><span class="sl-item">외인+기관 동반 매도일</span><span class="sl-score minus">-3/일</span></li>
+                            <li><span class="sl-item">외국인 매도일</span><span class="sl-score minus">-1/일</span></li>
+                            <li><span class="sl-item">뉴스 악재 압도적 (≥10)</span><span class="sl-score minus">-10</span></li>
+                            <li><span class="sl-item">뉴스 악재 우세 (5~9)</span><span class="sl-score minus">-6</span></li>
+                            <li><span class="sl-item">5일 -10% 이상 하락</span><span class="sl-score minus">-3</span></li>
+                            <li><span class="sl-item">당일 +7% 급등 (과열)</span><span class="sl-score minus">-2</span></li>
+                            <li><span class="sl-item">당일 -7% 급락</span><span class="sl-score minus">-1</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-section">
+                        <div class="sl-section-title">🏷️ 점수 → 라벨</div>
+                        <ul class="sl-labels">
+                            <li><span class="signal-mini signal-strong-buy compact">강한 매수 우위</span><span class="sl-range">≥ 18</span></li>
+                            <li><span class="signal-mini signal-buy compact">매수 우위</span><span class="sl-range">10 ~ 17</span></li>
+                            <li><span class="signal-mini signal-weak-buy compact">약한 매수세</span><span class="sl-range">3 ~ 9</span></li>
+                            <li><span class="signal-mini signal-caution compact">관망</span><span class="sl-range">3~9 + 급등</span></li>
+                            <li><span class="signal-mini signal-neutral compact">중립</span><span class="sl-range">-3 ~ 2</span></li>
+                            <li><span class="signal-mini signal-sell compact">매도 우위</span><span class="sl-range">-10 ~ -4</span></li>
+                            <li><span class="signal-mini signal-strong-sell compact">강한 매도 우위</span><span class="sl-range">≤ -11</span></li>
+                        </ul>
+                    </div>
+                    <div class="sl-foot">⚠ 단순 휴리스틱 · 투자 권유 아님</div>
+                </div>
+            </details>
         </nav>
 
         <main id="view" class="view">

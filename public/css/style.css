@@ -171,6 +171,92 @@ a { color: inherit; text-decoration: none; }
     line-height: 1.4;
 }
 
+/* ============ 사이드바 매매 신호 로직 박스 ============ */
+.sidebar-logic {
+    margin: 12px 16px 20px;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+}
+.sidebar-logic summary {
+    padding: 10px 12px;
+    background: linear-gradient(to right, #f8faff, #ffffff);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--color-primary);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.sidebar-logic summary::-webkit-details-marker { display: none; }
+.sidebar-logic summary::after {
+    content: "▼";
+    font-size: 9px;
+    color: var(--color-muted);
+    transition: transform 0.2s;
+}
+.sidebar-logic[open] summary::after { transform: rotate(180deg); }
+.sidebar-logic[open] summary { border-bottom: 1px solid var(--color-border); }
+
+.sl-body {
+    padding: 8px 12px 10px;
+}
+.sl-section { margin-bottom: 10px; }
+.sl-section:last-of-type { margin-bottom: 4px; }
+.sl-section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--color-text);
+    margin: 6px 0 4px;
+}
+.sl-section ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.sl-section li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 0;
+    font-size: 11px;
+    border-bottom: 1px dashed transparent;
+}
+.sl-item { color: var(--color-text); line-height: 1.3; }
+.sl-score {
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+    font-size: 11px;
+}
+.sl-score.plus { color: var(--color-up); }
+.sl-score.minus { color: var(--color-down); }
+
+.sl-labels li {
+    padding: 4px 0;
+    gap: 6px;
+}
+.sl-range {
+    font-size: 10px;
+    color: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+.sl-foot {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed var(--color-border);
+    font-size: 10px;
+    color: var(--color-muted);
+    font-style: italic;
+    text-align: center;
+}
+
 /* ============ 메인 뷰 ============ */
 .view {
     padding: 24px;
@@ -1135,6 +1221,10 @@ a { color: inherit; text-decoration: none; }
     .sidebar-update .su-label { margin: 0; }
     .sidebar-update .su-time { margin: 0; font-size: 12px; }
     .sidebar-update .su-note { display: none; }  /* 모바일에선 부가 설명 숨김 */
+
+    /* 매매 신호 로직 박스 - 모바일에서도 사용 가능 */
+    .sidebar-logic { margin: 8px 12px 12px; }
+    .sidebar-logic summary { padding: 8px 12px; font-size: 11px; }
 
     /* ===== 본문 영역 ===== */
     .view { padding: 12px; }
