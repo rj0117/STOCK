@@ -1455,6 +1455,10 @@ async function renderSearchResult(main, code) {
         return;
     }
     const ch = formatChange(stock.change, stock.change_pct);
+    // 시간외 단일가가 정규장 종가와 다르면 우선 표시
+    const hasAfter = stock.after_price && stock.after_price !== stock.price;
+    const mainPrice = hasAfter ? stock.after_price : stock.price;
+    const mainCh = hasAfter ? formatChange(stock.after_change, stock.after_change_pct) : ch;
     const fav = isFavorite(code);
     const newsArr = Array.isArray(news) ? news : [];
     const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code));
@@ -1470,10 +1474,17 @@ async function renderSearchResult(main, code) {
                         ${industryBadgeHTML(stock.code)}
                     </div>
                     <div class="price-block">
-                        <div class="price-now">${formatPrice(stock.price)}원</div>
-                        <div class="change-info ${ch.cls}">${ch.text}</div>
+                        <div class="price-now">${formatPrice(mainPrice)}원${hasAfter ? '<span class="after-tag">시간외</span>' : ''}</div>
+                        <div class="change-info ${mainCh.cls}">${mainCh.text}</div>
                         <div class="prev-close">전일 ${formatPrice(stock.prev_close)}원</div>
                     </div>
+                    ${hasAfter ? `
+                        <div class="regular-price-row">
+                            <span class="rp-label">정규장 종가</span>
+                            <span class="rp-value">${formatPrice(stock.price)}원</span>
+                            <span class="rp-change ${ch.cls}">${ch.text}</span>
+                        </div>
+                    ` : ""}
                     ${(flow && flow.days && flow.days.length >= 2) || (intraday && intraday.data && intraday.data.length >= 2) ? `
                         <div class="charts-row">
                             ${flow && flow.days && flow.days.length >= 2 ? `

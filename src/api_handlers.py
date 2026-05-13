@@ -77,6 +77,25 @@ def get_stock(code: str) -> dict:
     change = price - prev_close if prev_close else 0.0
     change_pct = (change / prev_close * 100.0) if prev_close else 0.0
 
+    # 시간외 단일가 (모바일 basic API)
+    after_price = 0
+    after_change = 0
+    after_change_pct = 0.0
+    try:
+        r2 = requests.get(f"https://m.stock.naver.com/api/stock/{code}/basic", headers=HEADERS, timeout=6)
+        if r2.status_code == 200:
+            jb = r2.json()
+            ovr = jb.get("overMarketPriceInfo") or {}
+            ap_s = ovr.get("overPrice") or ""
+            if ap_s:
+                after_price = _to_number(ap_s)
+                ac_s = ovr.get("compareToPreviousClosePrice") or "0"
+                after_change = int(_to_number(ac_s))
+                fr = ovr.get("fluctuationsRatio")
+                after_change_pct = float(fr) if fr else 0.0
+    except Exception:
+        pass
+
     return {
         "code": code,
         "name": name,
@@ -84,6 +103,9 @@ def get_stock(code: str) -> dict:
         "prev_close": int(prev_close) if prev_close else 0,
         "change": int(round(change)),
         "change_pct": round(change_pct, 2),
+        "after_price": int(after_price) if after_price else 0,
+        "after_change": after_change,
+        "after_change_pct": round(after_change_pct, 2),
         "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
