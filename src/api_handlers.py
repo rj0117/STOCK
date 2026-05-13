@@ -100,22 +100,56 @@ def get_stock(code: str) -> dict:
     # 펀더멘털 (PER/PBR/시가총액) — 동일 PC 페이지에서 추출 (추가 호출 없음)
     per = pbr = None
     market_cap = ""
+    industry = ""
+    roe = op_margin = None
+    next_earnings = ""
     try:
         per_el = soup.select_one("#_per")
         pbr_el = soup.select_one("#_pbr")
         mkt_el = soup.select_one("#_market_sum")
         if per_el:
-            try:
-                per = float(per_el.get_text(strip=True).replace(",", ""))
-            except ValueError:
-                pass
+            try: per = float(per_el.get_text(strip=True).replace(",", ""))
+            except ValueError: pass
         if pbr_el:
-            try:
-                pbr = float(pbr_el.get_text(strip=True).replace(",", ""))
-            except ValueError:
-                pass
+            try: pbr = float(pbr_el.get_text(strip=True).replace(",", ""))
+            except ValueError: pass
         if mkt_el:
             market_cap = mkt_el.get_text(" ", strip=True)
+
+        for sel in ["div.description em", "div.wrap_company em", "p.section_industry a"]:
+            el = soup.select_one(sel)
+            if el:
+                t = el.get_text(strip=True)
+                if t and len(t) < 40:
+                    industry = t
+                    break
+
+        for table in soup.select("table.tb_type1, table.tb_type1_ifrs"):
+            for tr in table.select("tr"):
+                th = tr.select_one("th")
+                if not th: continue
+                label = th.get_text(strip=True)
+                tds = tr.select("td")
+                if not tds: continue
+                for td in reversed(tds):
+                    txt = td.get_text(strip=True).replace(",", "")
+                    if not txt or txt == "-": continue
+                    try:
+                        val = float(txt)
+                        if "ROE" in label.upper() and roe is None:
+                            roe = val
+                        elif "영업이익률" in label and op_margin is None:
+                            op_margin = val
+                        break
+                    except ValueError:
+                        continue
+
+        for el in soup.select(".section_strock_bottom, .section.cop_analysis"):
+            text = el.get_text(" ", strip=True)
+            m = re.search(r"(\d{4}[./-]\d{1,2}[./-]\d{1,2})\s*(?:예정|실적|발표|컨센서스)", text)
+            if m:
+                next_earnings = m.group(1)
+                break
     except Exception:
         pass
 
@@ -132,6 +166,10 @@ def get_stock(code: str) -> dict:
         "per": per,
         "pbr": pbr,
         "market_cap": market_cap,
+        "industry": industry,
+        "roe": roe,
+        "op_margin": op_margin,
+        "next_earnings": next_earnings,
         "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
@@ -176,6 +214,63 @@ def get_news(query: str, display: int = 20) -> list:
             "pubDate": item.get("pubDate", ""),
         })
     return out
+
+
+_MACRO_CACHE = {"ts": 0, "value": None}
+
+def get_macro_context():
+    """USD/KRW 환율 + 미국 전일 마감(다우/나스닥/S&P). 5분 캐시."""
+    import time
+    now = time.time()
+    if _MACRO_CACHE["value"] and now - _MACRO_CACHE["ts"] < 300:
+        return _MACRO_CACHE["value"]
+    result = {"usd_krw": None, "dow": None, "nasdaq": None, "sp500": None}
+    try:
+        r = requests.get("https://finance.naver.com/marketindex/", headers=HEADERS, timeout=8)
+        ct = (r.headers.get("Content-Type", "") or "").lower()
+        r.encoding = "euc-kr" if ("euc-kr" in ct or "euckr" in ct) else "utf-8"
+        soup = BeautifulSoup(r.text, "lxml")
+        usd_box = soup.select_one("#exchangeList li.on")
+        if not usd_box:
+            for li in soup.select("#exchangeList li"):
+                title = li.select_one("h3.h_lst")
+                if title and "미국" in title.get_text():
+                    usd_box = li; break
+        if usd_box:
+            val_el = usd_box.select_one(".value")
+            chg_el = usd_box.select_one(".change")
+            blind = usd_box.select_one(".blind")
+            v = _to_number(val_el.get_text(strip=True)) if val_el else 0
+            chg = _to_number(chg_el.get_text(strip=True)) if chg_el else 0
+            direction = (blind.get_text(strip=True) if blind else "")
+            if "하락" in direction: chg = -chg
+            result["usd_krw"] = {"value": round(v, 2), "change": round(chg, 2)}
+        idx_map = {"다우산업": "dow", "나스닥": "nasdaq", "S&P500": "sp500"}
+        for li in soup.select("ul#worldIndexes li, ul.data1 li"):
+            title_el = li.select_one("h3.h_lst, .lst_dot a, .blind")
+            if not title_el:
+                continue
+            title = title_el.get_text(strip=True)
+            target_key = None
+            for k, v in idx_map.items():
+                if k in title or k.replace("&", "") in title:
+                    target_key = v; break
+            if not target_key:
+                continue
+            val_el = li.select_one(".value")
+            chg_el = li.select_one(".change")
+            blind = li.select_one(".blind")
+            if val_el:
+                v = _to_number(val_el.get_text(strip=True))
+                chg = _to_number(chg_el.get_text(strip=True)) if chg_el else 0
+                d = (blind.get_text(strip=True) if blind else "")
+                if "하락" in d: chg = -chg
+                result[target_key] = {"value": round(v, 2), "change": round(chg, 2)}
+    except Exception as e:
+        result["error"] = str(e)[:120]
+    _MACRO_CACHE["ts"] = now
+    _MACRO_CACHE["value"] = result
+    return result
 
 
 _INDEX_CACHE = {"ts": 0, "value": None}
@@ -443,6 +538,7 @@ def get_ai_analysis(code: str) -> dict:
     news = get_news(news_query, display=10)
     news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:8]
     indexes = get_market_indexes()
+    macro = get_macro_context()
 
     name = stock.get("name") or code
     price = stock.get("price", 0)
@@ -453,6 +549,10 @@ def get_ai_analysis(code: str) -> dict:
     per = stock.get("per")
     pbr = stock.get("pbr")
     mcap = stock.get("market_cap") or ""
+    industry = stock.get("industry") or ""
+    roe = stock.get("roe")
+    op_margin = stock.get("op_margin")
+    next_earnings = stock.get("next_earnings") or ""
 
     days = flow.get("days") or []
     days_summary = []
@@ -488,8 +588,12 @@ def get_ai_analysis(code: str) -> dict:
     funda_parts = []
     if per is not None: funda_parts.append(f"PER {per:.2f}")
     if pbr is not None: funda_parts.append(f"PBR {pbr:.2f}")
+    if roe is not None: funda_parts.append(f"ROE {roe:.2f}%")
+    if op_margin is not None: funda_parts.append(f"영업이익률 {op_margin:.2f}%")
     if mcap: funda_parts.append(f"시가총액 {mcap}")
+    if industry: funda_parts.append(f"업종 [{industry}]")
     funda_text = " · ".join(funda_parts) if funda_parts else "(미수집)"
+    earnings_text = f"다음 실적 발표 예정: {next_earnings}" if next_earnings else "(실적 발표 일정 미수집)"
 
     kospi = indexes.get("KOSPI", {})
     kosdaq = indexes.get("KOSDAQ", {})
@@ -497,6 +601,15 @@ def get_ai_analysis(code: str) -> dict:
         f"KOSPI {kospi.get('value', 0):,.2f} ({kospi.get('change_pct', 0):+.2f}%) · "
         f"KOSDAQ {kosdaq.get('value', 0):,.2f} ({kosdaq.get('change_pct', 0):+.2f}%)"
     )
+    macro_parts = []
+    usd = macro.get("usd_krw")
+    if usd:
+        macro_parts.append(f"USD/KRW {usd['value']:,.2f}원 ({usd['change']:+,.2f}원)")
+    for k, label in [("dow", "다우"), ("nasdaq", "나스닥"), ("sp500", "S&P500")]:
+        m = macro.get(k)
+        if m:
+            macro_parts.append(f"{label} {m['value']:,.2f} ({m['change']:+,.2f})")
+    macro_text = " · ".join(macro_parts) if macro_parts else "(거시 데이터 미수집)"
 
     news_lines = []
     for i, n in enumerate(news_list, 1):
@@ -515,11 +628,15 @@ def get_ai_analysis(code: str) -> dict:
 {f"시간외 단일가: {after_price:,}원 ({after_change_pct:+.2f}%)" if after_price else "시간외: 없음"}
 {price_summary}
 
-[2. 펀더멘털]
+[2. 펀더멘털 + 업종]
 {funda_text}
+{earnings_text}
 
-[3. 시장 환경]
+[3. 한국 시장 환경]
 {index_text}
+
+[3-1. 거시 (환율 / 미국 전일 마감)]
+{macro_text}
 
 [4. 기술적 지표 (60일 시세 기반)]
 {tech_text}
@@ -539,6 +656,9 @@ def get_ai_analysis(code: str) -> dict:
 - 기술 지표와 수급이 한 방향으로 정렬되면 신뢰도 ↑
 - 뉴스 본문 내용을 가볍게 보지 말 것: 호재성 키워드의 진위와 임팩트 함께 평가
 - 시장 환경(KOSPI/KOSDAQ)과 같은 방향이면 동조 효과 고려
+- 수출주(반도체/자동차/조선 등)는 환율(USD/KRW) 방향과 미국 시장 흐름이 강한 영향
+- 실적 발표 임박 시(D-7 이내) 변동성 급등 가능성 — 신뢰구간 무력화 위험 명시
+- 업종 정보를 활용해 종목 특성과 같은 방향성을 가질 가능성 큰 거시 변수가 무엇인지 판단
 
 다음 JSON 형식으로만 응답. 다른 텍스트 금지:
 {{
