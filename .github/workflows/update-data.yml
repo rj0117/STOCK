@@ -37,25 +37,63 @@ jobs:
 
       - name: Commit & push if changed
         run: |
+          set -e
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- public/data.json public/stocks.json public/sbsbiz.json 2>/dev/null; then
+
+          DATA_FILES="public/data.json public/stocks.json public/sbsbiz.json public/flow_by_code.json"
+
+          # 변경 없으면 종료
+          CHANGED=0
+          for f in $DATA_FILES; do
+            if [ -f "$f" ] && ! git diff --quiet -- "$f" 2>/dev/null; then
+              CHANGED=1
+              break
+            fi
+            # 새 파일(추적 안된)도 변경으로 간주
+            if [ -f "$f" ] && ! git ls-files --error-unmatch "$f" >/dev/null 2>&1; then
+              CHANGED=1
+              break
+            fi
+          done
+          if [ "$CHANGED" = "0" ]; then
             echo "No data changes."
             exit 0
           fi
-          git add public/data.json public/stocks.json public/sbsbiz.json
-          git commit -m "chore(data): auto-update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
-          # 최대 3번 재시도 (push 충돌 대비)
-          for i in 1 2 3; do
+          # 갱신된 데이터 파일을 임시 위치로 백업
+          BAK=$(mktemp -d)
+          for f in $DATA_FILES; do
+            [ -f "$f" ] && cp "$f" "$BAK/$(basename $f)"
+          done
+
+          # 최대 5번 재시도: origin main 위에 데이터를 다시 올려놓고 커밋·푸시
+          for i in 1 2 3 4 5; do
             echo "Push 시도 $i..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 백업해둔 데이터 복원
+            for f in $DATA_FILES; do
+              base=$(basename $f)
+              [ -f "$BAK/$base" ] && cp "$BAK/$base" "$f"
+            done
+
+            git add $DATA_FILES 2>/dev/null || true
+
+            # reset 후에도 실제 변경이 없으면(이미 누군가가 같은 내용 push) 종료
+            if git diff --cached --quiet; then
+              echo "이미 최신, 종료"
+              exit 0
+            fi
+
+            git commit -m "chore(data): auto-update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             if git push; then
               echo "Push 성공"
               exit 0
             fi
-            echo "충돌 감지, rebase 후 재시도..."
-            git pull --rebase origin main || { git rebase --abort 2>/dev/null; echo "Rebase 실패, 다음 cron에서 재시도"; exit 0; }
-            sleep 3
+            echo "Push 실패, ${i}회 시도, 재시도 대기..."
+            sleep $((i * 3))
           done
-          echo "3회 재시도 모두 실패"
+          echo "5회 재시도 모두 실패"
           exit 1
