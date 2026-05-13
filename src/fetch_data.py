@@ -331,8 +331,9 @@ def match_news_with_stocks(news_list, popular_stocks, category_stocks):
 RANK_SCORE_MAX = 50
 NEWS_SCORE_PER_ARTICLE = 15
 
-def score_stocks(popular_stocks, news_list):
-    """인기 1등=50점, 50등=1점, 뉴스 1건당 15점"""
+def score_stocks(popular_stocks, news_list, all_known_stocks=None):
+    """인기 1등=50점, 50등=1점, 뉴스 1건당 15점.
+    인기 검색은 페이지당 30개라 한계 → 뉴스 매칭 ≥2건 종목으로 50개까지 보충."""
     stock_scores = {}
     for stock in popular_stocks:
         rank = stock["popularity_rank"]
@@ -345,11 +346,34 @@ def score_stocks(popular_stocks, news_list):
             "total_score": rank_score,
         }
 
+    # 전체 뉴스 매칭 카운트
+    news_match_count = {}
     for news in news_list:
         for ms in news["matched_stocks"]:
-            if ms["code"] in stock_scores:
-                stock_scores[ms["code"]]["news_count"] += 1
-                stock_scores[ms["code"]]["news_score"] += NEWS_SCORE_PER_ARTICLE
+            news_match_count[ms["code"]] = news_match_count.get(ms["code"], 0) + 1
+
+    # 인기 종목 점수 갱신
+    for code, cnt in news_match_count.items():
+        if code in stock_scores:
+            stock_scores[code]["news_count"] = cnt
+            stock_scores[code]["news_score"] = cnt * NEWS_SCORE_PER_ARTICLE
+
+    # 인기 외 종목 보충 (뉴스 매칭 ≥ 2건만)
+    name_map = all_known_stocks or {}
+    for code, cnt in news_match_count.items():
+        if code in stock_scores or cnt < 2:
+            continue
+        stock_scores[code] = {
+            "code": code,
+            "name": name_map.get(code, ""),
+            "popularity_rank": 99,
+            "rank_score": 0,
+            "news_count": cnt,
+            "news_score": cnt * NEWS_SCORE_PER_ARTICLE,
+            "total_score": cnt * NEWS_SCORE_PER_ARTICLE,
+            "price": "0",
+            "change": "0",
+        }
 
     for s in stock_scores.values():
         s["total_score"] = s["rank_score"] + s["news_score"]
@@ -835,7 +859,7 @@ def run():
     print("\n[1/6] 종목 마스터(KOSPI/KOSDAQ) 수집 중...")
     fetch_stock_master()
 
-    print("\n[2/6] 인기 검색 종목 50개 수집 중...")
+    print("\n[2/6] 인기 검색 종목 수집 중 (네이버 페이지당 최대 30개)...")
     popular_stocks = fetch_popular_stocks_full()
 
     print("\n[3/6] 카테고리별 고정 종목 가격 조회 중...")
@@ -857,7 +881,7 @@ def run():
         if sent["sentiment"] == "positive": pos_cnt += 1
         elif sent["sentiment"] == "negative": neg_cnt += 1
     print(f"   → 감성 분류: 호재 {pos_cnt}건, 악재 {neg_cnt}건, 중립 {len(news)-pos_cnt-neg_cnt}건")
-    top30 = score_stocks(popular_stocks, news)
+    top30 = score_stocks(popular_stocks, news, all_known_stocks)
     news_by_keyword = build_news_by_keyword(news)
     print(f"   → TOP 50 선정 완료, 키워드 그룹 {len(news_by_keyword)}개")
 
