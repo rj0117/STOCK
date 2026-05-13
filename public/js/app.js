@@ -11,6 +11,7 @@ const state = {
     buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
     backtest: null,       // backtest.json - 사후 성과 측정
     backtestAi: null,     // backtest_ai.json - AI 분석 적중률
+    aiStats: null,        // ai_stats.json - 사용자 컨텍스트 분포
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -95,13 +96,14 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz, buyHistory, backtest, backtestAi] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory, backtest, backtestAi, aiStats] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
             fetchJsonUtf8("buy_history.json", null),
             fetchJsonUtf8("backtest.json", null),
             fetchJsonUtf8("backtest_ai.json", null),
+            fetchJsonUtf8("ai_stats.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
@@ -110,6 +112,7 @@ async function loadData() {
         state.buyHistory = buyHistory;
         state.backtest = backtest;
         state.backtestAi = backtestAi;
+        state.aiStats = aiStats;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
@@ -2666,6 +2669,7 @@ async function renderSearchResult(main, code) {
                         <div class="ai-note">버튼을 누르면 Claude(Anthropic)에 종목 종합 정보를 보내 매수/매도/관망 판단과 한 문단 설명을 받습니다. 응답 1~5초 소요.</div>
                     </div>
                 </div>
+                ${renderAiStatsCard()}
                 <div class="flow-section">
                     <h3>💰 외국인·기관·개인 일별 수급 (최근 ${(flow.days || []).length}일)</h3>
                     ${renderFlowTableForStock(flow)}
@@ -2706,6 +2710,96 @@ async function renderSearchResult(main, code) {
 }
 
 // ============ 네비게이션 헬퍼 ============
+/** 종목 상세의 AI 카드 아래에 표시되는 "최근 30일 AI 분석 분포" 박스. */
+function renderAiStatsCard() {
+    const s = state.aiStats;
+    if (!s || !s.periods) return "";
+    const key = s.default_period || "30d";
+    const p = s.periods[key];
+    if (!p) return "";
+
+    // 표본 부족 (10건 미만): 안내 카드만
+    if (!p.total_calls || p.total_calls < 10) {
+        return `<div class="card ai-stats-card">
+            <h3 class="ai-stats-title">📊 최근 30일 AI 분석 분포</h3>
+            <div class="ai-stats-sub">이 사이트에서 다른 종목들을 분석했을 때 나온 결과 분포</div>
+            <div class="ai-stats-empty">
+                아직 누적된 분석이 ${p.total_calls || 0}건으로 적습니다.
+                10건 이상 누적되면 분포가 표시됩니다.
+            </div>
+        </div>`;
+    }
+
+    const dist = p.distribution || {};
+    const buy  = dist.buy  || { count: 0, pct: 0 };
+    const sell = dist.sell || { count: 0, pct: 0 };
+    const hold = dist.hold || { count: 0, pct: 0 };
+
+    // 동적 안내 메시지
+    let note;
+    if (hold.pct >= 70) {
+        note = "💡 현재 시장이 과열/조정 국면일 때 AI는 보수적으로 답하는 경향이 있습니다. 관망 답변이 많다는 것 자체가 시장 상황의 신호일 수 있습니다.";
+    } else if (buy.pct >= 40) {
+        note = "📈 매수 신호가 많은 시기입니다. 다만 이 분포는 전체 시장 분위기 지표일 뿐, 개별 종목의 실제 성과를 보장하지 않습니다.";
+    } else if (sell.pct >= 40) {
+        note = "📉 조정 압력이 강한 시기입니다. 매도 신호가 많을 때는 시장 전반의 변동성이 큰 경우가 많습니다.";
+    } else {
+        note = "🔄 매수/매도/관망이 고르게 분포된 상태입니다. 시장 방향성이 불명확할 가능성이 있습니다.";
+    }
+
+    function bar(label, icon, val, cls) {
+        const w = Math.max(2, val.pct);  // 0% 도 시각적으로 살짝 보이게
+        return `<div class="ai-stat-row">
+            <span class="ai-stat-label">${icon} ${label}</span>
+            <span class="ai-stat-bar-wrap"><span class="ai-stat-bar ${cls}" style="width:${w}%"></span></span>
+            <span class="ai-stat-val">${val.pct}% <small>(${val.count}건)</small></span>
+        </div>`;
+    }
+
+    // 적중률 섹션 (있을 때만 표시. 각 카테고리는 표본 미달 시 회색)
+    const acc = p.accuracy_5d;
+    let accHTML = "";
+    if (acc && (acc.buy_signals || acc.sell_signals || acc.hold_signals)) {
+        function accLine(label, key, icon) {
+            const a = acc[key];
+            if (!a) return "";
+            if (a.insufficient) {
+                return `<div class="ai-acc-row ai-acc-pending">
+                    <span>${icon} ${label}</span>
+                    <span class="muted">측정 중 (${a.total}/${acc.insufficient_sample_threshold}건)</span>
+                </div>`;
+            }
+            const pct = Math.round((a.rate || 0) * 100);
+            const cls = pct >= 60 ? "up" : pct <= 40 ? "down" : "flat";
+            return `<div class="ai-acc-row">
+                <span>${icon} ${label}</span>
+                <span class="${cls}">${pct}% (${a.correct}/${a.total})</span>
+            </div>`;
+        }
+        accHTML = `
+            <div class="ai-stats-divider"></div>
+            <div class="ai-stats-section-title">🎯 +5거래일 적중률</div>
+            ${accLine("매수 → +2%↑", "buy_signals",  "🟢")}
+            ${accLine("매도 → -2%↓", "sell_signals", "🔴")}
+            ${accLine("관망 → ±2% 이내", "hold_signals", "⚪")}
+        `;
+    }
+
+    const conf = p.confidence || {};
+    return `<div class="card ai-stats-card">
+        <h3 class="ai-stats-title">📊 최근 30일 AI 분석 분포 <span class="ai-stats-count">(${p.total_calls}건 기준)</span></h3>
+        <div class="ai-stats-sub">이 사이트에서 다른 종목들을 분석했을 때 나온 결과 분포</div>
+        <div class="ai-stats-bars">
+            ${bar("매수 (buy)",  "🟢", buy,  "ai-bar-up")}
+            ${bar("매도 (sell)", "🔴", sell, "ai-bar-down")}
+            ${bar("관망 (hold)", "⚪", hold, "ai-bar-flat")}
+        </div>
+        <div class="ai-stats-conf">평균 확신도 ${conf.avg ?? "—"} / 10 <span class="muted">(중앙값 ${conf.median ?? "—"})</span></div>
+        ${accHTML}
+        <div class="ai-stats-note">${note}</div>
+    </div>`;
+}
+
 function _formatRetrySeconds(s) {
     if (!s || s <= 0) return "잠시 후";
     if (s < 60) return `${Math.ceil(s)}초 후`;

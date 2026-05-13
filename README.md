@@ -25,6 +25,7 @@
 - [x] **매수 참고 트렌드 추적** — 일별 스냅샷 누적, 신호 시점 forecast 곡선과 실제 종가 비교
 - [x] **백테스트 (매수 참고 신호)** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
 - [x] **백테스트 (AI 적중률)** — Claude 호출 로그 누적 → +1/+5/+10거래일 후 수익률·적중률 측정 + confidence 구간별 검증 (가족 클릭한 종목만, 표본 ≥50 권장)
+- [x] **AI 사용자 컨텍스트 카드** — 종목 상세 AI 카드 아래에 최근 30일 buy/sell/hold 분포 + 적중률 + 동적 안내 메시지. hold 가 많을 때 "시장 상황의 신호" 라는 맥락 제공
 - [x] **GitHub Actions 자동 갱신** — 매시 7분/37분 cron
 - [x] **첫 진입 면책 모달** — localStorage 기반 1회 동의
 
@@ -54,6 +55,7 @@ STOCK/
 │   ├── buy_history.json       # 일별 매수 참고 스냅샷 (90일 슬라이딩)
 │   ├── backtest.json          # 매수 참고 신호 백테스트 결과
 │   ├── backtest_ai.json       # AI 분석 적중률 백테스트 결과
+│   ├── ai_stats.json          # 종목 상세 AI 카드 아래 분포·적중률 카드용
 │   ├── sbsbiz.json            # SBS Biz YouTube 추출 데이터
 │   ├── stocks.json            # KOSPI/KOSDAQ 종목 마스터
 │   ├── css/style.css
@@ -245,4 +247,4 @@ update.bat
 
 ---
 
-**📅 README 최종 업데이트:** 2026-05-14 (AI 호출 로깅 + 적중률 백테스트 추가)
+**📅 README 최종 업데이트:** 2026-05-14 (AI 사용자 컨텍스트 분포·적중률 카드 추가)

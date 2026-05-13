@@ -4,7 +4,7 @@
 > `README.md`, `public/index.html` 의 details 섹션, 코드 주석 등은 모두 이 문서와 일치해야 합니다.
 > 변경 시 *코드 → 이 문서 → README → index.html details* 순서로 동기화하세요. ([.claude/CLAUDE.md §5](.claude/CLAUDE.md) 참조)
 
-**📅 마지막 동기화 일자: 2026-05-14** (AI 안전장치 + 적중률 백테스트 추가)
+**📅 마지막 동기화 일자: 2026-05-14** (AI 사용자 컨텍스트 카드 추가: 30일 분포 + 적중률)
 **🔖 다음 점검 권장 시기:** 점수 로직 변경 시 즉시 / 그 외 월 1회 자율 점검
 
 ---
@@ -307,7 +307,32 @@ rankScore = marketRank × 3 + techRank
 | **아카이브** | 매일 KST 02:00 GitHub Actions cron 이 어제 LIST → `archive/ai_results/{YYYY-MM}/{date}.jsonl` 로 옮기고 LIST DEL | `scripts/archive_ai_log.py`, `.github/workflows/archive_ai.yml` |
 | **백테스트** | 같은 cron 안에서 archive 전체 + `flow_by_code.json` + `buy_history.json` 의 KOSPI 으로 +1/+5/+10거래일 후 수익률·알파·적중률 산출 → `public/backtest_ai.json` 갱신 + `archive/backtest_ai/{date}.json` 보존 | `scripts/backtest_ai.py` |
 | **적중 기준** | buy: +5거래일 후 ≥ +2% / sell: ≤ -2% / hold: \|Δ\| ≤ 2% (상수 `HIT_THRESHOLD_PCT=2.0`, `PRIMARY_HORIZON='5'`) | `scripts/backtest_ai.py` 상단 |
-| **사이트 표시** | 사이드바 **📈 백테스트 → AI 분석 적중률** 탭. 기간별(7d/30d/all) + action별(buy/sell/hold) + confidence 구간(9~10/7~8/5~6/1~4) 적중률 표 | `public/js/app.js` `renderBacktestAI`
+| **사이트 표시** | 사이드바 **📈 백테스트 → AI 분석 적중률** 탭. 기간별(7d/30d/all) + action별(buy/sell/hold) + confidence 구간(9~10/7~8/5~6/1~4) 적중률 표 | `public/js/app.js` `renderBacktestAI` |
+| **사용자 컨텍스트 카드** | 종목 상세의 AI 분석 카드 **아래에 항상 표시**. 최근 30일 buy/sell/hold 분포 + 평균 확신도 + (≥5건 시) +5거래일 적중률. hold 비율에 따라 동적 안내 메시지 4종. `public/ai_stats.json` (정적, 매일 02:00 cron 갱신) | `scripts/backtest_ai.py` `_build_ai_stats`, `public/js/app.js` `renderAiStatsCard` |
+
+**ai_stats.json 구조 (확장 가능):**
+```json
+{
+  "default_period": "30d",
+  "periods": {
+    "30d": {
+      "total_calls": N,
+      "insufficient": <10건 여부,
+      "distribution": { "buy/sell/hold": { count, pct } },
+      "confidence": { "avg", "median", "by_bucket": {…} },
+      "accuracy_5d": {
+        "buy_signals":  { total, correct, rate, criterion, insufficient },
+        "sell_signals": {…},
+        "hold_signals": {…},
+        "measurable_after": "YYYY-MM-DD",
+        "insufficient_sample_threshold": 5
+      }
+    }
+  },
+  "generated_at": "…"
+}
+```
+미래에 `7d` / `all` 추가 시 `periods` 에 키 추가만 하면 됨.
 
 **환경변수:**
 | 이름 | 기본값 | 설명 |

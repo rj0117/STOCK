@@ -154,6 +154,111 @@ def _confidence_bucket(c):
     return "1-4"
 
 
+# 적중률 표본 부족 임계 (이 미만이면 ai_stats 의 accuracy_5d 에 insufficient 플래그)
+ACCURACY_MIN_SAMPLE = 5
+
+
+def _build_ai_stats(details, now):
+    """public/ai_stats.json 용 통계 생성.
+    구조: { default_period: '30d', periods: { '30d': {...} }, generated_at }
+    미래에 7d/all 추가 시 periods 에 키 추가만 하면 됨.
+    """
+    cutoff_30d = (now - timedelta(days=30)).strftime("%Y-%m-%d")
+    rows = [d for d in details if d["timestamp"][:10] >= cutoff_30d]
+    total = len(rows)
+
+    if total == 0:
+        period_obj = {
+            "total_calls": 0,
+            "insufficient": True,
+            "period_range": None,
+            "distribution": {},
+            "confidence": {},
+            "accuracy_5d": None,
+        }
+    else:
+        action_counts = {"buy": 0, "sell": 0, "hold": 0}
+        confidences = []
+        bucket_counts = {"9-10": 0, "7-8": 0, "5-6": 0, "1-4": 0}
+        for r in rows:
+            a = r.get("action") or "hold"
+            if a in action_counts:
+                action_counts[a] += 1
+            try:
+                c = int(r.get("confidence") or 5)
+            except Exception:
+                c = 5
+            confidences.append(c)
+            bucket_counts[_confidence_bucket(c)] = bucket_counts.get(_confidence_bucket(c), 0) + 1
+
+        distribution = {
+            a: {"count": c, "pct": round(c / total * 100, 1)}
+            for a, c in action_counts.items()
+        }
+        sorted_c = sorted(confidences)
+        median_c = sorted_c[len(sorted_c) // 2]
+
+        def _acc(action_key, criterion):
+            sub = [r for r in rows if r.get("action") == action_key
+                   and (r.get("horizons") or {}).get(PRIMARY_HORIZON)]
+            n = len(sub)
+            correct = sum(1 for r in sub if r["horizons"][PRIMARY_HORIZON].get("hit") is True)
+            return {
+                "total": n,
+                "correct": correct,
+                "rate": round(correct / n, 2) if n > 0 else None,
+                "criterion": criterion,
+                "insufficient": n < ACCURACY_MIN_SAMPLE,
+            }
+
+        earliest = min(r["timestamp"][:10] for r in rows)
+        try:
+            e_date = datetime.strptime(earliest, "%Y-%m-%d")
+            measurable_after = (e_date + timedelta(days=7)).strftime("%Y-%m-%d")
+        except Exception:
+            measurable_after = None
+
+        period_obj = {
+            "total_calls": total,
+            "insufficient": total < 10,
+            "period_range": {
+                "from": min(r["timestamp"][:10] for r in rows),
+                "to": max(r["timestamp"][:10] for r in rows),
+            },
+            "distribution": distribution,
+            "confidence": {
+                "avg": round(sum(confidences) / len(confidences), 1),
+                "median": median_c,
+                "by_bucket": bucket_counts,
+            },
+            "accuracy_5d": {
+                "buy_signals":  _acc("buy",  f"+{HIT_THRESHOLD_PCT}% 이상 상승"),
+                "sell_signals": _acc("sell", f"-{HIT_THRESHOLD_PCT}% 이상 하락"),
+                "hold_signals": _acc("hold", f"변동 ±{HIT_THRESHOLD_PCT}% 이내"),
+                "measurable_after": measurable_after,
+                "insufficient_sample_threshold": ACCURACY_MIN_SAMPLE,
+            },
+        }
+
+    return {
+        "default_period": "30d",
+        "periods": {"30d": period_obj},
+        "generated_at": now.strftime("%Y-%m-%dT%H:%M:%S%z"),
+    }
+
+
+def _write_ai_stats(details, now):
+    out = _build_ai_stats(details, now)
+    out_path = os.path.join(ROOT, "public", "ai_stats.json")
+    with open(out_path, "w", encoding="utf-8") as f:
+        json.dump(out, f, ensure_ascii=False)
+    p = out["periods"]["30d"]
+    print(f"[OK] ai_stats.json: {p['total_calls']}건 / 30일 "
+          f"(buy {p.get('distribution', {}).get('buy', {}).get('pct', 0)}% / "
+          f"sell {p.get('distribution', {}).get('sell', {}).get('pct', 0)}% / "
+          f"hold {p.get('distribution', {}).get('hold', {}).get('pct', 0)}%)")
+
+
 def main():
     records = _load_logs()
     if not records:
@@ -298,8 +403,12 @@ def main():
           f"(skipped {skipped_no_price}건, primary horizon +{PRIMARY_HORIZON}일, "
           f"hit ±{HIT_THRESHOLD_PCT}%)")
 
+    # 사용자 컨텍스트용 분포·적중률 통계 (종목 상세 페이지의 AI 카드 아래에 표시됨)
+    _write_ai_stats(details, now)
+
 
 def _write_empty():
+    now = datetime.now(KST)
     out = {
         "summary": {
             "method": {
@@ -312,11 +421,13 @@ def _write_empty():
             "by_period": {}, "by_action": {}, "by_confidence": {},
         },
         "detail": [],
-        "generated_at": datetime.now(KST).strftime("%Y-%m-%d %H:%M:%S"),
+        "generated_at": now.strftime("%Y-%m-%d %H:%M:%S"),
     }
     out_path = os.path.join(ROOT, "public", "backtest_ai.json")
     with open(out_path, "w", encoding="utf-8") as f:
         json.dump(out, f, ensure_ascii=False)
+    # ai_stats.json 도 빈 구조로
+    _write_ai_stats([], now)
 
 
 if __name__ == "__main__":
