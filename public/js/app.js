@@ -531,16 +531,16 @@ function render() {
     else renderTop30(main);
 }
 
-// ============ 뷰: TOP 30 ============
+// ============ 뷰: TOP 50 ============
 function renderTop30(main) {
     const data = state.data;
     if (!data) { main.innerHTML = `<div class="placeholder">로딩 중...</div>`; return; }
     const top = data.top_stocks || [];
     const asOf = (top[0] && top[0].as_of) || data.generated_date || "";
     const html = `
-        <h2>📊 오늘의 한국 주식 TOP 30</h2>
+        <h2>📊 오늘의 한국 주식 TOP 50</h2>
         <div class="subtitle">
-            인기 검색 순위(1등=30점, 30등=1점) + 뉴스 노출(건당 +15점) 합산 ·
+            인기 검색 순위(1등=50점, 50등=1점) + 뉴스 노출(건당 +15점) 합산 ·
             <strong>기준일 ${escapeHtml(asOf)} 종가 기준</strong>
             ${data.generated_at ? ` · 수집 ${escapeHtml(data.generated_at)}` : ""}
         </div>

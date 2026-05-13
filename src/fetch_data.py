@@ -326,13 +326,13 @@ def match_news_with_stocks(news_list, popular_stocks, category_stocks):
     return news_list, known_stocks
 
 # ============================================================
-# TOP 30 점수 계산
+# TOP 50 점수 계산
 # ============================================================
-RANK_SCORE_MAX = 30
+RANK_SCORE_MAX = 50
 NEWS_SCORE_PER_ARTICLE = 15
 
 def score_stocks(popular_stocks, news_list):
-    """README 기준: 인기 1등=30점, 30등=1점, 뉴스 1건당 15점"""
+    """인기 1등=50점, 50등=1점, 뉴스 1건당 15점"""
     stock_scores = {}
     for stock in popular_stocks:
         rank = stock["popularity_rank"]
@@ -357,7 +357,7 @@ def score_stocks(popular_stocks, news_list):
     ranked = sorted(stock_scores.values(), key=lambda x: x["total_score"], reverse=True)
     for i, s in enumerate(ranked):
         s["final_rank"] = i + 1
-    return ranked[:30]
+    return ranked[:50]
 
 # ============================================================
 # 수급 데이터 (외국인·기관·개인 일별 순매수) - 모바일 API
@@ -859,7 +859,7 @@ def run():
     print(f"   → 감성 분류: 호재 {pos_cnt}건, 악재 {neg_cnt}건, 중립 {len(news)-pos_cnt-neg_cnt}건")
     top30 = score_stocks(popular_stocks, news)
     news_by_keyword = build_news_by_keyword(news)
-    print(f"   → TOP 30 선정 완료, 키워드 그룹 {len(news_by_keyword)}개")
+    print(f"   → TOP 50 선정 완료, 키워드 그룹 {len(news_by_keyword)}개")
 
     print("\n[6/6] 추적 종목 + 뉴스 매칭 상위 종목 수급 수집 중...")
     flow_pool = []
