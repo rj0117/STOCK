@@ -362,6 +362,39 @@ def score_stocks(popular_stocks, news_list):
 # ============================================================
 # 수급 데이터 (외국인·기관·개인 일별 순매수) - 모바일 API
 # ============================================================
+def fetch_daily_prices_60d(code):
+    """모바일 API로 60일 일별 시세 받기.
+    반환: [{date, close, open, high, low, volume}, ...] 최신 → 과거"""
+    url = f"https://m.stock.naver.com/api/stock/{code}/price?pageSize=60"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=8)
+        resp.raise_for_status()
+        items = resp.json()
+        if not isinstance(items, list):
+            return []
+        def _p(s):
+            try:
+                return int(str(s).replace(",", "").strip())
+            except (TypeError, ValueError):
+                try:
+                    return float(str(s).replace(",", "").strip())
+                except (TypeError, ValueError):
+                    return 0
+        out = []
+        for d in items:
+            out.append({
+                "date": d.get("localTradedAt", ""),
+                "close": _p(d.get("closePrice", 0)),
+                "open": _p(d.get("openPrice", 0)),
+                "high": _p(d.get("highPrice", 0)),
+                "low": _p(d.get("lowPrice", 0)),
+                "volume": _p(d.get("accumulatedTradingVolume", 0)),
+            })
+        return out
+    except Exception:
+        return []
+
+
 def fetch_flow_for_pool(pool_codes_names):
     """추적 종목 풀에 대해 일자별 수급 데이터를 일괄 수집.
     pool_codes_names: [{code, name}, ...]
@@ -408,7 +441,9 @@ def fetch_flow_for_pool(pool_codes_names):
                     "foreign_hold_ratio": d.get("foreignerHoldRatio", ""),
                     "volume": _p(d.get("accumulatedTradingVolume", "0")),
                 })
-            return code, {"name": j.get("stockName", name), "days": days}
+            # 60일 일별 시세도 함께 수집 (기술적 지표 계산용)
+            prices_60d = fetch_daily_prices_60d(code)
+            return code, {"name": j.get("stockName", name), "days": days, "prices_60d": prices_60d}
         except Exception:
             return code, None
 
@@ -419,7 +454,8 @@ def fetch_flow_for_pool(pool_codes_names):
             code, result = fut.result()
             if result:
                 by_code[code] = result
-    print(f"   → {len(by_code)}/{len(pool_codes_names)}개 수급 데이터 수집")
+    avg_prices = sum(len(v.get("prices_60d", [])) for v in by_code.values()) / max(len(by_code), 1)
+    print(f"   → {len(by_code)}/{len(pool_codes_names)}개 수급+시세 수집 (평균 {avg_prices:.0f}일 시세)")
 
     # 최근 일자(첫 행) 기준 정렬
     rows = []

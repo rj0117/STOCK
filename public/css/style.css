@@ -431,6 +431,75 @@ a { color: inherit; text-decoration: none; }
     font-weight: 600;
 }
 
+/* ============ 검색 페이지 기술적 지표 ============ */
+.tech-indicators {
+    margin-top: 12px;
+    padding: 12px;
+    background: #fafbff;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+.tech-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 10px;
+}
+.tech-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 8px;
+}
+.tech-cell {
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+.tech-cell .tech-label {
+    font-size: 10px;
+    color: var(--color-muted);
+    font-weight: 600;
+}
+.tech-cell .tech-value {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+.tech-cell .tech-value.up { color: var(--color-up); }
+.tech-cell .tech-value.down { color: var(--color-down); }
+.tech-cell .tech-value.tech-bb { font-size: 11px; }
+.tech-cell .tech-note {
+    font-size: 10px;
+    color: var(--color-muted);
+}
+.tech-events {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+.tech-event {
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+}
+.tech-event.up { background: #ffebee; color: var(--color-up); border-color: #ef9a9a; }
+.tech-event.down { background: #e3f2fd; color: var(--color-down); border-color: #90caf9; }
+.tech-note-small {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+
 /* 뉴스 종목 카드 - 시그널 행 */
 .snc-signal-row {
     padding: 0 16px 8px;

@@ -289,7 +289,7 @@ function signalBadgeHTML(code, opts = {}) {
         return `<span class="signal-mini signal-na">매매 신호 —</span>`;
     }
     const sent = getSentimentForCode(code);
-    const sig = calcSignal(cached.days, sent);
+    const sig = calcSignal(cached.days, sent, cached.prices_60d);
     const compact = opts.compact ? "compact" : "";
     return `<span class="signal-mini ${sig.cls} ${compact}" title="${escapeHtml(sig.reasons.join(' · '))}">${sig.label}</span>`;
 }
@@ -796,14 +796,115 @@ function fetchFlowCached(code) {
 }
 
 /**
+ * 60일 종가 → 기술적 지표 산출.
+ * @param {Array} prices60d - [{date, close, high, low, volume}, ...] 최신 → 과거 순
+ * @returns {Object} - { rsi14, ma5, ma20, ma60, bbUpper, bbLower, divergence20, goldenCross, deadCross,
+ *                       volSurge, lowBounce, summary: { label, score, reasons } }
+ */
+function calcTechnicals(prices60d) {
+    if (!prices60d || prices60d.length < 5) return null;
+    // closes: 과거 → 최신 순으로 뒤집기 (계산 편의)
+    const ordered = [...prices60d].reverse();
+    const closes = ordered.map(d => d.close);
+    const volumes = ordered.map(d => d.volume);
+    const n = closes.length;
+
+    // 단순 이동평균
+    function sma(arr, period, endIdx) {
+        if (endIdx + 1 < period) return null;
+        let sum = 0;
+        for (let i = endIdx - period + 1; i <= endIdx; i++) sum += arr[i];
+        return sum / period;
+    }
+    function sd(arr, period, endIdx, mean) {
+        if (endIdx + 1 < period) return null;
+        let s = 0;
+        for (let i = endIdx - period + 1; i <= endIdx; i++) s += (arr[i] - mean) ** 2;
+        return Math.sqrt(s / period);
+    }
+
+    const last = n - 1;
+    const ma5 = sma(closes, 5, last);
+    const ma20 = sma(closes, 20, last);
+    const ma60 = n >= 60 ? sma(closes, 60, last) : null;
+    const ma5_prev = sma(closes, 5, last - 1);
+    const ma20_prev = sma(closes, 20, last - 1);
+
+    // 볼린저밴드 (20일, 2 표준편차)
+    let bbUpper = null, bbLower = null;
+    if (ma20 !== null) {
+        const sigma = sd(closes, 20, last, ma20);
+        bbUpper = ma20 + 2 * sigma;
+        bbLower = ma20 - 2 * sigma;
+    }
+
+    // 이격도 (현재가 vs 20일 평균)
+    const divergence20 = ma20 ? ((closes[last] - ma20) / ma20 * 100) : null;
+
+    // RSI 14일 (Wilder's smoothing)
+    let rsi14 = null;
+    if (n >= 15) {
+        let gainSum = 0, lossSum = 0;
+        for (let i = 1; i <= 14; i++) {
+            const diff = closes[i] - closes[i - 1];
+            if (diff > 0) gainSum += diff;
+            else lossSum += -diff;
+        }
+        let avgGain = gainSum / 14;
+        let avgLoss = lossSum / 14;
+        for (let i = 15; i < n; i++) {
+            const diff = closes[i] - closes[i - 1];
+            const g = diff > 0 ? diff : 0;
+            const l = diff < 0 ? -diff : 0;
+            avgGain = (avgGain * 13 + g) / 14;
+            avgLoss = (avgLoss * 13 + l) / 14;
+        }
+        if (avgLoss === 0) rsi14 = 100;
+        else {
+            const rs = avgGain / avgLoss;
+            rsi14 = 100 - 100 / (1 + rs);
+        }
+    }
+
+    // 골든/데드 크로스 (5일선이 20일선 돌파)
+    let goldenCross = false, deadCross = false;
+    if (ma5 !== null && ma20 !== null && ma5_prev !== null && ma20_prev !== null) {
+        goldenCross = ma5_prev <= ma20_prev && ma5 > ma20;
+        deadCross = ma5_prev >= ma20_prev && ma5 < ma20;
+    }
+
+    // 거래량 급증 (오늘 거래량 > 20일 평균 거래량 × 2)
+    let volSurge = false;
+    const volMa20 = sma(volumes, 20, last);
+    if (volMa20 && volumes[last] > volMa20 * 2) volSurge = true;
+
+    // 저점 반등 시그널 (최근 5일 중 -7% 이상 하락 후 어제 ≥+2% 반등)
+    let lowBounce = false;
+    if (n >= 6) {
+        const ret5 = (closes[last - 1] - closes[Math.max(0, last - 5)]) / closes[Math.max(0, last - 5)] * 100;
+        const ret1 = (closes[last] - closes[last - 1]) / closes[last - 1] * 100;
+        if (ret5 <= -7 && ret1 >= 2) lowBounce = true;
+    }
+
+    return {
+        rsi14: rsi14 !== null ? Math.round(rsi14 * 10) / 10 : null,
+        ma5, ma20, ma60, bbUpper, bbLower,
+        divergence20: divergence20 !== null ? Math.round(divergence20 * 10) / 10 : null,
+        goldenCross, deadCross, volSurge, lowBounce,
+        dataLength: n,
+    };
+}
+
+/**
  * 단순 휴리스틱 — 향후 1-2일 매수/매도 우위 시그널.
  * 근거: 최근 5일 외인·기관 수급 패턴 + 당일 등락 + (선택) 뉴스 호재/악재
  * ⚠ 투자 권유 아님, 참고용 데이터.
  *
  * @param {Array} flowDays - 5일 수급 데이터
  * @param {Object} [sentiment] - 옵션. { pos, neg, neu } 종목 관련 뉴스 호재/악재 카운트
+ * @param {Array} [prices60d] - 옵션. 60일 일별 시세 (기술적 지표 계산용)
  */
-function calcSignal(flowDays, sentiment) {
+function calcSignal(flowDays, sentiment, prices60d) {
     if (!flowDays || flowDays.length === 0) {
         return { label: "데이터 없음", cls: "signal-na", score: 0, reasons: [] };
     }
@@ -840,6 +941,34 @@ function calcSignal(flowDays, sentiment) {
         else if (ret5 >= 5) { score += 2; reasons.push(`5일 +${ret5.toFixed(1)}% 상승`); }
         else if (ret5 <= -10) { score -= 3; reasons.push(`5일 ${ret5.toFixed(1)}% 강한 하락`); }
         else if (ret5 <= -5) { score -= 2; reasons.push(`5일 ${ret5.toFixed(1)}% 하락`); }
+    }
+
+    // 기술적 지표 (60일 데이터 있을 때만)
+    const tech = prices60d && prices60d.length >= 5 ? calcTechnicals(prices60d) : null;
+    if (tech) {
+        // RSI
+        if (tech.rsi14 !== null) {
+            if (tech.rsi14 <= 30) { score += 4; reasons.push(`RSI ${tech.rsi14} 과매도 (저점 매수 기회)`); }
+            else if (tech.rsi14 <= 35) { score += 2; reasons.push(`RSI ${tech.rsi14} 과매도 근접`); }
+            else if (tech.rsi14 >= 70) { score -= 4; reasons.push(`RSI ${tech.rsi14} 과매수 (조정 가능성)`); }
+            else if (tech.rsi14 >= 65) { score -= 2; reasons.push(`RSI ${tech.rsi14} 과매수 근접`); }
+        }
+        // 이격도
+        if (tech.divergence20 !== null) {
+            if (tech.divergence20 <= -10) { score += 3; reasons.push(`20일 이격도 ${tech.divergence20}% (단기 과매도)`); }
+            else if (tech.divergence20 >= 15) { score -= 3; reasons.push(`20일 이격도 +${tech.divergence20}% (단기 과열)`); }
+        }
+        // 골든/데드크로스
+        if (tech.goldenCross) { score += 4; reasons.push(`골든크로스 발생 (5일선 → 20일선 돌파)`); }
+        if (tech.deadCross) { score -= 4; reasons.push(`데드크로스 발생 (5일선 → 20일선 이탈)`); }
+        // 저점 반등
+        if (tech.lowBounce) { score += 3; reasons.push(`저점 반등 시도 (5일 -7%↓ 후 어제 +2%↑)`); }
+        // 거래량 급증
+        if (tech.volSurge) {
+            // 가격이 오르며 거래량 급증은 매수세, 떨어지며 급증은 매도 패닉
+            if (todayPct >= 0) { score += 2; reasons.push(`거래량 급증 + 상승 (매수세 강화)`); }
+            else { score -= 1; reasons.push(`거래량 급증 + 하락 (매도세 강화)`); }
+        }
     }
 
     // 뉴스 호재/악재 영향도 — 압도적 호재는 큰 가중치 (수급 약세도 뒤집을 수 있게)
@@ -1035,7 +1164,7 @@ async function renderFavorites(main) {
         const ch = formatChange(s.change, s.change_pct);
         const days = (flow && flow.days) || [];
         const today = days[0] || {};
-        const sig = calcSignal(days, getSentimentForCode(s.code));
+        const sig = calcSignal(days, getSentimentForCode(s.code), flow && flow.prices_60d);
 
         const newsHtml = news.filter(n => n && n.title && !n.error).slice(0, 2).map(n => `
             <a class="fav-news-item" href="${escapeHtml(n.link)}" target="_blank" rel="noopener" onclick="event.stopPropagation()">
@@ -1121,7 +1250,8 @@ async function renderSearchResult(main, code) {
     const ch = formatChange(stock.change, stock.change_pct);
     const fav = isFavorite(code);
     const newsArr = Array.isArray(news) ? news : [];
-    const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code));
+    const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code), flow && flow.prices_60d);
+    const tech = (flow && flow.prices_60d && flow.prices_60d.length >= 5) ? calcTechnicals(flow.prices_60d) : null;
 
     main.innerHTML = `
         <div class="search-result">
@@ -1149,6 +1279,30 @@ async function renderSearchResult(main, code) {
                                 <span class="signal-mini ${sig.cls}">${sig.label}</span>
                             </div>
                             <div class="signal-reason">${escapeHtml(sig.reasons.join(' · '))}</div>
+                        </div>
+                    ` : ""}
+                    ${tech ? `
+                        <div class="tech-indicators">
+                            <div class="tech-title">📐 기술적 지표 (60일 데이터 기반)</div>
+                            <div class="tech-grid">
+                                ${tech.rsi14 !== null ? `
+                                    <div class="tech-cell"><span class="tech-label">RSI(14)</span><span class="tech-value ${tech.rsi14 <= 30 ? 'up' : tech.rsi14 >= 70 ? 'down' : ''}">${tech.rsi14.toFixed(1)}</span><span class="tech-note">${tech.rsi14 <= 30 ? '과매도' : tech.rsi14 >= 70 ? '과매수' : '중립'}</span></div>
+                                ` : ""}
+                                ${tech.ma5 !== null ? `<div class="tech-cell"><span class="tech-label">5일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma5))}원</span></div>` : ""}
+                                ${tech.ma20 !== null ? `<div class="tech-cell"><span class="tech-label">20일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma20))}원</span></div>` : ""}
+                                ${tech.ma60 !== null ? `<div class="tech-cell"><span class="tech-label">60일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma60))}원</span></div>` : ""}
+                                ${tech.divergence20 !== null ? `<div class="tech-cell"><span class="tech-label">20일 이격도</span><span class="tech-value ${tech.divergence20 <= -10 ? 'up' : tech.divergence20 >= 15 ? 'down' : ''}">${tech.divergence20 > 0 ? '+' : ''}${tech.divergence20}%</span></div>` : ""}
+                                ${tech.bbUpper !== null ? `<div class="tech-cell"><span class="tech-label">볼린저 상/하</span><span class="tech-value tech-bb">${formatPrice(Math.round(tech.bbUpper))} / ${formatPrice(Math.round(tech.bbLower))}</span></div>` : ""}
+                            </div>
+                            ${(tech.goldenCross || tech.deadCross || tech.lowBounce || tech.volSurge) ? `
+                                <div class="tech-events">
+                                    ${tech.goldenCross ? `<span class="tech-event up">⭐ 골든크로스</span>` : ""}
+                                    ${tech.deadCross ? `<span class="tech-event down">⚠ 데드크로스</span>` : ""}
+                                    ${tech.lowBounce ? `<span class="tech-event up">📈 저점 반등 시도</span>` : ""}
+                                    ${tech.volSurge ? `<span class="tech-event">📊 거래량 급증</span>` : ""}
+                                </div>
+                            ` : ""}
+                            <div class="tech-note-small">데이터 ${tech.dataLength}일. RSI 30↓ 과매도 / 70↑ 과매수. 골든·데드크로스는 5일↔20일 이동평균.</div>
                         </div>
                     ` : ""}
                 </div>
