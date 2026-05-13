@@ -4,6 +4,7 @@ api_handlers.py 와 동일한 코드를 유지(import 호환). 변경 시 양쪽
 
 import os
 import re
+import math
 import html
 import requests
 from bs4 import BeautifulSoup
@@ -90,6 +91,28 @@ def get_stock(code):
     except Exception:
         pass
 
+    # 펀더멘털 (PER/PBR/시가총액) — 동일 PC 페이지에서 추출 (추가 호출 없음)
+    per = pbr = None
+    market_cap = ""
+    try:
+        per_el = soup.select_one("#_per")
+        pbr_el = soup.select_one("#_pbr")
+        mkt_el = soup.select_one("#_market_sum")
+        if per_el:
+            try:
+                per = float(per_el.get_text(strip=True).replace(",", ""))
+            except ValueError:
+                pass
+        if pbr_el:
+            try:
+                pbr = float(pbr_el.get_text(strip=True).replace(",", ""))
+            except ValueError:
+                pass
+        if mkt_el:
+            market_cap = mkt_el.get_text(" ", strip=True)
+    except Exception:
+        pass
+
     return {
         "code": code,
         "name": name,
@@ -100,8 +123,48 @@ def get_stock(code):
         "after_price": int(after_price) if after_price else 0,
         "after_change": after_change,
         "after_change_pct": round(after_change_pct, 2),
+        "per": per,
+        "pbr": pbr,
+        "market_cap": market_cap,
         "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
+
+
+_INDEX_CACHE = {"ts": 0, "value": None}
+
+def get_market_indexes():
+    """KOSPI/KOSDAQ 현재 지수와 등락. 60초 캐시."""
+    import time
+    now = time.time()
+    if _INDEX_CACHE["value"] and now - _INDEX_CACHE["ts"] < 60:
+        return _INDEX_CACHE["value"]
+    result = {}
+    for code in ("KOSPI", "KOSDAQ"):
+        try:
+            url = f"https://finance.naver.com/sise/sise_index.naver?code={code}"
+            r = requests.get(url, headers=HEADERS, timeout=6)
+            ct = (r.headers.get("Content-Type", "") or "").lower()
+            r.encoding = "euc-kr" if ("euc-kr" in ct or "euckr" in ct) else "utf-8"
+            soup = BeautifulSoup(r.text, "lxml")
+            now_el = soup.select_one("#now_value")
+            chg_el = soup.select_one("#change_value_and_rate")
+            value = _to_number(now_el.get_text(strip=True)) if now_el else 0
+            change_text = chg_el.get_text(" ", strip=True) if chg_el else ""
+            # change_text 예: "12.34  +0.41%" 또는 "-3.21 -0.15%"
+            sign = -1.0 if "-" in change_text or "하락" in change_text else 1.0
+            nums = re.findall(r"[\d.]+", change_text)
+            change_val = float(nums[0]) * sign if nums else 0.0
+            change_pct = (float(nums[1]) if len(nums) > 1 else 0.0) * sign
+            result[code] = {
+                "value": value,
+                "change": round(change_val, 2),
+                "change_pct": round(change_pct, 2),
+            }
+        except Exception as e:
+            result[code] = {"value": 0, "change": 0, "change_pct": 0, "error": str(e)}
+    _INDEX_CACHE["ts"] = now
+    _INDEX_CACHE["value"] = result
+    return result
 
 
 def _parse_signed_int(text):
@@ -218,7 +281,95 @@ def get_intraday(code):
     return {"code": code, "date": date_fmt, "data": out, "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S")}
 
 
+# ---- 기술지표/신뢰구간 (recommend.py와 동일 휴리스틱, 인라인) ----
+def _ai_calc_technicals(prices_60d):
+    if not prices_60d or len(prices_60d) < 5:
+        return None
+    ordered = list(reversed(prices_60d))
+    closes = [d.get("close", 0) for d in ordered]
+    n = len(closes)
+    def sma(period, end):
+        if end + 1 < period: return None
+        return sum(closes[end - period + 1: end + 1]) / period
+    last = n - 1
+    ma5 = sma(5, last); ma20 = sma(20, last)
+    ma5_prev = sma(5, last - 1); ma20_prev = sma(20, last - 1)
+    divergence20 = ((closes[last] - ma20) / ma20 * 100) if ma20 else None
+    rsi14 = None
+    if n >= 15:
+        g = l = 0
+        for i in range(1, 15):
+            d = closes[i] - closes[i-1]
+            if d > 0: g += d
+            else: l += -d
+        avg_g, avg_l = g/14, l/14
+        for i in range(15, n):
+            d = closes[i] - closes[i-1]
+            avg_g = (avg_g*13 + (d if d > 0 else 0)) / 14
+            avg_l = (avg_l*13 + (-d if d < 0 else 0)) / 14
+        rsi14 = 100 if avg_l == 0 else 100 - 100/(1 + avg_g/avg_l)
+    golden = dead = False
+    if None not in (ma5, ma20, ma5_prev, ma20_prev):
+        golden = ma5_prev <= ma20_prev and ma5 > ma20
+        dead = ma5_prev >= ma20_prev and ma5 < ma20
+    low_bounce = False
+    if n >= 6:
+        ref = closes[max(0, last - 5)]
+        if ref > 0 and closes[last - 1] > 0:
+            r5 = (closes[last-1] - ref) / ref * 100
+            r1 = (closes[last] - closes[last-1]) / closes[last-1] * 100
+            if r5 <= -7 and r1 >= 2: low_bounce = True
+    return {"rsi14": rsi14, "ma5": ma5, "ma20": ma20,
+            "divergence20": divergence20, "golden_cross": golden,
+            "dead_cross": dead, "low_bounce": low_bounce}
+
+
+def _ai_calc_forecast(prices_60d, current_price):
+    if not prices_60d or len(prices_60d) < 20 or not current_price:
+        return None
+    ordered = list(reversed(prices_60d))
+    returns = []
+    for i in range(1, len(ordered)):
+        prev = ordered[i-1].get("close", 0)
+        if prev > 0:
+            returns.append(math.log(ordered[i].get("close", 0) / prev))
+    if len(returns) < 10:
+        return None
+    mu = sum(returns) / len(returns)
+    var = sum((r - mu) ** 2 for r in returns) / len(returns)
+    sd = math.sqrt(var)
+    def at(t):
+        sig = sd * math.sqrt(t)
+        exp = current_price * math.exp(mu * t)
+        return {
+            "expected_pct": round((exp/current_price - 1) * 100, 1),
+            "lower_pct": round((math.exp(mu*t - 1.96*sig) - 1) * 100, 1),
+            "upper_pct": round((math.exp(mu*t + 1.96*sig) - 1) * 100, 1),
+        }
+    return {"oneWeek": at(5), "twoWeek": at(10),
+            "daily_mean_pct": round(mu * 100, 2),
+            "daily_sd_pct": round(sd * 100, 2)}
+
+
+def _ai_tech_summary(t):
+    if not t: return "(60일 시세 부족)"
+    parts = []
+    if t["rsi14"] is not None:
+        parts.append(f"RSI14 {t['rsi14']:.1f}" + (" [저가권]" if t['rsi14'] <= 30 else " [과열]" if t['rsi14'] >= 70 else ""))
+    if t["golden_cross"]: parts.append("골든크로스 발생")
+    if t["dead_cross"]: parts.append("데드크로스 발생")
+    if t["low_bounce"]: parts.append("저점 반등 시그널")
+    if t["divergence20"] is not None:
+        d = t["divergence20"]
+        parts.append(f"20일선 이격도 {d:+.1f}%")
+    if t["ma5"] and t["ma20"]:
+        rel = "상승 정렬" if t["ma5"] > t["ma20"] else "하락 정렬"
+        parts.append(f"5일선·20일선 {rel}")
+    return ", ".join(parts) if parts else "(특별한 시그널 없음)"
+
+
 def get_ai_analysis(code):
+    import json as _json
     code = (code or "").strip()
     if not re.fullmatch(r"\d{6}", code):
         return {"error": "유효한 6자리 종목 코드가 필요합니다"}
@@ -233,6 +384,7 @@ def get_ai_analysis(code):
     news_query = stock.get("name") or code
     news = get_news(news_query, display=10)
     news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:8]
+    indexes = get_market_indexes()
 
     name = stock.get("name") or code
     price = stock.get("price", 0)
@@ -240,6 +392,10 @@ def get_ai_analysis(code):
     change_pct = stock.get("change_pct", 0)
     after_price = stock.get("after_price", 0)
     after_change_pct = stock.get("after_change_pct", 0)
+    per = stock.get("per")
+    pbr = stock.get("pbr")
+    mcap = stock.get("market_cap") or ""
+
     days = flow.get("days") or []
     days_summary = []
     for d in days[:5]:
@@ -251,35 +407,86 @@ def get_ai_analysis(code):
 
     prices_60d = flow.get("prices_60d") or []
     if len(prices_60d) >= 20:
-        recent_closes = [p["close"] for p in prices_60d[:20] if p.get("close")]
         high_60 = max(p["close"] for p in prices_60d if p.get("close"))
         low_60 = min(p["close"] for p in prices_60d if p.get("close"))
-        sma5 = sum(p["close"] for p in prices_60d[:5]) / 5
-        sma20 = sum(recent_closes) / len(recent_closes)
-        price_summary = f"60일 최고 {high_60:,}원, 최저 {low_60:,}원 / 5일 평균 {sma5:,.0f}원, 20일 평균 {sma20:,.0f}원"
+        price_summary = f"60일 최고 {high_60:,}원, 최저 {low_60:,}원"
     else:
         price_summary = "(60일 시세 부족)"
 
-    news_text = "\n".join(f"  - {n.get('title', '')[:100]}" for n in news_list) or "(없음)"
+    tech = _ai_calc_technicals(prices_60d)
+    tech_text = _ai_tech_summary(tech)
+    forecast = _ai_calc_forecast(prices_60d, price)
+    if forecast:
+        forecast_text = (
+            f"1주(5거래일): 기대 {forecast['oneWeek']['expected_pct']:+.1f}% / "
+            f"95% 범위 {forecast['oneWeek']['lower_pct']:+.1f}% ~ {forecast['oneWeek']['upper_pct']:+.1f}%\n"
+            f"2주(10거래일): 기대 {forecast['twoWeek']['expected_pct']:+.1f}% / "
+            f"95% 범위 {forecast['twoWeek']['lower_pct']:+.1f}% ~ {forecast['twoWeek']['upper_pct']:+.1f}%\n"
+            f"(일일 평균 수익률 {forecast['daily_mean_pct']:+.2f}%, 일일 변동성 ±{forecast['daily_sd_pct']:.2f}%)"
+        )
+    else:
+        forecast_text = "(데이터 부족)"
 
-    prompt = f"""다음은 한국 주식 '{name}({code})'의 현재 정보입니다. 이 정보를 바탕으로 단기(1-2주) 투자 판단을 내려주세요.
+    funda_parts = []
+    if per is not None: funda_parts.append(f"PER {per:.2f}")
+    if pbr is not None: funda_parts.append(f"PBR {pbr:.2f}")
+    if mcap: funda_parts.append(f"시가총액 {mcap}")
+    funda_text = " · ".join(funda_parts) if funda_parts else "(미수집)"
 
-[시세]
-현재가: {price:,}원 (정규장 종가, 전일대비 {change:+,}원 / {change_pct:+.2f}%)
-{f"시간외 단일가: {after_price:,}원 ({after_change_pct:+.2f}%)" if after_price else ""}
+    kospi = indexes.get("KOSPI", {})
+    kosdaq = indexes.get("KOSDAQ", {})
+    index_text = (
+        f"KOSPI {kospi.get('value', 0):,.2f} ({kospi.get('change_pct', 0):+.2f}%) · "
+        f"KOSDAQ {kosdaq.get('value', 0):,.2f} ({kosdaq.get('change_pct', 0):+.2f}%)"
+    )
+
+    news_lines = []
+    for i, n in enumerate(news_list, 1):
+        title = (n.get("title") or "")[:120]
+        summary = (n.get("summary") or "")[:200]
+        if summary:
+            news_lines.append(f"  {i}. {title}\n     └ {summary}")
+        else:
+            news_lines.append(f"  {i}. {title}")
+    news_text = "\n".join(news_lines) or "(없음)"
+
+    prompt = f"""당신은 한국 주식 단기 투자(1-2주) 분석가입니다. 다음 정보를 종합해 '{name}({code})' 의 매수/매도/관망 판단을 내려주세요.
+
+[1. 종목 시세]
+현재가: {price:,}원 (전일대비 {change:+,}원 / {change_pct:+.2f}%)
+{f"시간외 단일가: {after_price:,}원 ({after_change_pct:+.2f}%)" if after_price else "시간외: 없음"}
 {price_summary}
 
-[최근 5일 수급 (단위: 주식 수, + 순매수 / - 순매도)]
+[2. 펀더멘털]
+{funda_text}
+
+[3. 시장 환경]
+{index_text}
+
+[4. 기술적 지표 (60일 시세 기반)]
+{tech_text}
+
+[5. 1-2주 통계 신뢰구간 (최근 변동성 기반 95% 추정)]
+{forecast_text}
+
+[6. 최근 5일 외인/기관/개인 수급]
 {days_text}
 
-[관련 뉴스 헤드라인 8건]
+[7. 관련 뉴스 8건 (제목과 요약)]
 {news_text}
 
-다음 JSON 형식으로만 응답해주세요. 다른 텍스트 금지:
+---
+판단 가이드:
+- 신뢰구간은 변동성 기반 통계일 뿐, 실적·정책 이벤트로 무력해질 수 있다는 점 감안
+- 기술 지표와 수급이 한 방향으로 정렬되면 신뢰도 ↑
+- 뉴스 본문 내용을 가볍게 보지 말 것: 호재성 키워드의 진위와 임팩트 함께 평가
+- 시장 환경(KOSPI/KOSDAQ)과 같은 방향이면 동조 효과 고려
+
+다음 JSON 형식으로만 응답. 다른 텍스트 금지:
 {{
   "action": "buy" 또는 "sell" 또는 "hold",
-  "confidence": 1~10 정수 (확신도),
-  "analysis": "150자 내외 한국어 분석. 핵심 근거 2~3개 위주. 매수/매도/관망 이유 명확히."
+  "confidence": 1~10 정수,
+  "analysis": "200자 내외 한국어 분석. 핵심 근거 3개 명시. 어떤 시그널들이 같은 방향인지 또는 충돌하는지 짚어주세요."
 }}
 """
 
@@ -290,8 +497,8 @@ def get_ai_analysis(code):
             "content-type": "application/json",
         }
         body = {
-            "model": "claude-haiku-4-5",
-            "max_tokens": 600,
+            "model": "claude-sonnet-4-6",
+            "max_tokens": 800,
             "messages": [{"role": "user", "content": prompt}],
         }
         resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=30)
@@ -303,18 +510,22 @@ def get_ai_analysis(code):
         for c in content:
             if c.get("type") == "text":
                 text += c.get("text", "")
-        import json as _json
         m = re.search(r'\{[\s\S]*\}', text)
         if not m:
             return {"error": "AI 응답 파싱 실패", "detail": text[:200]}
         result = _json.loads(m.group(0))
+        usage = data.get("usage", {}) or {}
         return {
             "code": code,
             "name": name,
             "action": result.get("action", "hold"),
             "confidence": result.get("confidence", 5),
             "analysis": result.get("analysis", ""),
-            "model": data.get("model", "claude-haiku-4-5"),
+            "model": data.get("model", "claude-sonnet-4-6"),
+            "usage": {
+                "input_tokens": usage.get("input_tokens"),
+                "output_tokens": usage.get("output_tokens"),
+            },
             "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
         }
     except Exception as e:

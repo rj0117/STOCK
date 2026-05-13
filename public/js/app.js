@@ -2135,7 +2135,7 @@ async function renderSearchResult(main, code) {
 async function requestAiAnalysis(code) {
     const body = document.getElementById("ai-analysis-body");
     if (!body) return;
-    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (1~5초)</div>`;
+    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (3~8초 소요)</div>`;
     try {
         const r = await fetchJsonUtf8(`/api/ai_analyze?code=${code}`, { error: "응답 없음" });
         if (r.error) {
@@ -2144,11 +2144,15 @@ async function requestAiAnalysis(code) {
         }
         const cls = r.action === "buy" ? "signal-buy" : r.action === "sell" ? "signal-sell" : "signal-neutral";
         const label = r.action === "buy" ? "🟢 매수" : r.action === "sell" ? "🔴 매도" : "⚪ 관망";
+        const usage = r.usage || {};
+        const tokenInfo = (usage.input_tokens || usage.output_tokens)
+            ? ` · 토큰 in ${usage.input_tokens || "?"} / out ${usage.output_tokens || "?"}`
+            : "";
         body.innerHTML = `
             <div class="ai-result">
                 <div class="ai-verdict ${cls}">${label} · 확신도 ${r.confidence || "—"}/10</div>
                 <div class="ai-analysis">${escapeHtml(r.analysis || "").replace(/\n/g, "<br>")}</div>
-                <div class="ai-meta">📌 ${escapeHtml(r.model || "")} · ${escapeHtml(r.fetched_at || "")}</div>
+                <div class="ai-meta">📌 ${escapeHtml(r.model || "")}${tokenInfo} · ${escapeHtml(r.fetched_at || "")}</div>
             </div>
         `;
     } catch (e) {
