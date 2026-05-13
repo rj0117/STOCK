@@ -842,15 +842,16 @@ function calcSignal(flowDays, sentiment) {
         else if (ret5 <= -5) { score -= 2; reasons.push(`5일 ${ret5.toFixed(1)}% 하락`); }
     }
 
-    // 뉴스 호재/악재 영향도 (있을 때만)
+    // 뉴스 호재/악재 영향도 — 압도적 호재는 큰 가중치 (수급 약세도 뒤집을 수 있게)
     if (sentiment && (sentiment.pos > 0 || sentiment.neg > 0)) {
         const net = (sentiment.pos || 0) - (sentiment.neg || 0);
-        // ±5점 한도 — 수급보다 영향 작게
         let newsAdj = 0;
-        if (net >= 5) newsAdj = 5;
+        if (net >= 10) newsAdj = 10;          // 압도적 호재
+        else if (net >= 5) newsAdj = 6;       // 호재 우세
         else if (net >= 3) newsAdj = 3;
         else if (net >= 1) newsAdj = 1;
-        else if (net <= -5) newsAdj = -5;
+        else if (net <= -10) newsAdj = -10;   // 압도적 악재
+        else if (net <= -5) newsAdj = -6;
         else if (net <= -3) newsAdj = -3;
         else if (net <= -1) newsAdj = -1;
         score += newsAdj;
