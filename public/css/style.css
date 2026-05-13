@@ -883,6 +883,12 @@ a { color: inherit; text-decoration: none; }
 .snc-name-block {
     flex: 1;
     display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+.snc-name-line {
+    display: flex;
     align-items: baseline;
     gap: 8px;
     min-width: 0;
@@ -895,6 +901,12 @@ a { color: inherit; text-decoration: none; }
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+.snc-industry-line {
+    margin-top: 1px;
+}
+.snc-industry-line .industry-badge {
+    margin-left: 0;
 }
 .snc-name:hover {
     color: var(--color-primary);

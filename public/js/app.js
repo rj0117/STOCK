@@ -703,9 +703,11 @@ function renderNewsKeywords(main) {
                         <header class="snc-head">
                             <div class="snc-rank">${i + 1}</div>
                             <div class="snc-name-block">
-                                <span class="snc-name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</span>
-                                <span class="snc-code">${s.code}</span>
-                                ${industryBadgeHTML(s.code)}
+                                <div class="snc-name-line">
+                                    <span class="snc-name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</span>
+                                    <span class="snc-code">${s.code}</span>
+                                </div>
+                                ${industryBadgeHTML(s.code) ? `<div class="snc-industry-line">${industryBadgeHTML(s.code)}</div>` : ""}
                             </div>
                             <div class="snc-badge">📰 ${s.news_count}건</div>
                             ${favIconHTML(s.code)}
