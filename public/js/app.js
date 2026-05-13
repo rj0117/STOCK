@@ -315,6 +315,20 @@ function summarizeTechnicals(tech) {
 
 /** 종목의 핵심 기술적 지표 한 줄 요약 (RSI + 발생 이벤트).
  * 모든 종목 카드/행에 컴팩트하게 추가 가능. */
+/** 종목 코드 → 업종명 lookup */
+function getIndustry(code) {
+    if (!state.stocks) return "";
+    const s = state.stocks.find(x => x.code === code);
+    return (s && s.industry) || "";
+}
+
+/** 종목 옆 작은 업종 뱃지 */
+function industryBadgeHTML(code) {
+    const ind = getIndustry(code);
+    if (!ind) return "";
+    return `<span class="industry-badge" title="${escapeHtml(ind)}">${escapeHtml(ind)}</span>`;
+}
+
 /** 종목 코드 → 60일 시세 배열 lookup (캐시 → API 응답 직접 전달 우선) */
 function _getPrices60dForCode(code, override) {
     if (override && override.length >= 5) return override;
@@ -464,7 +478,7 @@ function renderTop30(main) {
                             <tr>
                                 <td class="rk ${rankCls}">${i + 1}</td>
                                 <td>
-                                    <div class="name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</div>
+                                    <div class="name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)} ${industryBadgeHTML(s.code)}</div>
                                     <div class="meta"><span class="code">${s.code}</span> · 뉴스 ${s.news_count || 0}건 · 점수 ${s.total_score || 0}</div>
                                 </td>
                                 <td>${signalBadgeHTML(s.code, {compact: true})}</td>
@@ -510,6 +524,7 @@ function renderNewsKeywords(main) {
                             <div class="snc-name-block">
                                 <span class="snc-name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</span>
                                 <span class="snc-code">${s.code}</span>
+                                ${industryBadgeHTML(s.code)}
                             </div>
                             <div class="snc-badge">📰 ${s.news_count}건</div>
                             ${favIconHTML(s.code)}
@@ -847,6 +862,7 @@ function renderFlow(main, kind) {
                                     <td>
                                         <span class="stock-name" onclick="goSearch('${r.code}')">${escapeHtml(r.name)}</span>
                                         <span class="stock-code">${r.code}</span>
+                                        ${industryBadgeHTML(r.code)}
                                     </td>
                                     <td>${signalBadgeHTML(r.code, {compact: true})}</td>
                                     <td>${techBadgeHTML(r.code, {compact: true})}${techMiniHTML(r.code) ? '<div class="cell-tech">' + techMiniHTML(r.code) + '</div>' : ''}</td>
@@ -1152,6 +1168,7 @@ function renderSbsBiz(main) {
                                         <td class="col-name">
                                             <span class="stock-name" onclick="goSearch('${st.code}')">${escapeHtml(st.name)}</span>
                                             <span class="stock-code">${st.code}</span>
+                                            ${industryBadgeHTML(st.code)}
                                             <span class="mentions" title="자막/텍스트 언급 횟수">×${st.mentions}</span>
                                         </td>
                                         <td>${signalBadgeHTML(st.code, {compact: true})}</td>
@@ -1256,7 +1273,7 @@ async function renderFavorites(main) {
         return `
             <div class="card fav-card" onclick="goSearch('${s.code}')">
                 <button class="remove" onclick="removeFav(event, '${s.code}')">✕</button>
-                <div class="name">${escapeHtml(s.name)}</div>
+                <div class="name">${escapeHtml(s.name)} ${industryBadgeHTML(s.code)}</div>
                 <div class="code">${s.code}</div>
                 <div class="fav-price-block">
                     <div class="price">${formatPrice(s.price)}원</div>
@@ -1349,6 +1366,7 @@ async function renderSearchResult(main, code) {
                     <div class="name-block">
                         <h2>${escapeHtml(stock.name || stockName || "(이름 없음)")}</h2>
                         <span class="stock-code">${stock.code}${stockMaster ? ` · ${stockMaster.market}` : ""}</span>
+                        ${industryBadgeHTML(stock.code)}
                     </div>
                     <div class="price-block">
                         <div class="price-now">${formatPrice(stock.price)}원</div>

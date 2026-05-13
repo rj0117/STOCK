@@ -321,6 +321,21 @@ a { color: inherit; text-decoration: none; }
 .stock-row .signal-col { text-align: center; min-width: 0; }
 .stock-row .fav-col { text-align: center; }
 
+/* ============ 공통: 업종 뱃지 ============ */
+.industry-badge {
+    display: inline-block;
+    background: #eef2ff;
+    color: var(--color-primary);
+    padding: 1px 7px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+.snc-name-block .industry-badge { margin-left: 4px; }
+
 /* ============ 공통: ★ 즐겨찾기 아이콘 ============ */
 .fav-icon {
     background: transparent;

@@ -507,6 +507,62 @@ def fetch_flow_for_pool(pool_codes_names):
 # ============================================================
 # 종목 마스터 (KOSPI/KOSDAQ 전체) - 네이버 시가총액 페이지네이션
 # ============================================================
+def fetch_industry_map():
+    """네이버 업종 그룹 페이지에서 종목 → 업종명 매핑 수집.
+    반환: {code: industry_name} (예: '005930': '반도체와반도체장비')"""
+    from concurrent.futures import ThreadPoolExecutor, as_completed
+    # 업종 목록 받기
+    list_url = "https://finance.naver.com/sise/sise_group.naver?type=upjong"
+    try:
+        resp = requests.get(list_url, headers=HEADERS, timeout=10)
+        _decode_resp(resp)
+        soup = BeautifulSoup(resp.text, "lxml")
+    except Exception as e:
+        print(f"   [WARN] 업종 목록 조회 실패: {e}")
+        return {}
+
+    groups = []
+    seen_no = set()
+    for a in soup.select("a[href*='sise_group_detail']"):
+        href = a.get("href", "")
+        m = re.search(r"no=(\d+)", href)
+        if not m:
+            continue
+        no = m.group(1)
+        if no in seen_no:
+            continue
+        seen_no.add(no)
+        name = a.get_text(strip=True)
+        if name and len(name) >= 2:
+            groups.append({"no": no, "name": name})
+
+    code_to_industry = {}
+
+    def fetch_group(g):
+        url = f"https://finance.naver.com/sise/sise_group_detail.naver?type=upjong&no={g['no']}"
+        try:
+            r = requests.get(url, headers=HEADERS, timeout=10)
+            _decode_resp(r)
+            s = BeautifulSoup(r.text, "lxml")
+            local = {}
+            for a in s.select("a[href*='code=']"):
+                href = a.get("href", "")
+                m = re.search(r"code=(\d{6})", href)
+                if m and a.get_text(strip=True):
+                    local[m.group(1)] = g["name"]
+            return local
+        except Exception:
+            return {}
+
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        futures = [ex.submit(fetch_group, g) for g in groups]
+        for fut in as_completed(futures):
+            code_to_industry.update(fut.result())
+
+    print(f"   [업종] {len(groups)}개 업종, {len(code_to_industry)}개 종목 매핑")
+    return code_to_industry
+
+
 def fetch_stock_master():
     """네이버 시가총액 페이지를 순회해 KOSPI/KOSDAQ 전체 종목 코드/이름 수집"""
     markets = [("0", "KOSPI"), ("1", "KOSDAQ")]
@@ -559,10 +615,15 @@ def fetch_stock_master():
             return None
         return []
 
+    # 업종 매핑 (각 종목에 industry 필드 추가)
+    industry_map = fetch_industry_map()
+    for s in stocks:
+        s["industry"] = industry_map.get(s["code"], "")
+
     path = os.path.join(SITE_DIR, "stocks.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(stocks, f, ensure_ascii=False)
-    print(f"   → 총 {len(stocks)}개 저장: {path}")
+    print(f"   → 총 {len(stocks)}개 저장: {path} (업종 {sum(1 for s in stocks if s['industry'])}개 매핑됨)")
     return stocks
 
 
