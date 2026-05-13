@@ -100,11 +100,16 @@ async function loadData() {
         state.data = data;
         state.stocks = Array.isArray(stocks) ? stocks : [];
         state.sbsbiz = sbsbiz;
-        // flow.by_code를 _flowCache에 미리 채워 모든 뷰에서 즉시 시그널 계산 가능
+        // flow.by_code를 _flowCache에 미리 채워 모든 뷰에서 즉시 시그널/기술지표 계산 가능
         const byCode = data && data.flow && data.flow.by_code;
         if (byCode) {
             for (const code in byCode) {
-                _flowCache.set(code, Promise.resolve({ code, name: byCode[code].name, days: byCode[code].days }));
+                _flowCache.set(code, Promise.resolve({
+                    code,
+                    name: byCode[code].name,
+                    days: byCode[code].days,
+                    prices_60d: byCode[code].prices_60d || [],
+                }));
             }
         }
         const gen = document.getElementById("generated-at");
@@ -1429,21 +1434,7 @@ async function renderSearchResult(main, code) {
     const fav = isFavorite(code);
     const newsArr = Array.isArray(news) ? news : [];
     const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code));
-    const techPrices = flow && flow.prices_60d;
-    let tech = null;
-    let techDebug = "";
-    try {
-        if (!techPrices) techDebug = `prices_60d 필드 없음`;
-        else if (techPrices.length < 5) techDebug = `prices_60d 짧음 (${techPrices.length}일)`;
-        else {
-            tech = calcTechnicals(techPrices);
-            if (!tech) techDebug = `calcTechnicals null 반환 (${techPrices.length}일)`;
-        }
-    } catch (e) {
-        techDebug = `calcTechnicals 예외: ${e.message}`;
-        console.error("calcTechnicals error:", e);
-    }
-    console.log("[검색페이지]", code, "prices_60d:", techPrices?.length, "tech:", tech ? "OK" : "null", techDebug);
+    const tech = (flow && flow.prices_60d && flow.prices_60d.length >= 5) ? calcTechnicals(flow.prices_60d) : null;
 
     main.innerHTML = `
         <div class="search-result">
@@ -1494,7 +1485,6 @@ async function renderSearchResult(main, code) {
                         ` : ""}
                     ` : ""}
                 </div>
-                ${!tech ? `<div class="card" style="margin-top:16px;padding:16px;color:#c62828">⚠ 기술적 지표 표시 불가: ${escapeHtml(techDebug || "원인 미상")}</div>` : ""}
                 ${tech ? `
                     <div class="card tech-card">
                         <h3 class="tech-card-title">📐 기술적 지표 <span class="tech-card-sub">최근 ${tech.dataLength}일 데이터 기반</span></h3>
