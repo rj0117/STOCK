@@ -479,6 +479,23 @@ function techMiniHTML(code, opts = {}) {
     return `<span class="tech-mini">${parts.join("")}</span>`;
 }
 
+/** 60일 시세 기반 1주·2주 통계 신뢰구간을 작게 표시. 시세 부족 시 빈 문자열. */
+function forecastMiniHTML(code, opts = {}) {
+    const prices = _getPrices60dForCode(code, opts.prices60d);
+    if (!prices || prices.length < 20) return "";
+    const currentPrice = prices[0] && prices[0].close;
+    if (!currentPrice) return "";
+    const f = calcForecast(prices, currentPrice);
+    if (!f) return "";
+    function line(label, r) {
+        const expCls = r.ret_pct >= 0 ? "up" : "down";
+        const expSign = r.ret_pct >= 0 ? "+" : "";
+        const lowSign = r.lower_pct >= 0 ? "+" : "";
+        return `<div class="fc-mini-line" title="기준일 종가 기준 ${label} 95% 신뢰구간 · 최근 ${f.sampleSize}일 변동성(일 ±${f.dailySdPct}%) 기반"><span class="fc-mini-label">${label}</span><span class="fc-mini-exp ${expCls}">${expSign}${r.ret_pct}%</span><span class="fc-mini-range">${lowSign}${r.lower_pct}% ~ +${r.upper_pct}%</span></div>`;
+    }
+    return `<div class="fc-mini">${line("1주", f.oneWeek)}${line("2주", f.twoWeek)}</div>`;
+}
+
 /** 5일 수급 데이터를 캐시에서 가져와 시그널 뱃지 HTML 반환.
  * 캐시에 없으면 빈 자리(나중에 lazy-load는 호출자가 알아서). */
 function signalBadgeHTML(code, opts = {}) {
@@ -552,6 +569,7 @@ function renderTop30(main) {
                         <th>종목</th>
                         <th>시장 분위기</th>
                         <th>기술적 지표</th>
+                        <th>1·2주 통계 전망</th>
                         <th class="num">현재가</th>
                         <th class="num">전일 대비</th>
                         <th class="num">외국인</th>
@@ -575,6 +593,7 @@ function renderTop30(main) {
                                 </td>
                                 <td>${signalBadgeHTML(s.code, {compact: true})}</td>
                                 <td>${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
+                                <td>${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
                                 <td class="num"><strong>${formatPrice(s.price)}</strong>원</td>
                                 <td class="num ${ch.cls}">${ch.text}</td>
                                 <td class="num ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
@@ -687,6 +706,7 @@ function renderRecommendBuy(main) {
                                     <span class="signal-mini ${c.techSum.cls} compact">${c.techSum.label}</span>
                                 </div>
                                 <div class="rec-sig-reason">${escapeHtml(c.techSum.signals.join(' · '))}</div>
+                                ${forecastMiniHTML(c.code) ? `<div class="rec-forecast">${forecastMiniHTML(c.code)}</div>` : ''}
                             </div>
                             <div class="rec-flow">
                                 <span class="rec-flow-cell"><span class="rfl">외</span><span class="${netCls(c.foreign_net)}">${formatSignedQty(c.foreign_net)}</span></span>
@@ -1568,6 +1588,11 @@ async function renderFavorites(main) {
                         ${techBadgeHTML(s.code, { prices60d: flow && flow.prices_60d })}
                         ${techMiniHTML(s.code, { prices60d: flow && flow.prices_60d }) ? `<div class="fav-tech-mini">${techMiniHTML(s.code, { prices60d: flow && flow.prices_60d })}</div>` : ""}
                     </div>
+                    ${forecastMiniHTML(s.code, { prices60d: flow && flow.prices_60d }) ? `
+                    <div class="fav-sig-section">
+                        <div class="fav-sig-title">📅 1·2주 통계 전망</div>
+                        ${forecastMiniHTML(s.code, { prices60d: flow && flow.prices_60d })}
+                    </div>` : ""}
                     <div class="fav-flow">
                         <div class="ff-row">
                             <span class="ff-label">외인</span>

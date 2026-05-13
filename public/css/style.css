@@ -451,6 +451,42 @@ a { color: inherit; text-decoration: none; }
     margin-top: 6px;
 }
 
+/* ============ 1·2주 통계 전망 미니 ============ */
+.fc-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 11px;
+    line-height: 1.3;
+}
+.fc-mini-line {
+    display: grid;
+    grid-template-columns: 28px 48px 1fr;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+}
+.fc-mini-label {
+    font-weight: 700;
+    color: var(--color-muted);
+    font-size: 10px;
+}
+.fc-mini-exp {
+    font-weight: 700;
+}
+.fc-mini-exp.up { color: var(--color-up, #e53935); }
+.fc-mini-exp.down { color: var(--color-down, #1e88e5); }
+.fc-mini-range {
+    color: var(--color-muted);
+    font-size: 10px;
+}
+.cell-tech + .fc-mini { margin-top: 4px; }
+.rec-forecast {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px dashed var(--color-border);
+}
+
 /* 뉴스 종목 카드 - 시그널 두 블록 */
 .snc-signal-row {
     display: grid;
