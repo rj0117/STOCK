@@ -885,7 +885,24 @@ def run():
         if code not in seen_codes_flow:
             flow_pool.append({"code": code, "name": all_known_stocks.get(code, "")})
             seen_codes_flow.add(code)
-    print(f"   풀 크기: {len(flow_pool)}개 (추적 + 뉴스 매칭 상위)")
+    # 시가총액 상위: KOSPI 60 + KOSDAQ 30 (stocks.json은 시총 순서로 저장됨)
+    try:
+        master_path = os.path.join(SITE_DIR, "stocks.json")
+        if os.path.exists(master_path):
+            with open(master_path, "r", encoding="utf-8") as f:
+                master = json.load(f)
+            kospi_top = [s for s in master if s.get("market") == "KOSPI"][:60]
+            kosdaq_top = [s for s in master if s.get("market") == "KOSDAQ"][:30]
+            added_top = 0
+            for s in kospi_top + kosdaq_top:
+                if s["code"] not in seen_codes_flow:
+                    flow_pool.append({"code": s["code"], "name": s["name"]})
+                    seen_codes_flow.add(s["code"])
+                    added_top += 1
+            print(f"   + 시총 상위 {added_top}개 추가 (KOSPI 60 + KOSDAQ 30 중 신규)")
+    except Exception as e:
+        print(f"   [WARN] 시총 상위 추가 실패: {e}")
+    print(f"   풀 크기: {len(flow_pool)}개 (추적 + 뉴스 매칭 + 시총 상위)")
     flow_data = fetch_flow_for_pool(flow_pool)
     # top30에 종가·등락액·등락률·기준일 enrich
     by_code = flow_data["by_code"]
