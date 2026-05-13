@@ -2,8 +2,8 @@ name: Update Stock Data
 
 on:
   schedule:
-    # 24시간 매시 0분 (주말 포함). 하루 24회.
-    - cron: '0 * * * *'
+    # 24시간 매시 0분/30분 (주말 포함). 하루 48회 · 30분 간격.
+    - cron: '0,30 * * * *'
   workflow_dispatch:
 
 permissions:
