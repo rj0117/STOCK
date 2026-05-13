@@ -363,6 +363,60 @@ a { color: inherit; text-decoration: none; }
 .sent-count.sent-pos { background: #ffebee; color: #c62828; }
 .sent-count.sent-neg { background: #e3f2fd; color: #1565c0; }
 
+/* ============ 공통: 기술적 지표 미니 (RSI + 이벤트) ============ */
+.tech-mini {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+    font-size: 11px;
+    line-height: 1.6;
+}
+.tm-rsi, .tm-evt {
+    display: inline-block;
+    padding: 1px 6px;
+    border-radius: 8px;
+    font-size: 10px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: help;
+    background: var(--color-card);
+    border: 1px solid var(--color-border);
+}
+.tm-rsi.up, .tm-evt.up {
+    background: #ffebee;
+    color: var(--color-up);
+    border-color: #ef9a9a;
+    font-weight: 700;
+}
+.tm-rsi.down, .tm-evt.down {
+    background: #e3f2fd;
+    color: var(--color-down);
+    border-color: #90caf9;
+    font-weight: 700;
+}
+.tm-rsi.muted { color: var(--color-muted); }
+
+/* 표 안 셀의 미니 — 두 번째 줄로 */
+.cell-tech {
+    margin-top: 4px;
+    line-height: 1;
+}
+.cell-tech .tech-mini { font-size: 10px; }
+.cell-tech .tm-rsi, .cell-tech .tm-evt {
+    font-size: 9px;
+    padding: 1px 5px;
+}
+
+/* 즐겨찾기 카드 안 */
+.fav-tech-mini {
+    margin: 6px 0;
+    padding: 6px 8px;
+    background: #fafbff;
+    border-radius: 6px;
+    border: 1px dashed var(--color-border);
+}
+
 /* ============ 공통: 시그널 미니 뱃지 ============ */
 .signal-mini {
     display: inline-block;
