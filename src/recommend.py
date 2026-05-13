@@ -351,9 +351,10 @@ def find_buy_candidates(by_code, news_by_stock=None):
     return candidates
 
 
-def update_buy_history(site_dir, by_code, news_by_stock=None):
+def update_buy_history(site_dir, by_code, news_by_stock=None, indexes=None):
     """매수 추천 후보를 추출해 public/buy_history.json에 누적.
-    같은 날짜는 첫 스냅샷만 보존. 14일 슬라이딩 윈도우."""
+    같은 날짜는 첫 스냅샷만 보존. 백테스트 비교 기준선용 KOSPI/KOSDAQ 종가도 함께 저장.
+    히스토리는 90일로 보존 (백테스트용)."""
     path = os.path.join(site_dir, "buy_history.json")
     history = {"by_date": {}}
     if os.path.exists(path):
@@ -369,23 +370,34 @@ def update_buy_history(site_dir, by_code, news_by_stock=None):
     today_key = now.strftime("%Y-%m-%d")
     snapshot_at = now.strftime("%Y-%m-%d %H:%M")
 
+    kospi_val = (indexes or {}).get("KOSPI", {}).get("value") or None
+    kosdaq_val = (indexes or {}).get("KOSDAQ", {}).get("value") or None
+
     if today_key in history["by_date"]:
-        # 이미 오늘 스냅샷 있음 → skip (첫 추천 시점 보존)
+        # 이미 오늘 스냅샷 있음 → KOSPI 값만 갱신(가능하면 정확한 종가로 갱신)
+        existing = history["by_date"][today_key]
+        if kospi_val and not existing.get("kospi"):
+            existing["kospi"] = kospi_val
+        if kosdaq_val and not existing.get("kosdaq"):
+            existing["kosdaq"] = kosdaq_val
         kept = len(history["by_date"])
-        print(f"   → 오늘({today_key}) 스냅샷이 이미 있어 갱신 안 함 (총 {kept}일)")
-        return
+        print(f"   → 오늘({today_key}) 스냅샷이 이미 있어 매수 후보는 유지 (총 {kept}일)")
+    else:
+        candidates = find_buy_candidates(by_code, news_by_stock)
+        history["by_date"][today_key] = {
+            "snapshot_at": snapshot_at,
+            "kospi": kospi_val,
+            "kosdaq": kosdaq_val,
+            "stocks": candidates,
+        }
+        print(f"   → buy_history 저장: {today_key} {len(candidates)}개 매수 후보")
 
-    candidates = find_buy_candidates(by_code, news_by_stock)
-    history["by_date"][today_key] = {
-        "snapshot_at": snapshot_at,
-        "stocks": candidates,
-    }
-
-    # 14일 슬라이딩
-    keys = sorted(history["by_date"].keys(), reverse=True)[:MAX_DAYS_KEPT]
+    # 백테스트용으로 90일까지 보존
+    KEEP_DAYS = 90
+    keys = sorted(history["by_date"].keys(), reverse=True)[:KEEP_DAYS]
     history["by_date"] = {k: history["by_date"][k] for k in keys}
 
     with open(path, "w", encoding="utf-8") as f:
         json.dump(history, f, ensure_ascii=False, indent=2)
 
-    print(f"   → buy_history 저장: {today_key} {len(candidates)}개 매수 후보 (보존 {len(keys)}일)")
+    print(f"   → 누적 {len(keys)}일")

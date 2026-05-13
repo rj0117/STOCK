@@ -42,7 +42,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          DATA_FILES="public/data.json public/stocks.json public/sbsbiz.json public/flow_by_code.json public/buy_history.json"
+          DATA_FILES="public/data.json public/stocks.json public/sbsbiz.json public/flow_by_code.json public/buy_history.json public/backtest.json"
 
           # 변경 없으면 종료
           CHANGED=0

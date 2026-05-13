@@ -9,6 +9,7 @@ const state = {
     stocks: null,         // stocks.json - 종목 마스터
     sbsbiz: null,         // sbsbiz.json - SBS Biz YouTube 추천
     buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
+    backtest: null,       // backtest.json - 사후 성과 측정
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -93,17 +94,19 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz, buyHistory] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory, backtest] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
             fetchJsonUtf8("buy_history.json", null),
+            fetchJsonUtf8("backtest.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
         state.stocks = Array.isArray(stocks) ? stocks : [];
         state.sbsbiz = sbsbiz;
         state.buyHistory = buyHistory;
+        state.backtest = backtest;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
@@ -566,6 +569,7 @@ function render() {
     else if (view === "recommend-history") renderRecommendHistory(main, params.get("date"));
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
+    else if (view === "backtest") renderBacktest(main);
     else if (view === "favorites") renderFavorites(main);
     else if (view === "search") renderSearchResult(main, params.get("code"));
     else renderTop30(main);
@@ -1865,6 +1869,139 @@ function renderSbsBiz(main) {
             changeCell.className = `col-change ${ch.cls}`;
         });
     });
+}
+
+// ============ 뷰: 백테스트 (사후 성과 검증) ============
+function renderBacktest(main) {
+    const bt = state.backtest;
+    if (!bt || !bt.summary) {
+        main.innerHTML = `
+            <h2>📈 백테스트 — 매수 추천 신호의 사후 성과</h2>
+            <div class="placeholder">
+                아직 누적된 데이터가 없습니다. 다음 cron부터 매수 추천 스냅샷이 쌓이기 시작하고,
+                추천일 이후 시세가 흐르면서 점차 측정값이 채워집니다.
+            </div>`;
+        return;
+    }
+    const s = bt.summary;
+    const cum = s.cumulative || {};
+    const horizons = s.by_horizon || {};
+    const range = s.history_range || {};
+    const detail = (bt.detail || []).slice(0, 60);
+
+    function cell(val, suffix = "%", cls = "") {
+        if (val === null || val === undefined) return `<span class="muted">—</span>`;
+        const c = cls || (val > 0 ? "up" : val < 0 ? "down" : "flat");
+        const sign = val > 0 ? "+" : "";
+        return `<span class="${c}">${sign}${val}${suffix}</span>`;
+    }
+
+    function horizonRow(label, h) {
+        return `
+            <tr>
+                <td><strong>${label}</strong></td>
+                <td class="num">${h.count || 0}</td>
+                <td class="num">${cell(h.avg_ret)}</td>
+                <td class="num">${cell(h.avg_alpha)}</td>
+                <td class="num">${h.win_rate !== null && h.win_rate !== undefined ? h.win_rate + "%" : "<span class='muted'>—</span>"}</td>
+                <td class="num up">${cell(h.best)}</td>
+                <td class="num down">${cell(h.worst)}</td>
+            </tr>`;
+    }
+
+    // 평균 알파의 부호로 큰 평가 라벨
+    let verdict = { label: "데이터 부족", cls: "verdict-neutral", note: "측정 가능한 신호가 아직 부족합니다 (보통 2주 이상 누적 필요)." };
+    if (cum.count >= 10 && cum.avg_alpha !== null && cum.avg_alpha !== undefined) {
+        if (cum.avg_alpha > 1.0 && (cum.win_rate || 0) > 55) {
+            verdict = { label: "🟢 의미 있는 알파", cls: "verdict-up",
+                note: `평균 ${cum.avg_alpha}% 알파 + 승률 ${cum.win_rate}%. 통계적으로 시장 초과 성과가 관측됨. 단, 표본 ${cum.count}건이라 확정은 어려움.` };
+        } else if (cum.avg_alpha < -1.0 || (cum.win_rate || 0) < 45) {
+            verdict = { label: "🔴 시장 미달", cls: "verdict-down",
+                note: `평균 ${cum.avg_alpha}% 알파, 승률 ${cum.win_rate}%. 신호 추종이 KOSPI보다 못함 — 로직 재검토 필요.` };
+        } else {
+            verdict = { label: "⚪ 시장 수준", cls: "verdict-neutral",
+                note: `평균 ${cum.avg_alpha}% 알파, 승률 ${cum.win_rate}%. KOSPI와 큰 차이 없음 — 신호의 부가가치 미미.` };
+        }
+    }
+
+    main.innerHTML = `
+        <h2>📈 백테스트 — 매수 추천 신호의 사후 성과</h2>
+        <div class="subtitle">
+            누적 ${s.days_with_data || 0}일 · 총 ${s.total_signals || 0}개 신호 ·
+            기간 ${escapeHtml(range.from || "—")} ~ ${escapeHtml(range.to || "—")} ·
+            <span class="disclaimer">* 알파 = 종목 수익률 - 같은 구간 KOSPI 수익률</span>
+        </div>
+
+        <div class="card bt-verdict-card">
+            <span class="verdict-pill ${verdict.cls}" style="font-size:14px;padding:6px 14px">${verdict.label}</span>
+            <div class="bt-verdict-note">${escapeHtml(verdict.note)}</div>
+        </div>
+
+        <div class="card">
+            <h3 class="bt-section">📊 horizon별 집계</h3>
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>구간</th>
+                        <th class="num">측정 건수</th>
+                        <th class="num">평균 수익률</th>
+                        <th class="num">평균 알파</th>
+                        <th class="num">승률 (알파>0)</th>
+                        <th class="num">최고</th>
+                        <th class="num">최악</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${horizons["1"] ? horizonRow("+1거래일", horizons["1"]) : ""}
+                    ${horizons["5"] ? horizonRow("+5거래일 (1주)", horizons["5"]) : ""}
+                    ${horizons["10"] ? horizonRow("+10거래일 (2주)", horizons["10"]) : ""}
+                    ${horizonRow("현재까지 누적", cum)}
+                </tbody>
+            </table>
+            <div class="bt-note">
+                💡 horizon별로 측정 건수가 다른 이유: 추천일이 너무 최근이면 아직 +5/+10거래일이 안 지나서 측정 불가.
+                알파가 양수면 신호가 시장보다 잘했다, 음수면 못했다는 뜻.
+            </div>
+        </div>
+
+        ${detail.length > 0 ? `
+        <div class="card">
+            <h3 class="bt-section">📋 종목별 상세 (최근 ${detail.length}건)</h3>
+            <table class="bt-table bt-detail">
+                <thead>
+                    <tr>
+                        <th>추천일</th>
+                        <th>종목</th>
+                        <th class="num">추천가</th>
+                        <th class="num">+1일</th>
+                        <th class="num">+5일</th>
+                        <th class="num">+10일</th>
+                        <th class="num">현재 누적</th>
+                        <th class="num">알파(누적)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${detail.map(d => {
+                        const h1 = d.horizons && d.horizons["1"];
+                        const h5 = d.horizons && d.horizons["5"];
+                        const h10 = d.horizons && d.horizons["10"];
+                        const cu = d.cumulative;
+                        return `
+                        <tr>
+                            <td class="bt-date">${escapeHtml(d.date)}</td>
+                            <td><span class="bt-name" onclick="goSearch('${d.code}')">${escapeHtml(d.name)}</span><br><span class="bt-code">${d.code}</span></td>
+                            <td class="num">${formatPrice(d.base_price)}원</td>
+                            <td class="num">${h1 ? cell(h1.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${h5 ? cell(h5.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${h10 ? cell(h10.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${cu ? cell(cu.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${cu ? cell(cu.alpha) : '<span class="muted">—</span>'}</td>
+                        </tr>`;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>` : ""}
+    `;
 }
 
 // ============ 뷰: 즐겨찾기 ============

@@ -1034,12 +1034,26 @@ def run():
     print(f"   - 뉴스: {len(news)}개")
     print(f"   - 인식된 종목: {len(all_known_stocks)}개")
 
-    # ---- 매수 추천 일별 스냅샷 누적 ----
+    # ---- 매수 추천 일별 스냅샷 누적 + 백테스트 기준선용 KOSPI ----
     try:
         from recommend import update_buy_history
-        update_buy_history(SITE_DIR, flow_data["by_code"], news_by_stock)
+        # KOSPI/KOSDAQ 종가도 함께 기록 (백테스트 비교 기준선)
+        indexes_for_history = None
+        try:
+            from api_handlers import get_market_indexes
+            indexes_for_history = get_market_indexes()
+        except Exception as ie:
+            print(f"[WARN] 시장 지수 조회 실패(스냅샷용): {ie}")
+        update_buy_history(SITE_DIR, flow_data["by_code"], news_by_stock, indexes=indexes_for_history)
     except Exception as e:
         print(f"[WARN] 매수 추천 스냅샷 저장 실패: {e}")
+
+    # ---- 백테스트 분석 ----
+    try:
+        from backtest import run_backtest
+        run_backtest(SITE_DIR, flow_data["by_code"])
+    except Exception as e:
+        print(f"[WARN] 백테스트 분석 실패: {e}")
 
     # ---- SBS Biz 추천 종목 ----
     try:
