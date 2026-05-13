@@ -1102,6 +1102,51 @@ function fetchFlowCached(code) {
 }
 
 /**
+ * 1-2주 전망 — 일일 수익률 통계 기반 95% 신뢰구간.
+ * @param {Array} prices60d - 최신 → 과거 순
+ * @param {number} currentPrice - 현재가
+ * @returns {Object|null} { oneWeek: {expected, lower, upper, ret_pct}, twoWeek: {...}, dailySdPct }
+ */
+function calcForecast(prices60d, currentPrice) {
+    if (!prices60d || prices60d.length < 20 || !currentPrice) return null;
+    const ordered = [...prices60d].reverse();  // 과거 → 최신
+    const returns = [];
+    for (let i = 1; i < ordered.length; i++) {
+        const prev = ordered[i - 1].close;
+        if (prev > 0) {
+            returns.push(Math.log(ordered[i].close / prev));  // 로그 수익률
+        }
+    }
+    if (returns.length < 10) return null;
+    const mean = returns.reduce((a, b) => a + b, 0) / returns.length;
+    const variance = returns.reduce((a, b) => a + (b - mean) ** 2, 0) / returns.length;
+    const sd = Math.sqrt(variance);
+
+    function rangeAt(days) {
+        const mu = mean * days;
+        const sigma = sd * Math.sqrt(days);
+        const expected = Math.round(currentPrice * Math.exp(mu));
+        const lower = Math.round(currentPrice * Math.exp(mu - 1.96 * sigma));
+        const upper = Math.round(currentPrice * Math.exp(mu + 1.96 * sigma));
+        return {
+            expected,
+            lower,
+            upper,
+            ret_pct: Math.round((expected / currentPrice - 1) * 1000) / 10,
+            upper_pct: Math.round((upper / currentPrice - 1) * 1000) / 10,
+            lower_pct: Math.round((lower / currentPrice - 1) * 1000) / 10,
+        };
+    }
+    return {
+        oneWeek: rangeAt(5),
+        twoWeek: rangeAt(10),
+        dailyMeanPct: Math.round(mean * 1000) / 10,
+        dailySdPct: Math.round(sd * 1000) / 10,
+        sampleSize: returns.length,
+    };
+}
+
+/**
  * 60일 종가 → 기술적 지표 산출.
  * @param {Array} prices60d - [{date, close, high, low, volume}, ...] 최신 → 과거 순
  * @returns {Object} - { rsi14, ma5, ma20, ma60, bbUpper, bbLower, divergence20, goldenCross, deadCross,
@@ -1570,6 +1615,7 @@ async function renderSearchResult(main, code) {
     const newsArr = Array.isArray(news) ? news : [];
     const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code));
     const tech = (flow && flow.prices_60d && flow.prices_60d.length >= 5) ? calcTechnicals(flow.prices_60d) : null;
+    const forecast = (flow && flow.prices_60d && stock.price) ? calcForecast(flow.prices_60d, stock.price) : null;
 
     main.innerHTML = `
         <div class="search-result">
@@ -1717,6 +1763,41 @@ async function renderSearchResult(main, code) {
                         </div>
                     </div>
                 ` : ""}
+                ${forecast ? `
+                    <div class="card forecast-card">
+                        <h3 class="forecast-title">📅 1-2주 전망 (통계 추정) <span class="forecast-sub">최근 ${forecast.sampleSize}일 변동성 기반 95% 신뢰구간</span></h3>
+                        <div class="forecast-grid">
+                            <div class="forecast-cell">
+                                <div class="fc-period">📆 1주 후 (5영업일)</div>
+                                <div class="fc-expected">기준 ${formatPrice(forecast.oneWeek.expected)}원 <span class="fc-pct ${forecast.oneWeek.ret_pct >= 0 ? 'up' : 'down'}">${forecast.oneWeek.ret_pct >= 0 ? '+' : ''}${forecast.oneWeek.ret_pct}%</span></div>
+                                <div class="fc-range">
+                                    <span class="fc-low">최저 ${formatPrice(forecast.oneWeek.lower)} (${forecast.oneWeek.lower_pct}%)</span>
+                                    <span class="fc-bar"></span>
+                                    <span class="fc-high">최고 ${formatPrice(forecast.oneWeek.upper)} (+${forecast.oneWeek.upper_pct}%)</span>
+                                </div>
+                            </div>
+                            <div class="forecast-cell">
+                                <div class="fc-period">📆 2주 후 (10영업일)</div>
+                                <div class="fc-expected">기준 ${formatPrice(forecast.twoWeek.expected)}원 <span class="fc-pct ${forecast.twoWeek.ret_pct >= 0 ? 'up' : 'down'}">${forecast.twoWeek.ret_pct >= 0 ? '+' : ''}${forecast.twoWeek.ret_pct}%</span></div>
+                                <div class="fc-range">
+                                    <span class="fc-low">최저 ${formatPrice(forecast.twoWeek.lower)} (${forecast.twoWeek.lower_pct}%)</span>
+                                    <span class="fc-bar"></span>
+                                    <span class="fc-high">최고 ${formatPrice(forecast.twoWeek.upper)} (+${forecast.twoWeek.upper_pct}%)</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="forecast-note">
+                            💡 <strong>이건 예측이 아닌 통계 범위입니다</strong>. 최근 ${forecast.sampleSize}일의 일일 변동성(±${forecast.dailySdPct}%/일)이 유지된다고 가정한 95% 신뢰구간 — 시장 큰 이벤트(실적·정책·해외증시 등) 발생 시 무력해집니다. 평균 기대치 = 최근 추세 연장(일일 ${forecast.dailyMeanPct >= 0 ? '+' : ''}${forecast.dailyMeanPct}%).
+                        </div>
+                    </div>
+                ` : ""}
+                <div class="card ai-card">
+                    <h3 class="ai-card-title">🤖 Claude AI 분석 <span class="ai-card-sub">시세·수급·뉴스·기술지표 종합 판단</span></h3>
+                    <div class="ai-body" id="ai-analysis-body">
+                        <button class="ai-btn" id="ai-analyze-btn" onclick="requestAiAnalysis('${code}')">🤖 AI 분석 받기</button>
+                        <div class="ai-note">버튼을 누르면 Claude(Anthropic)에 종목 종합 정보를 보내 매수/매도/관망 판단과 한 문단 설명을 받습니다. 응답 1~5초 소요.</div>
+                    </div>
+                </div>`
                 <div class="flow-section">
                     <h3>💰 외국인·기관·개인 일별 수급 (최근 ${(flow.days || []).length}일)</h3>
                     ${renderFlowTableForStock(flow)}
@@ -1757,6 +1838,31 @@ async function renderSearchResult(main, code) {
 }
 
 // ============ 네비게이션 헬퍼 ============
+async function requestAiAnalysis(code) {
+    const body = document.getElementById("ai-analysis-body");
+    if (!body) return;
+    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (1~5초)</div>`;
+    try {
+        const r = await fetchJsonUtf8(`/api/ai_analyze?code=${code}`, { error: "응답 없음" });
+        if (r.error) {
+            body.innerHTML = `<div class="ai-error">❌ ${escapeHtml(r.error)}${r.detail ? `<br><small>${escapeHtml(r.detail)}</small>` : ''}</div>`;
+            return;
+        }
+        const cls = r.action === "buy" ? "signal-buy" : r.action === "sell" ? "signal-sell" : "signal-neutral";
+        const label = r.action === "buy" ? "🟢 매수" : r.action === "sell" ? "🔴 매도" : "⚪ 관망";
+        body.innerHTML = `
+            <div class="ai-result">
+                <div class="ai-verdict ${cls}">${label} · 확신도 ${r.confidence || "—"}/10</div>
+                <div class="ai-analysis">${escapeHtml(r.analysis || "").replace(/\n/g, "<br>")}</div>
+                <div class="ai-meta">📌 ${escapeHtml(r.model || "")} · ${escapeHtml(r.fetched_at || "")}</div>
+            </div>
+        `;
+    } catch (e) {
+        body.innerHTML = `<div class="ai-error">❌ 오류: ${escapeHtml(String(e))}</div>`;
+    }
+}
+window.requestAiAnalysis = requestAiAnalysis;
+
 function goView(view) { setHash(view); }
 function goSearch(code) { setHash("search", { code }); }
 function goKeyword(kw) { setHash("news", { kw }); }

@@ -276,6 +276,115 @@ def get_intraday(code: str) -> dict:
     return {"code": code, "date": date_fmt, "data": out, "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S")}
 
 
+def get_ai_analysis(code: str) -> dict:
+    """Claude AI에게 종목 종합 판단 요청."""
+    code = (code or "").strip()
+    if not re.fullmatch(r"\d{6}", code):
+        return {"error": "유효한 6자리 종목 코드가 필요합니다"}
+    api_key = os.environ.get("ANTHROPIC_API_KEY", "")
+    if not api_key:
+        return {"error": "Anthropic API key 미설정", "detail": "Vercel 환경변수에 ANTHROPIC_API_KEY를 추가해주세요."}
+
+    # 종목 데이터 수집
+    stock = get_stock(code)
+    if stock.get("error"):
+        return {"error": "시세 조회 실패", "detail": stock.get("error", "")}
+    flow = get_flow(code)
+    news_query = stock.get("name") or code
+    news = get_news(news_query, display=10)
+    news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:8]
+
+    # 프롬프트 구성
+    name = stock.get("name") or code
+    price = stock.get("price", 0)
+    change = stock.get("change", 0)
+    change_pct = stock.get("change_pct", 0)
+    after_price = stock.get("after_price", 0)
+    after_change_pct = stock.get("after_change_pct", 0)
+    days = flow.get("days") or []
+    days_summary = []
+    for d in days[:5]:
+        days_summary.append(
+            f"  {d.get('date')}: 종가 {d.get('close'):,}원 ({d.get('change'):+,}) · "
+            f"외인 {d.get('foreign_net'):+,} · 기관 {d.get('organ_net'):+,} · 개인 {d.get('individual_net'):+,}"
+        )
+    days_text = "\n".join(days_summary) if days_summary else "(데이터 없음)"
+
+    prices_60d = flow.get("prices_60d") or []
+    if len(prices_60d) >= 20:
+        recent_closes = [p["close"] for p in prices_60d[:20] if p.get("close")]
+        high_60 = max(p["close"] for p in prices_60d if p.get("close"))
+        low_60 = min(p["close"] for p in prices_60d if p.get("close"))
+        sma5 = sum(p["close"] for p in prices_60d[:5]) / 5
+        sma20 = sum(recent_closes) / len(recent_closes)
+        price_summary = f"60일 최고 {high_60:,}원, 최저 {low_60:,}원 / 5일 평균 {sma5:,.0f}원, 20일 평균 {sma20:,.0f}원"
+    else:
+        price_summary = "(60일 시세 부족)"
+
+    news_text = "\n".join(f"  - {n.get('title', '')[:100]}" for n in news_list) or "(없음)"
+
+    prompt = f"""다음은 한국 주식 '{name}({code})'의 현재 정보입니다. 이 정보를 바탕으로 단기(1-2주) 투자 판단을 내려주세요.
+
+[시세]
+현재가: {price:,}원 (정규장 종가, 전일대비 {change:+,}원 / {change_pct:+.2f}%)
+{f"시간외 단일가: {after_price:,}원 ({after_change_pct:+.2f}%)" if after_price else ""}
+{price_summary}
+
+[최근 5일 수급 (단위: 주식 수, + 순매수 / - 순매도)]
+{days_text}
+
+[관련 뉴스 헤드라인 8건]
+{news_text}
+
+다음 JSON 형식으로만 응답해주세요. 다른 텍스트 금지:
+{{
+  "action": "buy" 또는 "sell" 또는 "hold",
+  "confidence": 1~10 정수 (확신도),
+  "analysis": "150자 내외 한국어 분석. 핵심 근거 2~3개 위주. 매수/매도/관망 이유 명확히."
+}}
+"""
+
+    # Claude API 호출
+    try:
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json",
+        }
+        body = {
+            "model": "claude-haiku-4-5",
+            "max_tokens": 600,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+        resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=30)
+        if resp.status_code != 200:
+            return {"error": f"Claude API 오류 {resp.status_code}", "detail": resp.text[:200]}
+        data = resp.json()
+        content = data.get("content", [])
+        text = ""
+        for c in content:
+            if c.get("type") == "text":
+                text += c.get("text", "")
+        # JSON 추출
+        import json as _json
+        # ```json ... ``` 또는 직접 JSON 텍스트에서 추출
+        m = re.search(r'\{[\s\S]*\}', text)
+        if not m:
+            return {"error": "AI 응답 파싱 실패", "detail": text[:200]}
+        result = _json.loads(m.group(0))
+        return {
+            "code": code,
+            "name": name,
+            "action": result.get("action", "hold"),
+            "confidence": result.get("confidence", 5),
+            "analysis": result.get("analysis", ""),
+            "model": data.get("model", "claude-haiku-4-5"),
+            "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
+        }
+    except Exception as e:
+        return {"error": "Claude API 호출 실패", "detail": str(e)[:200]}
+
+
 def load_env_file(env_path: str) -> None:
     """로컬 .env 파일 로드 (Vercel에선 환경변수가 이미 주입되므로 호출 안 함)"""
     if not os.path.exists(env_path):
