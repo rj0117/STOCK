@@ -763,6 +763,11 @@ function renderNewsKeywords(main) {
                                 ${techMiniHTML(s.code) ? `<div class="snc-tech-mini">${techMiniHTML(s.code)}</div>` : ""}
                             </div>
                         </div>
+                        ${forecastMiniHTML(s.code) ? `
+                        <div class="snc-forecast">
+                            <span class="snc-sig-label">📅 1·2주 통계 전망</span>
+                            ${forecastMiniHTML(s.code)}
+                        </div>` : ""}
                         <div class="snc-price-block">
                             <div class="snc-now">
                                 <span class="label">현재가</span>
@@ -1067,6 +1072,7 @@ function renderFlow(main, kind) {
                             <th>종목</th>
                             <th>시장 분위기</th>
                             <th>기술적 지표</th>
+                            <th>1·2주 통계 전망</th>
                             <th class="num">현재가</th>
                             <th class="num">전일비</th>
                             <th class="num">외국인</th>
@@ -1089,6 +1095,7 @@ function renderFlow(main, kind) {
                                     </td>
                                     <td>${signalBadgeHTML(r.code, {compact: true})}</td>
                                     <td>${techBadgeHTML(r.code, {compact: true})}${techMiniHTML(r.code) ? '<div class="cell-tech">' + techMiniHTML(r.code) + '</div>' : ''}</td>
+                                    <td>${forecastMiniHTML(r.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
                                     <td class="num">${formatPrice(r.close)}</td>
                                     <td class="num ${chCls}">${chTxt}</td>
                                     <td class="num ${netCls(r.foreign_net)}">${formatSignedQty(r.foreign_net)}</td>
@@ -1447,6 +1454,7 @@ function renderSbsBiz(main) {
                                     <th class="col-name">종목</th>
                                     <th>시장 분위기</th>
                                     <th>기술적 지표</th>
+                                    <th>1·2주 통계 전망</th>
                                     <th class="col-price">현재가</th>
                                     <th class="col-prev">전일</th>
                                     <th class="col-change">등락</th>
@@ -1465,6 +1473,7 @@ function renderSbsBiz(main) {
                                         </td>
                                         <td>${signalBadgeHTML(st.code, {compact: true})}</td>
                                         <td>${techBadgeHTML(st.code, {compact: true})}${techMiniHTML(st.code) ? '<div class="cell-tech">' + techMiniHTML(st.code) + '</div>' : ''}</td>
+                                        <td>${forecastMiniHTML(st.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
                                         <td class="col-price" data-field="price">…</td>
                                         <td class="col-prev" data-field="prev">…</td>
                                         <td class="col-change" data-field="change">…</td>
