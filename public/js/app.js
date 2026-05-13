@@ -1281,31 +1281,70 @@ async function renderSearchResult(main, code) {
                             <div class="signal-reason">${escapeHtml(sig.reasons.join(' · '))}</div>
                         </div>
                     ` : ""}
-                    ${tech ? `
-                        <div class="tech-indicators">
-                            <div class="tech-title">📐 기술적 지표 (60일 데이터 기반)</div>
-                            <div class="tech-grid">
-                                ${tech.rsi14 !== null ? `
-                                    <div class="tech-cell"><span class="tech-label">RSI(14)</span><span class="tech-value ${tech.rsi14 <= 30 ? 'up' : tech.rsi14 >= 70 ? 'down' : ''}">${tech.rsi14.toFixed(1)}</span><span class="tech-note">${tech.rsi14 <= 30 ? '과매도' : tech.rsi14 >= 70 ? '과매수' : '중립'}</span></div>
-                                ` : ""}
-                                ${tech.ma5 !== null ? `<div class="tech-cell"><span class="tech-label">5일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma5))}원</span></div>` : ""}
-                                ${tech.ma20 !== null ? `<div class="tech-cell"><span class="tech-label">20일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma20))}원</span></div>` : ""}
-                                ${tech.ma60 !== null ? `<div class="tech-cell"><span class="tech-label">60일 평균</span><span class="tech-value">${formatPrice(Math.round(tech.ma60))}원</span></div>` : ""}
-                                ${tech.divergence20 !== null ? `<div class="tech-cell"><span class="tech-label">20일 이격도</span><span class="tech-value ${tech.divergence20 <= -10 ? 'up' : tech.divergence20 >= 15 ? 'down' : ''}">${tech.divergence20 > 0 ? '+' : ''}${tech.divergence20}%</span></div>` : ""}
-                                ${tech.bbUpper !== null ? `<div class="tech-cell"><span class="tech-label">볼린저 상/하</span><span class="tech-value tech-bb">${formatPrice(Math.round(tech.bbUpper))} / ${formatPrice(Math.round(tech.bbLower))}</span></div>` : ""}
-                            </div>
-                            ${(tech.goldenCross || tech.deadCross || tech.lowBounce || tech.volSurge) ? `
-                                <div class="tech-events">
-                                    ${tech.goldenCross ? `<span class="tech-event up">⭐ 골든크로스</span>` : ""}
-                                    ${tech.deadCross ? `<span class="tech-event down">⚠ 데드크로스</span>` : ""}
-                                    ${tech.lowBounce ? `<span class="tech-event up">📈 저점 반등 시도</span>` : ""}
-                                    ${tech.volSurge ? `<span class="tech-event">📊 거래량 급증</span>` : ""}
+                </div>
+                ${tech ? `
+                    <div class="card tech-card">
+                        <h3 class="tech-card-title">📐 기술적 지표 <span class="tech-card-sub">최근 ${tech.dataLength}일 데이터 기반</span></h3>
+                        <div class="tech-grid">
+                            ${tech.rsi14 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">RSI (14일)</span>
+                                    <span class="tech-value ${tech.rsi14 <= 30 ? 'up' : tech.rsi14 >= 70 ? 'down' : ''}">${tech.rsi14.toFixed(1)}</span>
+                                    <span class="tech-note">${tech.rsi14 <= 30 ? '🟢 과매도 (저점 매수 기회)' : tech.rsi14 >= 70 ? '🔴 과매수 (조정 가능성)' : '⚪ 중립 구간'}</span>
                                 </div>
                             ` : ""}
-                            <div class="tech-note-small">데이터 ${tech.dataLength}일. RSI 30↓ 과매도 / 70↑ 과매수. 골든·데드크로스는 5일↔20일 이동평균.</div>
+                            ${tech.divergence20 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">20일 이격도</span>
+                                    <span class="tech-value ${tech.divergence20 <= -10 ? 'up' : tech.divergence20 >= 15 ? 'down' : ''}">${tech.divergence20 > 0 ? '+' : ''}${tech.divergence20}%</span>
+                                    <span class="tech-note">${tech.divergence20 <= -10 ? '🟢 단기 과매도' : tech.divergence20 >= 15 ? '🔴 단기 과열' : '⚪ 정상 범위'}</span>
+                                </div>
+                            ` : ""}
+                            ${tech.ma5 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">5일 이동평균</span>
+                                    <span class="tech-value">${formatPrice(Math.round(tech.ma5))}원</span>
+                                </div>
+                            ` : ""}
+                            ${tech.ma20 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">20일 이동평균</span>
+                                    <span class="tech-value">${formatPrice(Math.round(tech.ma20))}원</span>
+                                </div>
+                            ` : ""}
+                            ${tech.ma60 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">60일 이동평균</span>
+                                    <span class="tech-value">${formatPrice(Math.round(tech.ma60))}원</span>
+                                </div>
+                            ` : ""}
+                            ${tech.bbUpper !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">볼린저 상단</span>
+                                    <span class="tech-value">${formatPrice(Math.round(tech.bbUpper))}원</span>
+                                </div>
+                                <div class="tech-cell">
+                                    <span class="tech-label">볼린저 하단</span>
+                                    <span class="tech-value">${formatPrice(Math.round(tech.bbLower))}원</span>
+                                </div>
+                            ` : ""}
                         </div>
-                    ` : ""}
-                </div>
+                        ${(tech.goldenCross || tech.deadCross || tech.lowBounce || tech.volSurge) ? `
+                            <div class="tech-events">
+                                <div class="tech-events-title">⚡ 발생 이벤트</div>
+                                <div class="tech-events-list">
+                                    ${tech.goldenCross ? `<span class="tech-event up">⭐ 골든크로스 (강한 매수 시그널)</span>` : ""}
+                                    ${tech.deadCross ? `<span class="tech-event down">⚠ 데드크로스 (강한 매도 시그널)</span>` : ""}
+                                    ${tech.lowBounce ? `<span class="tech-event up">📈 저점 반등 시도</span>` : ""}
+                                    ${tech.volSurge ? `<span class="tech-event">📊 거래량 급증 (평소 2배↑)</span>` : ""}
+                                </div>
+                            </div>
+                        ` : ""}
+                        <div class="tech-note-small">
+                            💡 <strong>해석 가이드</strong>: RSI 30↓ 과매도 (저점 매수 후보) · RSI 70↑ 과매수 (조정 가능) · 골든크로스 = 5일선이 20일선을 위로 돌파 (추세 상승 전환) · 데드크로스 = 반대 (추세 하락 전환)
+                        </div>
+                    </div>
+                ` : ""}
                 <div class="flow-section">
                     <h3>💰 외국인·기관·개인 일별 수급 (최근 ${(flow.days || []).length}일)</h3>
                     ${renderFlowTableForStock(flow)}
