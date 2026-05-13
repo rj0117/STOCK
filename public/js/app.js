@@ -175,7 +175,7 @@ function sparklineHTML(days, opts = {}) {
     const title = `5일 ${sign}${change.toLocaleString("ko-KR")}원 (${sign}${changePct.toFixed(2)}%)\n${dates[0]} ${prices[0].toLocaleString("ko-KR")} → ${dates[dates.length-1]} ${prices[prices.length-1].toLocaleString("ko-KR")}`;
 
     return `
-        <svg class="sparkline" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img" aria-label="5일 종가 추이">
+        <svg class="sparkline" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="5일 종가 추이" style="width:${w}px;max-width:100%;height:auto;">
             <title>${escapeHtml(title)}</title>
             <polygon points="${areaPoints}" fill="${fill}"/>
             <polyline points="${linePoints}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -239,7 +239,7 @@ function chartHTML(days, opts = {}) {
     }).join("");
 
     return `
-        <svg class="chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img">
+        <svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img" style="width:100%;height:auto;max-width:${w}px;">
             <polygon points="${areaPts}" fill="${fill}"/>
             <polyline points="${linePts}" fill="none" stroke="${stroke}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
             ${circles}
@@ -683,7 +683,7 @@ function flowSummaryChartHTML(byCode) {
     return `
         <div class="card flow-summary-card">
             <div class="fsc-title">📊 일자별 수급 총량 (추적 종목 풀 합산)</div>
-            <svg class="flow-summary-chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+            <svg class="flow-summary-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;height:auto;">
                 ${grid}
                 ${legend}
                 ${yLabels}

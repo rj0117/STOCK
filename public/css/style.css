@@ -1097,19 +1097,100 @@ a { color: inherit; text-decoration: none; }
 
 /* ============ 반응형 ============ */
 @media (max-width: 768px) {
-    .topbar { flex-direction: column; gap: 8px; padding: 12px; }
-    .brand { min-width: 0; flex-direction: column; gap: 4px; align-items: flex-start; }
+    /* ===== 헤더 ===== */
+    .topbar { flex-direction: column; gap: 8px; padding: 10px 12px; position: relative; }
+    .brand { min-width: 0; flex-direction: column; gap: 2px; align-items: flex-start; width: 100%; }
+    .logo { font-size: 16px; }
+    .generated { font-size: 11px; }
     .searchbar { max-width: 100%; width: 100%; }
-    .layout { grid-template-columns: 1fr; }
+    #search-input { font-size: 16px; padding: 8px 14px; }  /* iOS 자동 줌 방지 (16px+) */
+
+    /* ===== 레이아웃 ===== */
+    .layout { grid-template-columns: 1fr; min-height: auto; }
+
+    /* ===== 사이드바: 가로 스크롤 메뉴 + 업데이트 박스는 메뉴 아래 한 줄 ===== */
     .sidebar {
         position: static;
         border-right: none;
         border-bottom: 1px solid var(--color-border);
         padding: 0;
     }
-    .sidebar-menu { display: flex; overflow-x: auto; }
-    .sidebar-menu li { border-left: none; border-bottom: 3px solid transparent; white-space: nowrap; }
+    .sidebar-menu { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .sidebar-menu li {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        white-space: nowrap;
+        padding: 10px 14px;
+        font-size: 13px;
+    }
     .sidebar-menu li.active { border-left-color: transparent; border-bottom-color: var(--color-primary); }
-    .view { padding: 16px; }
-    .search-result { grid-template-columns: 1fr; }
+    .sidebar-update {
+        margin: 8px 12px;
+        padding: 8px 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+    .sidebar-update .su-label { margin: 0; }
+    .sidebar-update .su-time { margin: 0; font-size: 12px; }
+    .sidebar-update .su-note { display: none; }  /* 모바일에선 부가 설명 숨김 */
+
+    /* ===== 본문 영역 ===== */
+    .view { padding: 12px; }
+    .view h2 { font-size: 18px; }
+    .view .subtitle { font-size: 12px; }
+
+    /* ===== TOP 30 표 - 가로 스크롤 + 작은 폰트 ===== */
+    .top30-card { overflow-x: auto; }
+    .top30-table { font-size: 12px; min-width: 480px; }
+    .top30-table th, .top30-table td { padding: 6px 8px; }
+
+    /* ===== 수급 상위 표 - 가로 스크롤 ===== */
+    .flow-rank-table { font-size: 12px; min-width: 580px; }
+    .flow-rank-table th, .flow-rank-table td { padding: 6px 8px; }
+    .flow-table { font-size: 12px; }
+
+    /* ===== 뉴스 종목 카드 1열 ===== */
+    .snc-grid { grid-template-columns: 1fr; gap: 12px; }
+    .snc-head { padding: 10px 12px; }
+    .snc-price-block { padding: 10px 12px; grid-template-columns: 1fr auto; }
+    .snc-now .value { font-size: 17px; }
+    .snc-flow { padding: 10px 12px; gap: 6px; }
+    .snc-news { padding: 10px 12px; }
+
+    /* ===== SBS Biz 표 - 가로 스크롤 + 일부 컬럼 자동 숨김 ===== */
+    .sbs-card { overflow-x: hidden; }
+    .sbs-stock-table { font-size: 12px; min-width: 360px; }
+    .sbs-stock-table th, .sbs-stock-table td { padding: 6px 8px; }
+
+    /* ===== 즐겨찾기 카드 1열 ===== */
+    .fav-grid { grid-template-columns: 1fr; gap: 12px; }
+    .fav-card { padding: 14px; }
+
+    /* ===== 검색 결과 1열 ===== */
+    .search-result { grid-template-columns: 1fr; gap: 16px; }
+    .price-block { gap: 12px; flex-wrap: wrap; }
+    .price-block .price-now { font-size: 28px; }
+    .fav-btn { width: 40px; height: 40px; }
+
+    /* ===== 수급 총량 차트 카드 패딩 축소 ===== */
+    .flow-summary-card { padding: 12px; }
+    .fsc-title { font-size: 13px; }
+
+    /* ===== 푸터 ===== */
+    .footer { padding: 12px; font-size: 11px; }
+
+    /* ===== 검색 자동완성 ===== */
+    .suggestions { max-height: 50vh; }
+    .suggestions li { padding: 10px 14px; }
+}
+
+/* 더 작은 화면 (작은 폰) */
+@media (max-width: 480px) {
+    .view h2 { font-size: 16px; }
+    .top30-table .meta { font-size: 10px; }
+    .snc-now .value { font-size: 15px; }
+    .snc-change { font-size: 12px; }
+    .sidebar-update .su-time { font-size: 11px; }
 }
