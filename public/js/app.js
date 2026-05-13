@@ -8,6 +8,7 @@ const state = {
     data: null,           // data.json
     stocks: null,         // stocks.json - 종목 마스터
     sbsbiz: null,         // sbsbiz.json - SBS Biz YouTube 추천
+    buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -92,16 +93,19 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
+            fetchJsonUtf8("buy_history.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
         state.stocks = Array.isArray(stocks) ? stocks : [];
         state.sbsbiz = sbsbiz;
+        state.buyHistory = buyHistory;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
+        populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
         if (gen && data.generated_at) gen.textContent = `· 업데이트: ${data.generated_at}`;
         const sideTime = document.getElementById("sidebar-update-time");
@@ -532,8 +536,17 @@ function render() {
     state.currentView = view;
     // 사이드바 active
     document.querySelectorAll(".sidebar-menu li").forEach(li => {
-        li.classList.toggle("active", li.dataset.view === view);
+        const matchView = li.dataset.view === view;
+        const matchDate = !li.dataset.date || li.dataset.date === params.get("date");
+        li.classList.toggle("active", matchView && matchDate);
     });
+    // 매수 추천 하위 메뉴는 history 뷰일 때 자동 펼침
+    if (view === "recommend-history") {
+        const sub = document.getElementById("recommend-history-list");
+        const btn = document.querySelector(".has-sub .menu-toggle");
+        if (sub) sub.hidden = false;
+        if (btn) { btn.setAttribute("aria-expanded", "true"); btn.textContent = "▴"; }
+    }
     const main = document.getElementById("view");
     if (view === "top30") renderTop30(main);
     else if (view === "news") {
@@ -541,6 +554,7 @@ function render() {
         else renderNewsKeywords(main);
     }
     else if (view === "recommend") renderRecommendBuy(main);
+    else if (view === "recommend-history") renderRecommendHistory(main, params.get("date"));
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
     else if (view === "favorites") renderFavorites(main);
@@ -719,6 +733,232 @@ function renderRecommendBuy(main) {
                 }).join("")}
             </div>
         `}
+    `;
+}
+
+// ============ 매수 추천 일별 추적 ============
+function populateRecommendHistoryMenu() {
+    const ul = document.getElementById("recommend-history-list");
+    if (!ul) return;
+    const bh = state.buyHistory;
+    const dates = bh && bh.by_date ? Object.keys(bh.by_date).sort().reverse() : [];
+    if (dates.length === 0) {
+        ul.innerHTML = `<li class="submenu-empty">스냅샷 없음 (다음 갱신 후 생성)</li>`;
+        return;
+    }
+    ul.innerHTML = dates.map(d => {
+        const cnt = (bh.by_date[d].stocks || []).length;
+        return `<li data-view="recommend-history" data-date="${d}"><span class="sub-date">${d}</span><span class="sub-count">${cnt}개</span></li>`;
+    }).join("");
+}
+
+function toggleRecommendHistory(btn) {
+    const sub = document.getElementById("recommend-history-list");
+    if (!sub) return;
+    const open = sub.hidden;
+    sub.hidden = !open;
+    btn.setAttribute("aria-expanded", open ? "true" : "false");
+    btn.textContent = open ? "▴" : "▾";
+}
+window.toggleRecommendHistory = toggleRecommendHistory;
+
+/** 추천 시점부터 현재까지 실제 종가선 + 추천 시점의 forecast 곡선(상한/기대/하한) 비교 차트 */
+function trendChartHTML(prices60d, snapshotDate, snapshotPrice, forecast, opts = {}) {
+    const w = opts.width || 560;
+    const h = opts.height || 200;
+    const padL = 44, padR = 14, padT = 14, padB = 30;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+
+    // 추천일 이후 종가 추출 (prices_60d는 최신→과거)
+    const ordered = [...(prices60d || [])].reverse();  // 과거→최신
+    const after = ordered.filter(d => d.date && d.date >= snapshotDate);
+    if (after.length < 1 || !snapshotPrice) {
+        return `<div class="trend-chart-empty">추천일 이후 시세 데이터 없음</div>`;
+    }
+    // 추천일이 데이터에 정확히 없으면 가장 가까운 첫 날을 day0로
+    const day0Date = after[0].date;
+
+    // forecast 곡선 생성: t일 후 가격 = snapshotPrice × exp(mu·t ± 1.96·sigma·√t)
+    // t는 영업일 기준. 차트의 X축은 인덱스(0=추천일, 1=다음 거래일, ...). 표시 범위: 추천일 ~ max(현재, 추천일+10)
+    const mu = forecast && typeof forecast.mu_daily === "number" ? forecast.mu_daily
+        : (forecast && forecast.dailyMeanPct ? forecast.dailyMeanPct / 100 : 0);
+    const sigma = forecast && typeof forecast.sigma_daily === "number" ? forecast.sigma_daily
+        : (forecast && forecast.dailySdPct ? forecast.dailySdPct / 100 : 0);
+
+    const maxT = Math.max(after.length - 1, 10);  // 적어도 2주(10거래일)까지는 forecast 보여줌
+    const xCount = maxT + 1;
+
+    function fcAt(t) {
+        if (sigma === 0 && mu === 0) return null;
+        const expected = snapshotPrice * Math.exp(mu * t);
+        const sig = sigma * Math.sqrt(t);
+        return {
+            expected,
+            upper: snapshotPrice * Math.exp(mu * t + 1.96 * sig),
+            lower: snapshotPrice * Math.exp(mu * t - 1.96 * sig),
+        };
+    }
+
+    // Y 범위 계산
+    let ymin = Infinity, ymax = -Infinity;
+    for (let t = 0; t <= maxT; t++) {
+        const f = fcAt(t);
+        if (f) {
+            ymin = Math.min(ymin, f.lower); ymax = Math.max(ymax, f.upper);
+        }
+    }
+    for (const d of after) {
+        ymin = Math.min(ymin, d.close); ymax = Math.max(ymax, d.close);
+    }
+    ymin = Math.min(ymin, snapshotPrice); ymax = Math.max(ymax, snapshotPrice);
+    if (!isFinite(ymin) || !isFinite(ymax)) return `<div class="trend-chart-empty">시세 데이터 부족</div>`;
+    const range = (ymax - ymin) || 1;
+    const padRatio = 0.05;
+    ymin -= range * padRatio; ymax += range * padRatio;
+
+    const stepX = xCount > 1 ? innerW / (xCount - 1) : innerW;
+    function xpos(t) { return padL + t * stepX; }
+    function ypos(price) { return padT + (1 - (price - ymin) / (ymax - ymin)) * innerH; }
+
+    // forecast 곡선 path
+    let pathExp = "", pathUp = "", pathLo = "";
+    for (let t = 0; t <= maxT; t++) {
+        const f = fcAt(t);
+        if (!f) continue;
+        const xe = xpos(t), ye = ypos(f.expected), yu = ypos(f.upper), yl = ypos(f.lower);
+        pathExp += `${t === 0 ? "M" : "L"}${xe.toFixed(1)},${ye.toFixed(1)} `;
+        pathUp += `${t === 0 ? "M" : "L"}${xe.toFixed(1)},${yu.toFixed(1)} `;
+        pathLo += `${t === 0 ? "M" : "L"}${xe.toFixed(1)},${yl.toFixed(1)} `;
+    }
+
+    // 신뢰구간 영역
+    let areaPath = "";
+    for (let t = 0; t <= maxT; t++) {
+        const f = fcAt(t);
+        if (!f) continue;
+        areaPath += `${t === 0 ? "M" : "L"}${xpos(t).toFixed(1)},${ypos(f.upper).toFixed(1)} `;
+    }
+    for (let t = maxT; t >= 0; t--) {
+        const f = fcAt(t);
+        if (!f) continue;
+        areaPath += `L${xpos(t).toFixed(1)},${ypos(f.lower).toFixed(1)} `;
+    }
+    areaPath += "Z";
+
+    // 실제 종가 선
+    let actualPath = "";
+    after.forEach((d, i) => {
+        const x = xpos(i), y = ypos(d.close);
+        actualPath += `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)} `;
+    });
+
+    // 마지막 실제값 위치 (vs 예측)
+    const lastIdx = after.length - 1;
+    const lastPrice = after[lastIdx].close;
+    const fLast = fcAt(lastIdx);
+    let verdict = { label: "—", cls: "verdict-neutral" };
+    if (fLast) {
+        if (lastPrice > fLast.upper) verdict = { label: "🚀 상한 초과", cls: "verdict-up" };
+        else if (lastPrice < fLast.lower) verdict = { label: "⚠ 하한 이탈", cls: "verdict-down" };
+        else if (lastPrice >= fLast.expected) verdict = { label: "✓ 기대선 위", cls: "verdict-up" };
+        else verdict = { label: "✓ 신뢰구간 안", cls: "verdict-neutral" };
+    }
+    const retPct = snapshotPrice > 0 ? ((lastPrice - snapshotPrice) / snapshotPrice * 100) : 0;
+    const retCls = retPct >= 0 ? "up" : "down";
+    const retSign = retPct >= 0 ? "+" : "";
+
+    // Y축 눈금 (5단계)
+    const yTicks = [];
+    for (let i = 0; i <= 4; i++) {
+        const v = ymin + (ymax - ymin) * (i / 4);
+        yTicks.push({ y: ypos(v), label: Math.round(v).toLocaleString("ko-KR") });
+    }
+    // X축 눈금: 시작·중간·끝
+    const xTicks = [];
+    if (after.length >= 1) {
+        xTicks.push({ t: 0, label: day0Date.slice(5) });
+        if (lastIdx >= 4) xTicks.push({ t: Math.floor(lastIdx / 2), label: after[Math.floor(lastIdx / 2)].date.slice(5) });
+        if (lastIdx >= 1) xTicks.push({ t: lastIdx, label: after[lastIdx].date.slice(5) });
+    }
+
+    return `
+        <div class="trend-verdict">
+            <span class="verdict-pill ${verdict.cls}">${verdict.label}</span>
+            <span class="trend-ret ${retCls}">${retSign}${retPct.toFixed(2)}%</span>
+            <span class="trend-meta">추천가 ${formatPrice(snapshotPrice)} → 현재 ${formatPrice(lastPrice)}</span>
+        </div>
+        <svg class="trend-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:${w}px;height:auto;">
+            ${yTicks.map(t => `<line x1="${padL}" x2="${w - padR}" y1="${t.y.toFixed(1)}" y2="${t.y.toFixed(1)}" stroke="#eef0f4" stroke-width="1"/><text x="${padL - 6}" y="${(t.y + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#888">${t.label}</text>`).join("")}
+            <path d="${areaPath}" fill="rgba(255, 152, 0, 0.10)" stroke="none"/>
+            <path d="${pathUp}" fill="none" stroke="#ff9800" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
+            <path d="${pathLo}" fill="none" stroke="#ff9800" stroke-width="1" stroke-dasharray="3,3" opacity="0.7"/>
+            <path d="${pathExp}" fill="none" stroke="#ff9800" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <path d="${actualPath}" fill="none" stroke="#1565c0" stroke-width="2" stroke-linejoin="round"/>
+            <circle cx="${xpos(lastIdx).toFixed(1)}" cy="${ypos(lastPrice).toFixed(1)}" r="3.5" fill="#1565c0"/>
+            ${xTicks.map(t => `<text x="${xpos(t.t).toFixed(1)}" y="${h - padB + 14}" text-anchor="middle" font-size="9" fill="#888">${t.label}</text>`).join("")}
+        </svg>
+        <div class="trend-legend">
+            <span><span class="lg-line lg-actual"></span> 실제 종가</span>
+            <span><span class="lg-line lg-expected"></span> 기대 (μ)</span>
+            <span><span class="lg-line lg-band"></span> 95% 신뢰구간</span>
+        </div>
+    `;
+}
+
+async function renderRecommendHistory(main, dateStr) {
+    const bh = state.buyHistory;
+    if (!bh || !bh.by_date || Object.keys(bh.by_date).length === 0) {
+        main.innerHTML = `
+            <h2>🎯 매수 추천 — 일별 트렌드</h2>
+            <div class="placeholder">
+                아직 누적된 스냅샷이 없습니다.<br>
+                다음 데이터 갱신부터 매수 추천 종목이 일별로 기록되기 시작합니다.
+            </div>`;
+        return;
+    }
+    const dates = Object.keys(bh.by_date).sort().reverse();
+    const date = dateStr && bh.by_date[dateStr] ? dateStr : dates[0];
+    const snap = bh.by_date[date];
+    const byCode = state.data && state.data.flow && state.data.flow.by_code;
+
+    main.innerHTML = `
+        <h2>🎯 매수 추천 — ${date} 트렌드 추적</h2>
+        <div class="subtitle">
+            그날 매수 추천된 ${snap.stocks.length}개 종목의 실제 흐름 ·
+            추천 시점 통계 신뢰구간(95%)과 비교 · 스냅샷 시각 ${snap.snapshot_at}
+        </div>
+        ${(!byCode || Object.keys(byCode).length === 0) ? `
+            <div class="placeholder">시세 데이터 로딩 중... (잠시 후 표시)</div>
+        ` : (snap.stocks.length === 0 ? `
+            <div class="placeholder">이 날짜에는 매수 추천 후보가 없었습니다.</div>
+        ` : `
+            <div class="trend-list">
+                ${snap.stocks.map(s => {
+                    const live = byCode[s.code];
+                    const prices = live && live.prices_60d;
+                    const chart = (prices && prices.length)
+                        ? trendChartHTML(prices, date, s.price, s.forecast)
+                        : `<div class="trend-chart-empty">시세 데이터 없음</div>`;
+                    return `
+                        <article class="card trend-card">
+                            <header class="trend-head">
+                                <div class="trend-name-block">
+                                    <span class="trend-name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)}</span>
+                                    <span class="trend-code">${s.code}</span>
+                                    ${industryBadgeHTML(s.code)}
+                                </div>
+                                <div class="trend-snapshot">
+                                    추천 시그널: <strong>${escapeHtml(s.signal)}</strong> · 기술: <strong>${escapeHtml(s.tech)}</strong>
+                                </div>
+                                ${favIconHTML(s.code)}
+                            </header>
+                            <div class="trend-body">${chart}</div>
+                        </article>
+                    `;
+                }).join("")}
+            </div>
+        `)}
     `;
 }
 
@@ -2017,8 +2257,12 @@ function initSearch() {
 
 // ============ 초기화 ============
 async function main() {
-    document.querySelectorAll(".sidebar-menu li").forEach(li => {
-        li.addEventListener("click", () => setHash(li.dataset.view));
+    document.querySelector(".sidebar-menu").addEventListener("click", (e) => {
+        const li = e.target.closest("li[data-view]");
+        if (!li || e.target.closest(".menu-toggle")) return;
+        const params = {};
+        if (li.dataset.date) params.date = li.dataset.date;
+        setHash(li.dataset.view, Object.keys(params).length ? params : undefined);
     });
     window.addEventListener("hashchange", render);
     document.getElementById("fav-count").textContent = state.favorites.length;

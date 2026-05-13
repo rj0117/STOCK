@@ -1034,6 +1034,13 @@ def run():
     print(f"   - 뉴스: {len(news)}개")
     print(f"   - 인식된 종목: {len(all_known_stocks)}개")
 
+    # ---- 매수 추천 일별 스냅샷 누적 ----
+    try:
+        from recommend import update_buy_history
+        update_buy_history(SITE_DIR, flow_data["by_code"], news_by_stock)
+    except Exception as e:
+        print(f"[WARN] 매수 추천 스냅샷 저장 실패: {e}")
+
     # ---- SBS Biz 추천 종목 ----
     try:
         from sbs_biz import update as update_sbs_biz

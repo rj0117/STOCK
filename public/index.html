@@ -26,7 +26,13 @@
         <nav class="sidebar">
             <ul class="sidebar-menu">
                 <li data-view="top30"><span class="icon">📊</span> 오늘의 한국 주식 TOP 50</li>
-                <li data-view="recommend"><span class="icon">🎯</span> 매수 추천 (둘 다 매수)</li>
+                <li class="has-sub" data-view="recommend">
+                    <div class="menu-row">
+                        <span class="menu-main"><span class="icon">🎯</span> 매수 추천 (둘 다 매수)</span>
+                        <button type="button" class="menu-toggle" aria-expanded="false" aria-label="과거 추천 펼치기" onclick="event.stopPropagation(); toggleRecommendHistory(this)">▾</button>
+                    </div>
+                    <ul class="submenu" id="recommend-history-list" hidden></ul>
+                </li>
                 <li data-view="news"><span class="icon">📰</span> 뉴스 이슈별 주식 추천</li>
                 <li data-view="flow"><span class="icon">💰</span> 수급 상위</li>
                 <li data-view="sbsbiz"><span class="icon">📺</span> SBS Biz 추천 항목</li>
