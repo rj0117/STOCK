@@ -45,4 +45,17 @@ jobs:
           fi
           git add public/data.json public/stocks.json public/sbsbiz.json
           git commit -m "chore(data): auto-update $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          git push
+
+          # 최대 3번 재시도 (push 충돌 대비)
+          for i in 1 2 3; do
+            echo "Push 시도 $i..."
+            if git push; then
+              echo "Push 성공"
+              exit 0
+            fi
+            echo "충돌 감지, rebase 후 재시도..."
+            git pull --rebase origin main || { git rebase --abort 2>/dev/null; echo "Rebase 실패, 다음 cron에서 재시도"; exit 0; }
+            sleep 3
+          done
+          echo "3회 재시도 모두 실패"
+          exit 1
