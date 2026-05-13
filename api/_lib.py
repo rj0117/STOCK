@@ -124,9 +124,11 @@ def get_flow(code):
         })
     # 60일 일별 시세도 함께 (기술적 지표 계산용)
     prices_60d = []
+    prices_60d_debug = ""
     try:
         url2 = f"https://m.stock.naver.com/api/stock/{code}/price?pageSize=60"
-        resp2 = requests.get(url2, headers=HEADERS, timeout=8)
+        resp2 = requests.get(url2, headers=HEADERS, timeout=10)
+        prices_60d_debug = f"status={resp2.status_code}, len={len(resp2.text)}"
         if resp2.status_code == 200:
             items = resp2.json()
             if isinstance(items, list):
@@ -139,14 +141,17 @@ def get_flow(code):
                         "low": _parse_signed_int(d.get("lowPrice", 0)),
                         "volume": _parse_signed_int(d.get("accumulatedTradingVolume", 0)),
                     })
-    except Exception:
-        pass
+            else:
+                prices_60d_debug += f", json type={type(items).__name__}"
+    except Exception as e:
+        prices_60d_debug = f"exception: {type(e).__name__}: {str(e)[:200]}"
 
     return {
         "code": code,
         "name": j.get("stockName", ""),
         "days": days,
         "prices_60d": prices_60d,
+        "prices_60d_debug": prices_60d_debug,
         "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
     }
 
