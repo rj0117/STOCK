@@ -4,7 +4,7 @@
 > `README.md`, `public/index.html` 의 details 섹션, 코드 주석 등은 모두 이 문서와 일치해야 합니다.
 > 변경 시 *코드 → 이 문서 → README → index.html details* 순서로 동기화하세요. ([.claude/CLAUDE.md §5](.claude/CLAUDE.md) 참조)
 
-**📅 마지막 동기화 일자: 2026-05-14** (AI 안전장치 추가)
+**📅 마지막 동기화 일자: 2026-05-14** (AI 안전장치 + 적중률 백테스트 추가)
 **🔖 다음 점검 권장 시기:** 점수 로직 변경 시 즉시 / 그 외 월 1회 자율 점검
 
 ---
@@ -298,6 +298,16 @@ rankScore = marketRank × 3 + techRank
 | **캐싱** | 같은 종목 + 같은 날짜는 캐시 응답. TTL: 평일 장중(KST 09~16) 1시간, 그 외 다음 09시까지 | `_kv_get/set` + `_calc_ai_cache_ttl` |
 | **Rate Limit** | IP당 분당 **5회**, 일당 **50회**. 초과 시 HTTP 429 + Retry-After 헤더 | `_check_rate_limit`, 상수 `_RL_PER_MIN=5`, `_RL_PER_DAY=50` |
 | **일일 비용 한도** | `DAILY_BUDGET_KRW`(기본 2000원) 초과 시 HTTP 503. Sonnet 4.6 토큰가로 매 호출 비용 추정 → 자정 KST 리셋 | `_estimate_cost_krw`, 키 `cost:{YYYY-MM-DD}` |
+
+### AI 적중률 백테스트 (정확도 측정)
+
+| 항목 | 동작 | 위치 |
+|---|---|---|
+| **호출 로깅** | 캐시 미스(실제 Claude 호출)만 Upstash LIST `ai_log:{YYYY-MM-DD}` 에 LPUSH (input_snapshot + ai_output + usage) | `_log_ai_call` + `_build_input_snapshot` |
+| **아카이브** | 매일 KST 02:00 GitHub Actions cron 이 어제 LIST → `archive/ai_results/{YYYY-MM}/{date}.jsonl` 로 옮기고 LIST DEL | `scripts/archive_ai_log.py`, `.github/workflows/archive_ai.yml` |
+| **백테스트** | 같은 cron 안에서 archive 전체 + `flow_by_code.json` + `buy_history.json` 의 KOSPI 으로 +1/+5/+10거래일 후 수익률·알파·적중률 산출 → `public/backtest_ai.json` 갱신 + `archive/backtest_ai/{date}.json` 보존 | `scripts/backtest_ai.py` |
+| **적중 기준** | buy: +5거래일 후 ≥ +2% / sell: ≤ -2% / hold: \|Δ\| ≤ 2% (상수 `HIT_THRESHOLD_PCT=2.0`, `PRIMARY_HORIZON='5'`) | `scripts/backtest_ai.py` 상단 |
+| **사이트 표시** | 사이드바 **📈 백테스트 → AI 분석 적중률** 탭. 기간별(7d/30d/all) + action별(buy/sell/hold) + confidence 구간(9~10/7~8/5~6/1~4) 적중률 표 | `public/js/app.js` `renderBacktestAI`
 
 **환경변수:**
 | 이름 | 기본값 | 설명 |

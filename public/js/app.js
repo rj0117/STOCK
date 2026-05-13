@@ -10,6 +10,7 @@ const state = {
     sbsbiz: null,         // sbsbiz.json - SBS Biz YouTube 추천
     buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
     backtest: null,       // backtest.json - 사후 성과 측정
+    backtestAi: null,     // backtest_ai.json - AI 분석 적중률
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -94,12 +95,13 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz, buyHistory, backtest] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory, backtest, backtestAi] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
             fetchJsonUtf8("buy_history.json", null),
             fetchJsonUtf8("backtest.json", null),
+            fetchJsonUtf8("backtest_ai.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
@@ -107,6 +109,7 @@ async function loadData() {
         state.sbsbiz = sbsbiz;
         state.buyHistory = buyHistory;
         state.backtest = backtest;
+        state.backtestAi = backtestAi;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
@@ -569,7 +572,11 @@ function render() {
     else if (view === "recommend-history") renderRecommendHistory(main, params.get("date"));
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
-    else if (view === "backtest") renderBacktest(main);
+    else if (view === "backtest") {
+        const tab = params.get("tab") || "signal";
+        if (tab === "ai") renderBacktestAI(main);
+        else renderBacktest(main);
+    }
     else if (view === "favorites") renderFavorites(main);
     else if (view === "search") renderSearchResult(main, params.get("code"));
     else renderTop30(main);
@@ -1882,11 +1889,20 @@ function renderSbsBiz(main) {
 }
 
 // ============ 뷰: 백테스트 (사후 성과 검증) ============
+function _backtestTabsHTML(activeTab) {
+    return `
+        <div class="bt-tabs">
+            <a href="#backtest" class="bt-tab ${activeTab === 'signal' ? 'active' : ''}">🎯 매수 참고 신호</a>
+            <a href="#backtest?tab=ai" class="bt-tab ${activeTab === 'ai' ? 'active' : ''}">🤖 AI 분석 적중률</a>
+        </div>`;
+}
+
 function renderBacktest(main) {
     const bt = state.backtest;
     if (!bt || !bt.summary) {
         main.innerHTML = `
             <h2>📈 백테스트 — 매수 참고 신호의 사후 성과</h2>
+            ${_backtestTabsHTML('signal')}
             <div class="placeholder">
                 아직 누적된 데이터가 없습니다. 다음 cron부터 매수 참고 스냅샷이 쌓이기 시작하고,
                 신호일 이후 시세가 흐르면서 점차 측정값이 채워집니다.
@@ -1947,6 +1963,7 @@ function renderBacktest(main) {
 
     main.innerHTML = `
         <h2>📈 백테스트 — 매수 참고 신호의 사후 성과</h2>
+        ${_backtestTabsHTML('signal')}
         <div class="subtitle">
             누적 ${s.days_with_data || 0}일 · 원시 신호 ${s.total_raw_signals || 0}개 (unique ${s.unique_signals_count || 0}, 중복 ${s.duplicate_signals || 0}) ·
             기간 ${escapeHtml(range.from || "—")} ~ ${escapeHtml(range.to || "—")}
@@ -2063,6 +2080,234 @@ function renderBacktest(main) {
                             <td class="num">${horizonCell(cu)}</td>
                             <td class="num">${cu && cu.alpha !== undefined ? cell(cu.alpha) : '<span class="muted">—</span>'}</td>
                             <td>${flags.join(" ")}</td>
+                        </tr>`;
+                    }).join("")}
+                </tbody>
+            </table>
+        </div>` : ""}
+    `;
+}
+
+// ============ 뷰: AI 분석 적중률 백테스트 ============
+function renderBacktestAI(main) {
+    const bt = state.backtestAi;
+
+    function _cell(val, suffix = "%") {
+        if (val === null || val === undefined) return `<span class="muted">—</span>`;
+        const c = val > 0 ? "up" : val < 0 ? "down" : "flat";
+        const sign = val > 0 ? "+" : "";
+        return `<span class="${c}">${sign}${val}${suffix}</span>`;
+    }
+    function _hitRateCell(h) {
+        if (!h || h.count === 0) return `<span class="muted">—</span>`;
+        const r = h.hit_rate;
+        if (r === null || r === undefined) return `<span class="muted">—</span>`;
+        const cls = r >= 60 ? "up" : r <= 40 ? "down" : "flat";
+        return `<span class="${cls}">${r}%</span>`;
+    }
+    function _horizonHeader() {
+        return `<tr>
+            <th>구간</th>
+            <th class="num">측정 건수</th>
+            <th class="num">평균 수익률</th>
+            <th class="num">평균 알파 (vs KOSPI)</th>
+            <th class="num">적중률</th>
+            <th class="num">최고</th>
+            <th class="num">최악</th>
+        </tr>`;
+    }
+    function _horizonRow(label, h) {
+        if (!h || h.count === 0) {
+            return `<tr><td><strong>${label}</strong></td><td class="num">0</td><td colspan="5" class="muted">측정 불가</td></tr>`;
+        }
+        return `<tr>
+            <td><strong>${label}</strong></td>
+            <td class="num">${h.count}</td>
+            <td class="num">${_cell(h.avg_ret)}</td>
+            <td class="num">${_cell(h.avg_alpha)}</td>
+            <td class="num">${_hitRateCell(h)}</td>
+            <td class="num up">${_cell(h.best)}</td>
+            <td class="num down">${_cell(h.worst)}</td>
+        </tr>`;
+    }
+
+    if (!bt || !bt.summary || (bt.summary.total_signals || 0) === 0) {
+        main.innerHTML = `
+            <h2>📈 백테스트 — AI 분석 적중률</h2>
+            ${_backtestTabsHTML('ai')}
+            <div class="placeholder">
+                아직 AI 분석 호출 로그가 누적되지 않았습니다.<br>
+                <small>"🤖 AI 분석 받기" 버튼을 누를 때마다 캐시 미스(실제 Claude 호출)만 자동 기록됩니다.</small><br>
+                <small>매일 KST 02:00 GitHub Actions가 어제 로그를 archive 로 옮기고 측정합니다.</small>
+            </div>`;
+        return;
+    }
+
+    const s = bt.summary;
+    const method = s.method || {};
+    const hitThr = method.hit_threshold_pct || 2;
+    const primary = method.primary_horizon || "5";
+    const totalSignals = s.total_signals || 0;
+    const insufficient = totalSignals < 50;
+
+    // 기간별 (메인: 30d)
+    const byPeriod = s.by_period || {};
+    const byAction = s.by_action || {};
+    const byConfidence = s.by_confidence || {};
+    const detail = (bt.detail || []).slice(0, 60);
+
+    function _actionRow(label, action) {
+        const a = byAction[action] || {};
+        const horizons = a.by_horizon || {};
+        const h = horizons[primary] || {};
+        return `<tr>
+            <td><strong>${label}</strong></td>
+            <td class="num">${a.total_signals || 0}</td>
+            <td class="num">${_cell(h.avg_ret)}</td>
+            <td class="num">${_cell(h.avg_alpha)}</td>
+            <td class="num">${_hitRateCell(h)}</td>
+        </tr>`;
+    }
+    function _confRow(bucket) {
+        const c = byConfidence[bucket] || {};
+        const horizons = c.by_horizon || {};
+        const h = horizons[primary] || {};
+        return `<tr>
+            <td><strong>${bucket}</strong></td>
+            <td class="num">${c.total_signals || 0}</td>
+            <td class="num">${_cell(h.avg_ret)}</td>
+            <td class="num">${_hitRateCell(h)}</td>
+        </tr>`;
+    }
+
+    main.innerHTML = `
+        <h2>📈 백테스트 — AI 분석 적중률</h2>
+        ${_backtestTabsHTML('ai')}
+        <div class="subtitle">
+            총 ${totalSignals}건 측정 · skipped(시세 부족) ${s.skipped_no_price || 0}건 ·
+            이 측정은 <strong>${totalSignals}개의 신호 기준</strong>입니다
+        </div>
+
+        <div class="card bt-method-card">
+            <h3 class="bt-section">🧪 측정 방법론</h3>
+            <ul class="bt-method">
+                <li>📍 <strong>로그 대상</strong>: 캐시 미스 = 실제 Claude 호출만 (가족 클릭 횟수 ≠ 호출 횟수)</li>
+                <li>📍 <strong>주 horizon</strong>: +${primary}거래일 후 종가</li>
+                <li>📍 <strong>적중 기준 (±${hitThr}%)</strong>:
+                    buy → +${hitThr}%↑ 상승 / sell → -${hitThr}%↓ 하락 / hold → |Δ| ≤ ${hitThr}%</li>
+                <li>📍 <strong>알파</strong>: 종목 수익률 - 같은 구간 KOSPI 수익률</li>
+                <li>📍 <strong>모집단 한계</strong>: 가족이 클릭한 종목만 측정. 시장 전체 임의표본 아님.</li>
+            </ul>
+        </div>
+
+        ${insufficient ? `
+            <div class="card bt-verdict-card">
+                <span class="verdict-pill verdict-neutral" style="font-size:14px;padding:6px 14px">⚪ 표본 부족</span>
+                <div class="bt-verdict-note">
+                    측정 가능한 신호 <strong>${totalSignals}개</strong> (의미 있는 평가에 50건 이상 권장).
+                    데이터가 더 누적되면 자동으로 갱신됩니다.
+                </div>
+            </div>
+        ` : ""}
+
+        <div class="card">
+            <h3 class="bt-section">📅 기간별 (전체 적중률, +${primary}거래일 기준)</h3>
+            <table class="bt-table">
+                ${_horizonHeader()}
+                <tbody>
+                    ${_horizonRow("최근 7일", (byPeriod["7d"] || {}).by_horizon ? byPeriod["7d"].by_horizon[primary] : null)}
+                    ${_horizonRow("최근 30일", (byPeriod["30d"] || {}).by_horizon ? byPeriod["30d"].by_horizon[primary] : null)}
+                    ${_horizonRow("전체", (byPeriod["all"] || {}).by_horizon ? byPeriod["all"].by_horizon[primary] : null)}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 class="bt-section">🟢🔴⚪ action별 적중률 (+${primary}거래일)</h3>
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>action</th>
+                        <th class="num">건수</th>
+                        <th class="num">평균 수익률</th>
+                        <th class="num">평균 알파</th>
+                        <th class="num">적중률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${_actionRow("🟢 buy", "buy")}
+                    ${_actionRow("🔴 sell", "sell")}
+                    ${_actionRow("⚪ hold", "hold")}
+                </tbody>
+            </table>
+            <div class="bt-note">
+                💡 buy 적중 = +${hitThr}%↑ 상승. sell 적중 = -${hitThr}%↓ 하락. hold 적중 = |Δ| ≤ ${hitThr}%.
+            </div>
+        </div>
+
+        <div class="card">
+            <h3 class="bt-section">🎯 confidence 구간별 적중률 (+${primary}거래일)</h3>
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>confidence</th>
+                        <th class="num">건수</th>
+                        <th class="num">평균 수익률</th>
+                        <th class="num">적중률</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${_confRow("9-10")}
+                    ${_confRow("7-8")}
+                    ${_confRow("5-6")}
+                    ${_confRow("1-4")}
+                </tbody>
+            </table>
+            <div class="bt-note">
+                💡 confidence 가 높을수록 적중률이 높아져야 모델 신뢰도가 의미 있습니다.
+                고 confidence 군이 저 confidence 군보다 낮은 적중률이면 모델 self-evaluation 신뢰 불가.
+            </div>
+        </div>
+
+        ${detail.length > 0 ? `
+        <div class="card">
+            <h3 class="bt-section">📋 최근 ${detail.length}건 상세</h3>
+            <table class="bt-table bt-detail">
+                <thead>
+                    <tr>
+                        <th>호출 시각</th>
+                        <th>종목</th>
+                        <th class="num">호출가</th>
+                        <th>action</th>
+                        <th class="num">conf</th>
+                        <th class="num">+1일</th>
+                        <th class="num">+5일</th>
+                        <th class="num">+10일</th>
+                        <th class="num">+${primary}일 알파</th>
+                        <th>적중</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${detail.map(d => {
+                        const h = (d.horizons || {});
+                        const h1 = h["1"], h5 = h["5"], h10 = h["10"];
+                        const primaryH = h[primary];
+                        const hit = primaryH && primaryH.hit;
+                        const hitTxt = hit === true ? '<span class="up">✓</span>'
+                                     : hit === false ? '<span class="down">✗</span>'
+                                     : '<span class="muted">—</span>';
+                        const aIcon = d.action === "buy" ? "🟢" : d.action === "sell" ? "🔴" : "⚪";
+                        return `<tr>
+                            <td class="bt-date">${escapeHtml(d.timestamp.replace("T", " ").substring(0, 16))}</td>
+                            <td><span class="bt-name" onclick="goSearch('${d.code}')">${escapeHtml(d.name)}</span><br><span class="bt-code">${d.code}</span></td>
+                            <td class="num">${formatPrice(d.base_price)}원</td>
+                            <td>${aIcon} ${d.action}</td>
+                            <td class="num">${d.confidence}</td>
+                            <td class="num">${h1 ? _cell(h1.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${h5 ? _cell(h5.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${h10 ? _cell(h10.ret) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${primaryH ? _cell(primaryH.alpha) : '<span class="muted">—</span>'}</td>
+                            <td>${hitTxt}</td>
                         </tr>`;
                     }).join("")}
                 </tbody>

@@ -108,6 +108,95 @@ _RL_PER_MIN = 5
 _RL_PER_DAY = 50
 
 
+def _log_ai_call(record):
+    if not _kv_available():
+        return
+    try:
+        date_key = f"ai_log:{now_kst().strftime('%Y-%m-%d')}"
+        import json as _j
+        _upstash_cmd(["LPUSH", date_key, _j.dumps(record, ensure_ascii=False)])
+        _upstash_cmd(["EXPIRE", date_key, str(3 * 86400)])
+    except Exception:
+        pass
+
+
+_POS_KW = ["신고가", "사상최고", "최고가", "상승", "급등", "강세", "반등", "돌파", "회복",
+           "흑자", "호조", "호실적", "어닝서프라이즈", "수주", "신제품", "출시",
+           "매수의견", "호평", "긍정", "상향", "호재", "수혜", "쾌거"]
+_NEG_KW = ["신저가", "사상최저", "하락", "급락", "약세", "조정", "이탈", "붕괴",
+           "적자", "손실", "부진", "악재", "우려", "리스크", "하향", "매도의견",
+           "추락", "폭락", "축소", "감소"]
+
+
+def _classify_news_sentiment_quick(text):
+    if not text:
+        return "neutral"
+    pos = sum(1 for k in _POS_KW if k in text)
+    neg = sum(1 for k in _NEG_KW if k in text)
+    if pos - neg >= 2:
+        return "positive"
+    if neg - pos >= 2:
+        return "negative"
+    return "neutral"
+
+
+def _quick_market_score(flow_days):
+    if not flow_days:
+        return 0
+    score = 0
+    f_buy = sum(1 for d in flow_days if (d.get("foreign_net") or 0) > 0)
+    o_buy = sum(1 for d in flow_days if (d.get("organ_net") or 0) > 0)
+    both_buy = sum(1 for d in flow_days
+                   if (d.get("foreign_net") or 0) > 0 and (d.get("organ_net") or 0) > 0)
+    both_sell = sum(1 for d in flow_days
+                    if (d.get("foreign_net") or 0) < 0 and (d.get("organ_net") or 0) < 0)
+    f_sell = sum(1 for d in flow_days if (d.get("foreign_net") or 0) < 0)
+    score += both_buy * 3 + f_buy * 2 + o_buy * 1.5
+    score -= both_sell * 3 + f_sell * 1
+    if len(flow_days) >= 2:
+        oldest = flow_days[-1].get("close") or 0
+        latest = flow_days[0].get("close") or 0
+        if oldest > 0 and latest > 0:
+            ret5 = (latest - oldest) / oldest * 100
+            if ret5 >= 10: score += 3
+            elif ret5 >= 5: score += 2
+            elif ret5 <= -10: score -= 3
+            elif ret5 <= -5: score -= 2
+    return round(score, 1)
+
+
+def _build_input_snapshot(stock, flow, news_list, tech):
+    days = (flow.get("days") or [])[:5]
+    foreign_net_5d = sum(int(d.get("foreign_net") or 0) for d in days)
+    institution_net_5d = sum(int(d.get("organ_net") or 0) for d in days)
+    pos_count = neg_count = 0
+    for n in news_list or []:
+        text = (n.get("title", "") + " " + (n.get("summary") or "")).strip()
+        s = _classify_news_sentiment_quick(text)
+        if s == "positive":
+            pos_count += 1
+        elif s == "negative":
+            neg_count += 1
+    return {
+        "price_at_call": stock.get("price", 0),
+        "rsi": round(tech["rsi14"], 1) if tech and tech.get("rsi14") is not None else None,
+        "ma5": round(tech["ma5"]) if tech and tech.get("ma5") else None,
+        "ma20": round(tech["ma20"]) if tech and tech.get("ma20") else None,
+        "divergence20": tech.get("divergence20") if tech else None,
+        "golden_cross": tech.get("golden_cross") if tech else None,
+        "dead_cross": tech.get("dead_cross") if tech else None,
+        "foreign_net_5d": foreign_net_5d,
+        "institution_net_5d": institution_net_5d,
+        "news_count_positive": pos_count,
+        "news_count_negative": neg_count,
+        "per": stock.get("per"),
+        "pbr": stock.get("pbr"),
+        "roe": stock.get("roe"),
+        "industry": stock.get("industry") or "",
+        "market_score": _quick_market_score(flow.get("days") or []),
+    }
+
+
 def _check_rate_limit(client_ip):
     if not _kv_available() or not client_ip:
         return None
@@ -940,6 +1029,21 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
         if _kv_available():
             ttl = _calc_ai_cache_ttl()
             _kv_set(cache_key, _json.dumps(final_result, ensure_ascii=False), ex_seconds=ttl)
+
+        _log_ai_call({
+            "timestamp": fetched_at,
+            "code": code,
+            "name": name,
+            "input_snapshot": _build_input_snapshot(stock, flow, news_list, tech),
+            "ai_output": {
+                "action": final_result["action"],
+                "confidence": final_result["confidence"],
+                "analysis": final_result["analysis"],
+            },
+            "model": final_result["model"],
+            "usage": final_result["usage"],
+            "cost_krw": final_result["cost_krw"],
+        })
 
         return final_result
     except Exception as e:

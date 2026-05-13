@@ -677,6 +677,32 @@ a { color: inherit; text-decoration: none; }
 .bt-flag-abnormal { background: rgba(229,57,53,0.15); color: #c62828; }
 .bt-row-dup { opacity: 0.65; }
 
+/* ============ 백테스트 탭 (signal / AI 적중률) ============ */
+.bt-tabs {
+    display: flex; gap: 4px; margin: 10px 0 16px;
+    border-bottom: 2px solid var(--color-border);
+}
+.bt-tab {
+    padding: 8px 14px;
+    font-size: 13px; font-weight: 600;
+    color: var(--color-muted);
+    text-decoration: none;
+    border-radius: 6px 6px 0 0;
+    border: 2px solid transparent;
+    border-bottom: none;
+    margin-bottom: -2px;
+    transition: background 0.15s, color 0.15s;
+}
+.bt-tab:hover {
+    background: #fafbff;
+    color: var(--color-text);
+}
+.bt-tab.active {
+    color: #1565c0;
+    border-color: var(--color-border);
+    background: #fff;
+}
+
 /* 시그널 근거 리스트 (매수 추천 카드 - 민감도 분석용) */
 .rec-sig-reasons {
     list-style: none; padding: 0; margin: 4px 0 8px 0;

@@ -23,7 +23,8 @@
 - [x] **1·2주 통계 전망** — Historical VaR + GBM 50:50, 모멘텀·RSI 보정, 신뢰도 등급
 - [x] **Claude AI 분석** — 시세·수급·뉴스·기술·거시·펀더멘털을 종합한 매수/매도/관망 판단 (Sonnet 4.6). system 프롬프트로 단정 표현·미공개 정보 추측 차단. Upstash Redis 기반 캐싱/IP 분당 5·일당 50 rate limit/일일 2,000원 비용 한도
 - [x] **매수 참고 트렌드 추적** — 일별 스냅샷 누적, 신호 시점 forecast 곡선과 실제 종가 비교
-- [x] **백테스트** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
+- [x] **백테스트 (매수 참고 신호)** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
+- [x] **백테스트 (AI 적중률)** — Claude 호출 로그 누적 → +1/+5/+10거래일 후 수익률·적중률 측정 + confidence 구간별 검증 (가족 클릭한 종목만, 표본 ≥50 권장)
 - [x] **GitHub Actions 자동 갱신** — 매시 7분/37분 cron
 - [x] **첫 진입 면책 모달** — localStorage 기반 1회 동의
 
@@ -51,13 +52,21 @@ STOCK/
 │   ├── data.json              # 자동 갱신되는 메인 데이터
 │   ├── flow_by_code.json      # 종목별 60일 시세 (용량 큰 부분 분리)
 │   ├── buy_history.json       # 일별 매수 참고 스냅샷 (90일 슬라이딩)
-│   ├── backtest.json          # 백테스트 결과
+│   ├── backtest.json          # 매수 참고 신호 백테스트 결과
+│   ├── backtest_ai.json       # AI 분석 적중률 백테스트 결과
 │   ├── sbsbiz.json            # SBS Biz YouTube 추출 데이터
 │   ├── stocks.json            # KOSPI/KOSDAQ 종목 마스터
 │   ├── css/style.css
 │   └── js/app.js
 ├── 📁 .github/workflows/
-│   └── update-data.yml        # 매시 7/37분 자동 데이터 갱신
+│   ├── update-data.yml        # 매시 7/37분 자동 데이터 갱신
+│   └── archive_ai.yml         # 매일 KST 02:00 AI 호출 로그 archive + 적중률 백테스트
+├── 📁 scripts/
+│   ├── archive_ai_log.py      # Upstash LIST → archive/ai_results/*.jsonl
+│   └── backtest_ai.py         # archive 읽고 적중률 산출 → public/backtest_ai.json
+├── 📁 archive/
+│   ├── ai_results/{YYYY-MM}/{date}.jsonl   # 일별 AI 호출 로그 (Git 보존)
+│   └── backtest_ai/{YYYY-MM-DD}.json       # 백테스트 히스토리 스냅샷
 ├── 📁 .claude/
 │   ├── CLAUDE.md              # Claude 작업 규칙
 │   └── settings.local.json
@@ -236,4 +245,4 @@ update.bat
 
 ---
 
-**📅 README 최종 업데이트:** 2026-05-14 (AI 안전장치 추가: system 프롬프트 + 캐싱/rate limit/비용 한도)
+**📅 README 최종 업데이트:** 2026-05-14 (AI 호출 로깅 + 적중률 백테스트 추가)

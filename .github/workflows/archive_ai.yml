@@ -1,0 +1,87 @@
+name: Archive AI Logs + Backtest
+
+on:
+  schedule:
+    # 매일 KST 02:00 (UTC 17:00 전날). 어제 KST 데이터를 archive로 옮김.
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ai-archive
+  cancel-in-progress: false
+
+jobs:
+  archive:
+    runs-on: ubuntu-latest
+    env:
+      TZ: Asia/Seoul
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install requests
+        run: pip install requests
+
+      - name: Archive AI logs from Upstash → archive/ai_results/
+        env:
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+        run: python scripts/archive_ai_log.py
+
+      - name: Run AI backtest → public/backtest_ai.json
+        run: python scripts/backtest_ai.py
+
+      - name: Commit & push if changed
+        run: |
+          set -e
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          FILES="archive/ai_results archive/backtest_ai public/backtest_ai.json"
+
+          # 변경 없으면 종료
+          if ! git status --porcelain $FILES 2>/dev/null | grep -q .; then
+            echo "변경 없음, 종료"
+            exit 0
+          fi
+
+          # 데이터 백업 (push 재시도 시 origin/main 위에 다시 올리기 위함)
+          BAK=$(mktemp -d)
+          cp -r archive/ai_results "$BAK/" 2>/dev/null || true
+          cp -r archive/backtest_ai "$BAK/" 2>/dev/null || true
+          cp public/backtest_ai.json "$BAK/" 2>/dev/null || true
+
+          for i in 1 2 3 4 5; do
+            echo "Push 시도 $i..."
+            git fetch origin main
+            git reset --hard origin/main
+
+            # 데이터 복원
+            mkdir -p archive
+            [ -d "$BAK/ai_results" ] && cp -r "$BAK/ai_results" archive/
+            [ -d "$BAK/backtest_ai" ] && cp -r "$BAK/backtest_ai" archive/
+            [ -f "$BAK/backtest_ai.json" ] && cp "$BAK/backtest_ai.json" public/
+
+            git add $FILES 2>/dev/null || true
+            if git diff --cached --quiet; then
+              echo "이미 최신, 종료"
+              exit 0
+            fi
+
+            git commit -m "chore(ai): archive AI logs + backtest $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            if git push; then
+              echo "Push 성공"
+              exit 0
+            fi
+            echo "Push 실패, 재시도..."
+            sleep $((2 + (i % 4)))
+          done
+          echo "5회 재시도 모두 실패. 다음 cron에서 재시도하므로 정상 종료."
+          exit 0
