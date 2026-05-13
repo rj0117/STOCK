@@ -91,6 +91,7 @@ async function fetchJsonUtf8(url, fallback) {
 
 async function loadData() {
     try {
+        // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
         const [data, stocks, sbsbiz] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
@@ -100,18 +101,7 @@ async function loadData() {
         state.data = data;
         state.stocks = Array.isArray(stocks) ? stocks : [];
         state.sbsbiz = sbsbiz;
-        // flow.by_code를 _flowCache에 미리 채워 모든 뷰에서 즉시 시그널/기술지표 계산 가능
-        const byCode = data && data.flow && data.flow.by_code;
-        if (byCode) {
-            for (const code in byCode) {
-                _flowCache.set(code, Promise.resolve({
-                    code,
-                    name: byCode[code].name,
-                    days: byCode[code].days,
-                    prices_60d: byCode[code].prices_60d || [],
-                }));
-            }
-        }
+        if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         const gen = document.getElementById("generated-at");
         if (gen && data.generated_at) gen.textContent = `· 업데이트: ${data.generated_at}`;
         const sideTime = document.getElementById("sidebar-update-time");
@@ -120,6 +110,31 @@ async function loadData() {
         console.error(e);
         document.getElementById("view").innerHTML =
             `<div class="placeholder">데이터를 불러오지 못했습니다. <br>먼저 <code>run.bat</code>으로 데이터를 수집해주세요.</div>`;
+    }
+}
+
+// 2단계: 무거운 flow_by_code 백그라운드 로드 → _flowCache 채우고 현재 뷰 재렌더
+async function loadFlowByCode() {
+    try {
+        const payload = await fetchJsonUtf8("flow_by_code.json", null);
+        if (!payload || !payload.by_code) return;
+        const byCode = payload.by_code;
+        if (state.data && state.data.flow) {
+            state.data.flow.by_code = byCode;
+        }
+        for (const code in byCode) {
+            _flowCache.set(code, Promise.resolve({
+                code,
+                name: byCode[code].name,
+                days: byCode[code].days,
+                prices_60d: byCode[code].prices_60d || [],
+            }));
+        }
+        state.flowReady = true;
+        // 첫 화면이 by_code에 의존하는 뷰면 재렌더
+        try { render(); } catch (e) { console.error(e); }
+    } catch (e) {
+        console.warn("flow_by_code 로드 실패:", e);
     }
 }
 
@@ -582,8 +597,12 @@ function renderTop30(main) {
 function renderRecommendBuy(main) {
     const data = state.data;
     const byCode = data && data.flow && data.flow.by_code;
-    if (!data || !byCode) {
+    if (!data) {
         main.innerHTML = `<h2>🎯 매수 추천</h2><div class="placeholder">데이터 로딩 실패</div>`;
+        return;
+    }
+    if (!byCode || Object.keys(byCode).length === 0) {
+        main.innerHTML = `<h2>🎯 매수 추천</h2><div class="placeholder">기술 지표 계산용 시세 데이터를 받는 중입니다... <br><small>(잠시 후 자동 표시)</small></div>`;
         return;
     }
 
@@ -1972,6 +1991,8 @@ async function main() {
     await loadData();
     initSearch();
     render();
+    // 백그라운드: 60일 시세/수급 상세 로드 → 완료 시 재렌더
+    loadFlowByCode();
 }
 
 main();

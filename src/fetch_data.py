@@ -940,7 +940,7 @@ def run():
             "individual_sell": flow_data["individual_sell"],
             "both_top": flow_data["both_top"],
             "pool_size": len(flow_pool),
-            "by_code": flow_data["by_code"],
+            # by_code는 용량이 커서 별도 flow_by_code.json으로 분리 저장
         },
         "summary": {
             "total_stocks": len(popular_stocks),
@@ -953,7 +953,16 @@ def run():
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
+    # 별도 파일로 flow.by_code 저장 (첫 화면 로딩 가속용)
+    flow_by_code_path = os.path.join(SITE_DIR, "flow_by_code.json")
+    with open(flow_by_code_path, "w", encoding="utf-8") as f:
+        json.dump({
+            "generated_at": data["generated_at"],
+            "by_code": flow_data["by_code"],
+        }, f, ensure_ascii=False)
+
     print(f"\n✅ 데이터 저장 완료: {path}")
+    print(f"   + flow_by_code.json 분리 저장 ({len(flow_data['by_code'])}개 종목)")
     print(f"   - 인기 종목: {len(popular_stocks)}개")
     print(f"   - 뉴스: {len(news)}개")
     print(f"   - 인식된 종목: {len(all_known_stocks)}개")
