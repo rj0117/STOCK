@@ -130,14 +130,16 @@ def get_news(query: str, display: int = 20) -> list:
     return out
 
 
-def _parse_signed_int(text: str) -> int:
-    """'+1,599,184' / '-7,997,922' → int"""
-    if not text:
+def _parse_signed_int(text) -> int:
+    """'+1,599,184' / '-7,997,922' / 71686077(int) → int"""
+    if text is None or text == "":
         return 0
-    cleaned = text.replace(",", "").replace(" ", "").strip()
+    if isinstance(text, (int, float)):
+        return int(text)
     try:
+        cleaned = str(text).replace(",", "").replace(" ", "").strip()
         return int(cleaned)
-    except ValueError:
+    except (ValueError, TypeError):
         return 0
 
 
