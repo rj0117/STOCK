@@ -153,6 +153,48 @@ def get_flow(code):
     }
 
 
+def get_intraday(code):
+    code = (code or "").strip()
+    if not re.fullmatch(r"\d{6}", code):
+        return {"error": "유효한 6자리 종목 코드가 필요합니다", "code": code}
+    url = f"https://fchart.stock.naver.com/sise.nhn?symbol={code}&timeframe=minute&count=400&requestType=0"
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=8)
+        resp.raise_for_status()
+        text = resp.content.decode("euc-kr", errors="replace")
+    except Exception as e:
+        return {"error": f"요청 실패: {e}", "code": code}
+
+    items = re.findall(r'data="([^"]+)"', text)
+    if not items:
+        return {"code": code, "date": "", "data": []}
+
+    last_yyyymmdd = items[-1].split("|")[0][:8]
+    out = []
+    for it in items:
+        parts = it.split("|")
+        if not parts or parts[0][:8] != last_yyyymmdd:
+            continue
+        ts = parts[0]
+        if len(ts) < 12:
+            continue
+        time_hhmm = ts[8:12]
+        try:
+            close_val = parts[4]
+            vol_val = parts[5] if len(parts) > 5 else "0"
+            if close_val == "null" or close_val == "":
+                continue
+            close = int(close_val)
+            volume = int(vol_val) if vol_val not in ("null", "") else 0
+        except (ValueError, IndexError):
+            continue
+        out.append({"time": time_hhmm, "close": close, "volume": volume})
+
+    out.sort(key=lambda x: x["time"])
+    date_fmt = f"{last_yyyymmdd[:4]}-{last_yyyymmdd[4:6]}-{last_yyyymmdd[6:8]}"
+    return {"code": code, "date": date_fmt, "data": out, "fetched_at": now_kst().strftime("%Y-%m-%d %H:%M:%S")}
+
+
 def get_news(query, display=20):
     query = (query or "").strip()
     if not query:

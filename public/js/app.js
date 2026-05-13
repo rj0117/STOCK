@@ -249,6 +249,77 @@ function chartHTML(days, opts = {}) {
     `;
 }
 
+/**
+ * 분봉(intraday) 데이터 → 당일 시간대별 가격 차트.
+ * @param {Object} intraday - { date, data: [{time, close, volume}] }
+ */
+function intradayChartHTML(intraday, opts = {}) {
+    if (!intraday || !intraday.data || intraday.data.length < 2) {
+        return `<div class="sparkline-empty">분봉 데이터 없음</div>`;
+    }
+    const w = opts.width || 400;
+    const h = opts.height || 170;
+    const data = intraday.data;
+    const prices = data.map(d => d.close);
+    const times = data.map(d => d.time);
+    const min = Math.min(...prices);
+    const max = Math.max(...prices);
+    const range = max - min || 1;
+    const padT = 22, padB = 28, padL = 16, padR = 16;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+    const stepX = data.length > 1 ? innerW / (data.length - 1) : innerW;
+
+    const first = prices[0];
+    const last = prices[prices.length - 1];
+    const isUp = last >= first;
+    const stroke = isUp ? "#e53935" : "#1e88e5";
+    const fill = isUp ? "rgba(229,57,53,0.10)" : "rgba(30,136,229,0.10)";
+
+    const pts = prices.map((p, i) => ({
+        x: padL + i * stepX,
+        y: padT + (1 - (p - min) / range) * innerH,
+        price: p,
+        time: times[i],
+    }));
+    const linePts = pts.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+    const areaPts = `${padL},${h - padB} ${linePts} ${padL + innerW},${h - padB}`;
+    const lastPt = pts[pts.length - 1];
+
+    // 시간 축 라벨 - 9:00, 10:30, 12:00, 13:30, 15:00 같은 주요 시점
+    const targetTimes = ["0900", "1030", "1200", "1330", "1500", "1530"];
+    const timeLabels = targetTimes.map(t => {
+        // 가장 가까운 데이터 포인트 찾기
+        const idx = data.findIndex(d => d.time === t);
+        if (idx < 0) return "";
+        const x = pts[idx].x;
+        const label = `${t.slice(0, 2)}:${t.slice(2)}`;
+        return `<text x="${x.toFixed(1)}" y="${h - 8}" class="chart-date" text-anchor="middle">${label}</text>`;
+    }).join("");
+
+    // 가격 라벨 - 시작가, 최고가, 최저가, 마지막
+    const minIdx = prices.indexOf(min);
+    const maxIdx = prices.indexOf(max);
+    const labels = new Set([0, prices.length - 1, minIdx, maxIdx]);
+    const priceLabels = Array.from(labels).map(i => {
+        const p = pts[i];
+        const isLast = i === prices.length - 1;
+        const above = p.y - 8;
+        const ySafe = above < padT + 6 ? p.y + 14 : above;
+        return `<text x="${p.x.toFixed(1)}" y="${ySafe.toFixed(1)}" class="chart-price ${isLast ? 'chart-price-last' : ''}" text-anchor="middle">${p.price.toLocaleString('ko-KR')}</text>`;
+    }).join("");
+
+    return `
+        <svg class="chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" role="img" style="width:100%;height:auto;max-width:${w}px;">
+            <polygon points="${areaPts}" fill="${fill}"/>
+            <polyline points="${linePts}" fill="none" stroke="${stroke}" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="${lastPt.x.toFixed(1)}" cy="${lastPt.y.toFixed(1)}" r="3" fill="${stroke}" stroke="#fff" stroke-width="1.5"/>
+            ${priceLabels}
+            ${timeLabels}
+        </svg>
+    `;
+}
+
 function sentBadgeHTML(sentiment) {
     if (sentiment === "positive") return `<span class="sent-badge sent-pos" title="호재">호재</span>`;
     if (sentiment === "negative") return `<span class="sent-badge sent-neg" title="악재">악재</span>`;
@@ -1343,10 +1414,11 @@ async function renderSearchResult(main, code) {
     const stockName = stockMaster ? stockMaster.name : "";
     const newsQuery = stockName || code;
 
-    const [stock, news, flow] = await Promise.all([
+    const [stock, news, flow, intraday] = await Promise.all([
         fetchJsonUtf8(`/api/stock?code=${code}`, { error: "조회 실패" }),
         fetchJsonUtf8(`/api/news?q=${encodeURIComponent(newsQuery)}&display=20`, []),
         fetchFlowCached(code),
+        fetchJsonUtf8(`/api/intraday?code=${code}`, { data: [] }),
     ]);
 
     if (stock.error) {
@@ -1373,10 +1445,20 @@ async function renderSearchResult(main, code) {
                         <div class="change-info ${ch.cls}">${ch.text}</div>
                         <div class="prev-close">전일 ${formatPrice(stock.prev_close)}원</div>
                     </div>
-                    ${flow && flow.days && flow.days.length >= 2 ? `
-                        <div class="search-chart-block">
-                            <div class="search-chart-label">최근 ${flow.days.length}일 종가 추이</div>
-                            ${chartHTML(flow.days, {width: 420, height: 180})}
+                    ${(flow && flow.days && flow.days.length >= 2) || (intraday && intraday.data && intraday.data.length >= 2) ? `
+                        <div class="charts-row">
+                            ${flow && flow.days && flow.days.length >= 2 ? `
+                                <div class="search-chart-block">
+                                    <div class="search-chart-label">최근 ${flow.days.length}일 종가 추이</div>
+                                    ${chartHTML(flow.days, {width: 420, height: 180})}
+                                </div>
+                            ` : ""}
+                            ${intraday && intraday.data && intraday.data.length >= 2 ? `
+                                <div class="search-chart-block">
+                                    <div class="search-chart-label">당일 분봉 (${escapeHtml(intraday.date || "")})</div>
+                                    ${intradayChartHTML(intraday, {width: 420, height: 180})}
+                                </div>
+                            ` : ""}
                         </div>
                     ` : ""}
                     ${flow && flow.days && flow.days.length ? `

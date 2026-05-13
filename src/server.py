@@ -17,7 +17,7 @@ BASE_DIR = os.path.dirname(SRC_DIR)
 SITE_DIR = os.path.join(BASE_DIR, "public")
 
 sys.path.insert(0, SRC_DIR)
-from api_handlers import get_stock, get_news, get_flow, load_env_file  # noqa
+from api_handlers import get_stock, get_news, get_flow, get_intraday, load_env_file  # noqa
 
 load_env_file(os.path.join(BASE_DIR, ".env"))
 
@@ -63,6 +63,9 @@ class Handler(SimpleHTTPRequestHandler):
                 elif parsed.path == "/api/flow":
                     code = qs.get("code", [""])[0]
                     self._send_json(HTTPStatus.OK, get_flow(code))
+                elif parsed.path == "/api/intraday":
+                    code = qs.get("code", [""])[0]
+                    self._send_json(HTTPStatus.OK, get_intraday(code))
                 else:
                     self._send_json(HTTPStatus.NOT_FOUND, {"error": "unknown api"})
             except Exception as e:
