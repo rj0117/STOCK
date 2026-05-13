@@ -109,6 +109,8 @@ async function loadData() {
         }
         const gen = document.getElementById("generated-at");
         if (gen && data.generated_at) gen.textContent = `· 업데이트: ${data.generated_at}`;
+        const sideTime = document.getElementById("sidebar-update-time");
+        if (sideTime && data.generated_at) sideTime.textContent = `${data.generated_at} (KST)`;
     } catch (e) {
         console.error(e);
         document.getElementById("view").innerHTML =
@@ -586,6 +588,113 @@ const FLOW_TABS = [
     { kind: "individual_sell", label: "개인 순매도", color: "down", icon: "👤" },
 ];
 
+/**
+ * 일자별/항목별 수급 총량 막대 차트 (외인/기관/개인).
+ * data.flow.by_code 전체를 일자별로 합산해 5일 그룹화 막대.
+ */
+function flowSummaryChartHTML(byCode) {
+    if (!byCode || Object.keys(byCode).length === 0) return "";
+    // {date -> {f, o, i}} 집계
+    const byDate = {};
+    for (const code in byCode) {
+        const days = byCode[code].days || [];
+        for (const d of days) {
+            if (!d.date) continue;
+            if (!byDate[d.date]) byDate[d.date] = { f: 0, o: 0, i: 0 };
+            byDate[d.date].f += d.foreign_net || 0;
+            byDate[d.date].o += d.organ_net || 0;
+            byDate[d.date].i += d.individual_net || 0;
+        }
+    }
+    const dates = Object.keys(byDate).sort();  // 과거 → 최신
+    if (dates.length === 0) return "";
+
+    const w = 720, h = 280;
+    const padT = 30, padB = 40, padL = 70, padR = 20;
+    const innerW = w - padL - padR;
+    const innerH = h - padT - padB;
+
+    // 모든 값에서 최대 절댓값 산출 (Y축 스케일)
+    let maxAbs = 0;
+    dates.forEach(d => {
+        ["f", "o", "i"].forEach(k => {
+            const v = Math.abs(byDate[d][k]);
+            if (v > maxAbs) maxAbs = v;
+        });
+    });
+    if (maxAbs === 0) maxAbs = 1;
+    const yMid = padT + innerH / 2;
+    const yScale = (innerH / 2) / maxAbs;
+
+    const groupW = innerW / dates.length;
+    const barW = Math.min(20, groupW / 4);
+    const gap = (groupW - barW * 3) / 2;
+
+    const colors = { f: "#1565c0", o: "#2e7d32", i: "#ef6c00" };
+    const labels = { f: "외국인", o: "기관", i: "개인" };
+
+    // Y축 라벨 (단위: 만주 또는 백만주)
+    const fmtY = (val) => {
+        const a = Math.abs(val);
+        if (a >= 1_000_000) return (val / 1_000_000).toFixed(1) + "M";
+        if (a >= 1_000) return (val / 1_000).toFixed(0) + "K";
+        return val.toString();
+    };
+
+    let bars = "";
+    let xLabels = "";
+    let tooltips = "";
+    dates.forEach((date, di) => {
+        const gx = padL + groupW * di + gap;
+        ["f", "o", "i"].forEach((k, ki) => {
+            const v = byDate[date][k];
+            const barH = Math.abs(v) * yScale;
+            const x = gx + ki * barW;
+            const y = v >= 0 ? yMid - barH : yMid;
+            const title = `${date}\n${labels[k]}: ${v >= 0 ? "+" : ""}${v.toLocaleString("ko-KR")}`;
+            bars += `<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${barW.toFixed(1)}" height="${barH.toFixed(1)}" fill="${colors[k]}" opacity="0.85"><title>${escapeHtml(title)}</title></rect>`;
+        });
+        const md = date.length >= 10 ? date.slice(5).replace("-", "/") : date;
+        xLabels += `<text x="${(padL + groupW * di + groupW / 2).toFixed(1)}" y="${h - 18}" text-anchor="middle" class="fsc-x-label">${md}</text>`;
+    });
+
+    // Y축 라벨
+    const yLabels = [
+        { val: maxAbs, y: padT + 4 },
+        { val: maxAbs / 2, y: padT + innerH / 4 + 4 },
+        { val: 0, y: yMid + 4 },
+        { val: -maxAbs / 2, y: padT + (innerH * 3) / 4 + 4 },
+        { val: -maxAbs, y: padT + innerH + 4 },
+    ].map(l => `<text x="${padL - 8}" y="${l.y}" text-anchor="end" class="fsc-y-label">${fmtY(l.val)}</text>`).join("");
+
+    // 가로 격자선
+    const grid = [padT, padT + innerH / 4, yMid, padT + (innerH * 3) / 4, padT + innerH]
+        .map(y => `<line x1="${padL}" y1="${y}" x2="${padL + innerW}" y2="${y}" stroke="#e3e7f0" stroke-width="${y === yMid ? 1.5 : 1}" stroke-dasharray="${y === yMid ? '' : '2,2'}"/>`).join("");
+
+    // 범례
+    const legend = `
+        <g transform="translate(${padL}, 6)">
+            <rect x="0" y="0" width="14" height="10" fill="${colors.f}"/><text x="20" y="9" class="fsc-legend">외국인</text>
+            <rect x="80" y="0" width="14" height="10" fill="${colors.o}"/><text x="100" y="9" class="fsc-legend">기관</text>
+            <rect x="160" y="0" width="14" height="10" fill="${colors.i}"/><text x="180" y="9" class="fsc-legend">개인</text>
+        </g>
+    `;
+
+    return `
+        <div class="card flow-summary-card">
+            <div class="fsc-title">📊 일자별 수급 총량 (추적 종목 풀 합산)</div>
+            <svg class="flow-summary-chart" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
+                ${grid}
+                ${legend}
+                ${yLabels}
+                ${bars}
+                ${xLabels}
+            </svg>
+            <div class="fsc-note">단위: 주식 수. 양수 = 순매수, 음수 = 순매도. 막대 위 마우스 오버 시 정확한 값.</div>
+        </div>
+    `;
+}
+
 function renderFlow(main, kind) {
     const flow = state.data && state.data.flow;
     if (!flow) {
@@ -597,6 +706,7 @@ function renderFlow(main, kind) {
     main.innerHTML = `
         <h2>💰 수급 상위</h2>
         <div class="subtitle">추적 종목 풀(인기 검색 + 카테고리 고정) ${flow.pool_size}개 기준 · 기준일 ${escapeHtml(flow.as_of || "—")}</div>
+        ${flowSummaryChartHTML(flow.by_code)}
         <div class="flow-tabs">
             ${FLOW_TABS.map(t => `
                 <button class="flow-tab ${t.kind === kind ? "active" : ""}" onclick="goFlow('${t.kind}')">

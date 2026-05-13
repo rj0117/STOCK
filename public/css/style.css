@@ -143,6 +143,34 @@ a { color: inherit; text-decoration: none; }
 }
 .sidebar-menu li.active .count { background: var(--color-primary); color: #fff; }
 
+/* 사이드바 하단 - 데이터 기준 시각 */
+.sidebar-update {
+    margin: 20px 16px 0;
+    padding: 12px;
+    background: linear-gradient(to bottom, #f8faff, #eef2ff);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    font-size: 12px;
+}
+.sidebar-update .su-label {
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+.sidebar-update .su-time {
+    font-weight: 700;
+    color: var(--color-primary);
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    margin-bottom: 6px;
+}
+.sidebar-update .su-note {
+    font-size: 10px;
+    color: var(--color-muted);
+    line-height: 1.4;
+}
+
 /* ============ 메인 뷰 ============ */
 .view {
     padding: 24px;
@@ -714,6 +742,38 @@ a { color: inherit; text-decoration: none; }
     font-size: 11px;
     color: var(--color-muted);
     font-family: monospace;
+}
+
+.flow-summary-card {
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.fsc-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-primary);
+    margin-bottom: 12px;
+}
+.flow-summary-chart {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+.fsc-x-label, .fsc-y-label {
+    font-size: 10px;
+    fill: var(--color-muted);
+    font-variant-numeric: tabular-nums;
+}
+.fsc-legend {
+    font-size: 11px;
+    fill: var(--color-text);
+    font-weight: 600;
+}
+.fsc-note {
+    font-size: 11px;
+    color: var(--color-muted);
+    margin-top: 8px;
+    text-align: right;
 }
 
 .flow-tabs {
