@@ -1085,11 +1085,35 @@ function calcTechnicals(prices60d) {
         if (ret5 <= -7 && ret1 >= 2) lowBounce = true;
     }
 
+    // 저항선/지지선 — 20일/60일 high/low
+    const highs = ordered.map(d => d.high || d.close);
+    const lows = ordered.map(d => d.low || d.close);
+    function nMax(arr, period) {
+        const k = Math.min(period, arr.length);
+        return Math.max(...arr.slice(-k));
+    }
+    function nMin(arr, period) {
+        const k = Math.min(period, arr.length);
+        return Math.min(...arr.slice(-k));
+    }
+    const resist20 = nMax(highs, 20);
+    const support20 = nMin(lows, 20);
+    const resist60 = nMax(highs, 60);
+    const support60 = nMin(lows, 60);
+
+    // 현재가가 저항·지지선에 얼마나 가까운지 (퍼센트)
+    const curr = closes[last];
+    const distToResist20 = ((resist20 - curr) / curr * 100);
+    const distToSupport20 = ((curr - support20) / curr * 100);
+
     return {
         rsi14: rsi14 !== null ? Math.round(rsi14 * 10) / 10 : null,
         ma5, ma20, ma60, bbUpper, bbLower,
         divergence20: divergence20 !== null ? Math.round(divergence20 * 10) / 10 : null,
         goldenCross, deadCross, volSurge, lowBounce,
+        resist20, support20, resist60, support60,
+        distToResist20: Math.round(distToResist20 * 10) / 10,
+        distToSupport20: Math.round(distToSupport20 * 10) / 10,
         dataLength: n,
     };
 }
@@ -1454,7 +1478,7 @@ async function renderSearchResult(main, code) {
                         <div class="charts-row">
                             ${flow && flow.days && flow.days.length >= 2 ? `
                                 <div class="search-chart-block">
-                                    <div class="search-chart-label">최근 ${flow.days.length}일 종가 추이</div>
+                                    <div class="search-chart-label">최근 ${flow.days.length}일 종가 추이${tech ? ` · <span class="down">저항 ${formatPrice(Math.round(tech.resist20))}</span> / <span class="up">지지 ${formatPrice(Math.round(tech.support20))}</span>` : ""}</div>
                                     ${chartHTML(flow.days, {width: 420, height: 180})}
                                 </div>
                             ` : ""}
@@ -1531,6 +1555,26 @@ async function renderSearchResult(main, code) {
                                     <span class="tech-value">${formatPrice(Math.round(tech.bbLower))}원</span>
                                 </div>
                             ` : ""}
+                            ${tech.resist20 !== null ? `
+                                <div class="tech-cell">
+                                    <span class="tech-label">🔴 단기 저항선 (20일)</span>
+                                    <span class="tech-value down">${formatPrice(Math.round(tech.resist20))}원</span>
+                                    <span class="tech-note">현재가에서 +${tech.distToResist20}%</span>
+                                </div>
+                                <div class="tech-cell">
+                                    <span class="tech-label">🟢 단기 지지선 (20일)</span>
+                                    <span class="tech-value up">${formatPrice(Math.round(tech.support20))}원</span>
+                                    <span class="tech-note">현재가에서 -${tech.distToSupport20}%</span>
+                                </div>
+                                <div class="tech-cell">
+                                    <span class="tech-label">🔴 중기 저항선 (60일)</span>
+                                    <span class="tech-value down">${formatPrice(Math.round(tech.resist60))}원</span>
+                                </div>
+                                <div class="tech-cell">
+                                    <span class="tech-label">🟢 중기 지지선 (60일)</span>
+                                    <span class="tech-value up">${formatPrice(Math.round(tech.support60))}원</span>
+                                </div>
+                            ` : ""}
                         </div>
                         ${(tech.goldenCross || tech.deadCross || tech.lowBounce || tech.volSurge) ? `
                             <div class="tech-events">
@@ -1549,7 +1593,9 @@ async function renderSearchResult(main, code) {
                             <strong>골든크로스</strong>: 단기(5일) 평균선이 중기(20일) 평균선을 위로 뚫음 → <span class="up">강한 매수 신호</span><br>
                             <strong>데드크로스</strong>: 반대 (5일선이 20일선 아래로) → <span class="down">강한 매도 신호</span><br>
                             <strong>저점 반등</strong>: 며칠 떨어진 뒤 다시 오르기 시작 → <span class="up">저점 매수 후보</span><br>
-                            <strong>이격도</strong>: 현재가가 20일 평균보다 얼마나 떨어져 있는지. <span class="up">-10% 이상 차이 = 저가권(저점 매수)</span>, <span class="down">+15% 이상 = 과열(주의)</span>
+                            <strong>이격도</strong>: 현재가가 20일 평균보다 얼마나 떨어져 있는지. <span class="up">-10% 이상 차이 = 저가권(저점 매수)</span>, <span class="down">+15% 이상 = 과열(주의)</span><br>
+                            <strong>저항선</strong>: 최근 N일 중 가장 높은 가격. <span class="down">이 가격대 근처에서 매도세가 자주 나옴</span> (돌파하면 추가 상승 가능)<br>
+                            <strong>지지선</strong>: 최근 N일 중 가장 낮은 가격. <span class="up">이 가격대 근처에서 매수세가 자주 들어옴</span> (이탈하면 추가 하락 가능)
                         </div>
                     </div>
                 ` : ""}
