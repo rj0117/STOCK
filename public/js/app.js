@@ -728,12 +728,17 @@ function renderRecommendBuy(main) {
                                     <span class="rec-sig-label">📈 시장</span>
                                     <span class="signal-mini ${c.sig.cls} compact">${c.sig.label}</span>
                                 </div>
-                                <div class="rec-sig-reason">${escapeHtml((c.sig.reasons || [])[0] || "")}</div>
+                                <ul class="rec-sig-reasons">
+                                    ${(c.sig.reasons || []).slice(0, 4).map(r => `<li>${escapeHtml(r)}</li>`).join("")}
+                                </ul>
                                 <div class="rec-sig-line">
                                     <span class="rec-sig-label">📐 기술</span>
                                     <span class="signal-mini ${c.techSum.cls} compact">${c.techSum.label}</span>
                                 </div>
-                                <div class="rec-sig-reason">${escapeHtml(c.techSum.signals.join(' · '))}</div>
+                                <ul class="rec-sig-reasons">
+                                    ${(c.techSum.signals || []).map(r => `<li>${escapeHtml(r)}</li>`).join("")}
+                                    ${(c.techSum.signals || []).length === 0 ? `<li class="muted">특별한 시그널 없음</li>` : ""}
+                                </ul>
                                 ${forecastMiniHTML(c.code) ? `<div class="rec-forecast">${forecastMiniHTML(c.code)}</div>` : ''}
                             </div>
                             <div class="rec-flow">
@@ -1884,9 +1889,13 @@ function renderBacktest(main) {
         return;
     }
     const s = bt.summary;
-    const cum = s.cumulative || {};
-    const horizons = s.by_horizon || {};
+    const method = s.method || {};
     const range = s.history_range || {};
+    // unique 기준을 메인 (정직한 평가), 전체 기준을 참고
+    const cumU = (s.unique_signals && s.unique_signals.cumulative) || {};
+    const cumA = (s.all_signals && s.all_signals.cumulative) || {};
+    const hU = (s.unique_signals && s.unique_signals.by_horizon) || {};
+    const hA = (s.all_signals && s.all_signals.by_horizon) || {};
     const detail = (bt.detail || []).slice(0, 60);
 
     function cell(val, suffix = "%", cls = "") {
@@ -1897,39 +1906,57 @@ function renderBacktest(main) {
     }
 
     function horizonRow(label, h) {
+        if (!h || h.count === 0 || h.count === undefined) {
+            return `<tr><td><strong>${label}</strong></td><td class="num">0</td><td colspan="6" class="muted">측정 불가 (데이터 부족)</td></tr>`;
+        }
         return `
             <tr>
                 <td><strong>${label}</strong></td>
-                <td class="num">${h.count || 0}</td>
+                <td class="num">${h.count}</td>
                 <td class="num">${cell(h.avg_ret)}</td>
                 <td class="num">${cell(h.avg_alpha)}</td>
+                <td class="num">${cell(h.avg_alpha_after_cost)}</td>
                 <td class="num">${h.win_rate !== null && h.win_rate !== undefined ? h.win_rate + "%" : "<span class='muted'>—</span>"}</td>
                 <td class="num up">${cell(h.best)}</td>
                 <td class="num down">${cell(h.worst)}</td>
             </tr>`;
     }
 
-    // 평균 알파의 부호로 큰 평가 라벨
-    let verdict = { label: "데이터 부족", cls: "verdict-neutral", note: "측정 가능한 신호가 아직 부족합니다 (보통 2주 이상 누적 필요)." };
-    if (cum.count >= 10 && cum.avg_alpha !== null && cum.avg_alpha !== undefined) {
-        if (cum.avg_alpha > 1.0 && (cum.win_rate || 0) > 55) {
+    // 평가는 unique + 비용 차감 후 알파 기준 (가장 정직)
+    let verdict = { label: "데이터 부족", cls: "verdict-neutral",
+        note: "측정 가능한 신호가 아직 부족합니다 (의미 있는 평가에 표본 20건 이상, 보통 2~3주 누적 필요)." };
+    const evalAlpha = cumU.avg_alpha_after_cost;
+    const evalWin = cumU.win_rate;
+    if (cumU.count >= 20 && evalAlpha !== null && evalAlpha !== undefined) {
+        if (evalAlpha > 1.0 && (evalWin || 0) > 55) {
             verdict = { label: "🟢 의미 있는 알파", cls: "verdict-up",
-                note: `평균 ${cum.avg_alpha}% 알파 + 승률 ${cum.win_rate}%. 통계적으로 시장 초과 성과가 관측됨. 단, 표본 ${cum.count}건이라 확정은 어려움.` };
-        } else if (cum.avg_alpha < -1.0 || (cum.win_rate || 0) < 45) {
+                note: `비용 차감 후 평균 ${evalAlpha}% 알파 + 승률 ${evalWin}%. 통계적으로 시장 초과 성과 관측. 단, 표본 ${cumU.count}건이라 확정 단정은 어려움.` };
+        } else if (evalAlpha < -1.0 || (evalWin || 0) < 45) {
             verdict = { label: "🔴 시장 미달", cls: "verdict-down",
-                note: `평균 ${cum.avg_alpha}% 알파, 승률 ${cum.win_rate}%. 신호 추종이 KOSPI보다 못함 — 로직 재검토 필요.` };
+                note: `비용 차감 후 평균 ${evalAlpha}% 알파, 승률 ${evalWin}%. 신호 추종이 KOSPI보다 못함 — 로직 재검토 필요.` };
         } else {
             verdict = { label: "⚪ 시장 수준", cls: "verdict-neutral",
-                note: `평균 ${cum.avg_alpha}% 알파, 승률 ${cum.win_rate}%. KOSPI와 큰 차이 없음 — 신호의 부가가치 미미.` };
+                note: `비용 차감 후 평균 ${evalAlpha}% 알파, 승률 ${evalWin}%. KOSPI와 큰 차이 없음 — 신호의 부가가치가 거래비용 정도에 묻힘.` };
         }
     }
 
     main.innerHTML = `
         <h2>📈 백테스트 — 매수 추천 신호의 사후 성과</h2>
         <div class="subtitle">
-            누적 ${s.days_with_data || 0}일 · 총 ${s.total_signals || 0}개 신호 ·
-            기간 ${escapeHtml(range.from || "—")} ~ ${escapeHtml(range.to || "—")} ·
-            <span class="disclaimer">* 알파 = 종목 수익률 - 같은 구간 KOSPI 수익률</span>
+            누적 ${s.days_with_data || 0}일 · 원시 신호 ${s.total_raw_signals || 0}개 (unique ${s.unique_signals_count || 0}, 중복 ${s.duplicate_signals || 0}) ·
+            기간 ${escapeHtml(range.from || "—")} ~ ${escapeHtml(range.to || "—")}
+        </div>
+
+        <div class="card bt-method-card">
+            <h3 class="bt-section">🧪 측정 방법론 (정직성 보강)</h3>
+            <ul class="bt-method">
+                <li>📍 <strong>진입가</strong>: ${escapeHtml(method.entry || "—")}</li>
+                <li>📍 <strong>측정가</strong>: ${escapeHtml(method.measure || "—")}</li>
+                <li>📍 <strong>거래비용</strong>: 왕복 ${method.cost_pct_roundtrip || 0.3}% 차감 시나리오 별도 표시</li>
+                <li>📍 <strong>중복 신호</strong>: 같은 종목 ${method.cooldown_days || 5}거래일 내 재추천은 duplicate로 분류 (unique 기준 별도 집계)</li>
+                <li>📍 <strong>비정상 격리</strong>: 일일 변동 ±${method.abnormal_daily_threshold_pct || 25}% 이상은 거래정지·액면분할·상폐 의심 → 측정 제외 (${s.abnormal_excluded || 0}건)</li>
+                <li>📍 <strong>측정 불가</strong>: 추천 후 시세 데이터 부족 종목 ${s.skipped_unmeasurable || 0}건 제외</li>
+            </ul>
         </div>
 
         <div class="card bt-verdict-card">
@@ -1938,29 +1965,54 @@ function renderBacktest(main) {
         </div>
 
         <div class="card">
-            <h3 class="bt-section">📊 horizon별 집계</h3>
+            <h3 class="bt-section">📊 unique 신호 기준 (중복 제거, 정직한 평가) — 메인</h3>
             <table class="bt-table">
                 <thead>
                     <tr>
                         <th>구간</th>
-                        <th class="num">측정 건수</th>
+                        <th class="num">건수</th>
                         <th class="num">평균 수익률</th>
                         <th class="num">평균 알파</th>
-                        <th class="num">승률 (알파>0)</th>
+                        <th class="num">비용차감 후 알파</th>
+                        <th class="num">승률</th>
                         <th class="num">최고</th>
                         <th class="num">최악</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${horizons["1"] ? horizonRow("+1거래일", horizons["1"]) : ""}
-                    ${horizons["5"] ? horizonRow("+5거래일 (1주)", horizons["5"]) : ""}
-                    ${horizons["10"] ? horizonRow("+10거래일 (2주)", horizons["10"]) : ""}
-                    ${horizonRow("현재까지 누적", cum)}
+                    ${horizonRow("+1거래일", hU["1"])}
+                    ${horizonRow("+5거래일 (1주)", hU["5"])}
+                    ${horizonRow("+10거래일 (2주)", hU["10"])}
+                    ${horizonRow("현재까지 누적", cumU)}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="card">
+            <h3 class="bt-section">📊 전체 신호 기준 (중복 포함, 참고용)</h3>
+            <table class="bt-table">
+                <thead>
+                    <tr>
+                        <th>구간</th>
+                        <th class="num">건수</th>
+                        <th class="num">평균 수익률</th>
+                        <th class="num">평균 알파</th>
+                        <th class="num">비용차감 후 알파</th>
+                        <th class="num">승률</th>
+                        <th class="num">최고</th>
+                        <th class="num">최악</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${horizonRow("+1거래일", hA["1"])}
+                    ${horizonRow("+5거래일 (1주)", hA["5"])}
+                    ${horizonRow("+10거래일 (2주)", hA["10"])}
+                    ${horizonRow("현재까지 누적", cumA)}
                 </tbody>
             </table>
             <div class="bt-note">
-                💡 horizon별로 측정 건수가 다른 이유: 추천일이 너무 최근이면 아직 +5/+10거래일이 안 지나서 측정 불가.
-                알파가 양수면 신호가 시장보다 잘했다, 음수면 못했다는 뜻.
+                💡 unique 기준이 더 정직합니다 (같은 거래를 여러 번 카운팅하는 효과 제거).
+                전체 기준은 "체감 빈도"를 보는 참고용.
             </div>
         </div>
 
@@ -1972,12 +2024,13 @@ function renderBacktest(main) {
                     <tr>
                         <th>추천일</th>
                         <th>종목</th>
-                        <th class="num">추천가</th>
+                        <th class="num">진입가<br>(다음일 시가)</th>
                         <th class="num">+1일</th>
                         <th class="num">+5일</th>
                         <th class="num">+10일</th>
-                        <th class="num">현재 누적</th>
-                        <th class="num">알파(누적)</th>
+                        <th class="num">누적</th>
+                        <th class="num">알파</th>
+                        <th>플래그</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -1986,16 +2039,25 @@ function renderBacktest(main) {
                         const h5 = d.horizons && d.horizons["5"];
                         const h10 = d.horizons && d.horizons["10"];
                         const cu = d.cumulative;
+                        const flags = [];
+                        if (d.duplicate) flags.push(`<span class="bt-flag-dup">중복</span>`);
+                        if (d.abnormal_in_window) flags.push(`<span class="bt-flag-abnormal">비정상변동</span>`);
+                        function horizonCell(hh) {
+                            if (!hh) return '<span class="muted">—</span>';
+                            if (hh.abnormal) return '<span class="muted" title="비정상 변동으로 측정 제외">제외</span>';
+                            return cell(hh.ret);
+                        }
                         return `
-                        <tr>
+                        <tr class="${d.duplicate ? 'bt-row-dup' : ''}">
                             <td class="bt-date">${escapeHtml(d.date)}</td>
                             <td><span class="bt-name" onclick="goSearch('${d.code}')">${escapeHtml(d.name)}</span><br><span class="bt-code">${d.code}</span></td>
-                            <td class="num">${formatPrice(d.base_price)}원</td>
-                            <td class="num">${h1 ? cell(h1.ret) : '<span class="muted">—</span>'}</td>
-                            <td class="num">${h5 ? cell(h5.ret) : '<span class="muted">—</span>'}</td>
-                            <td class="num">${h10 ? cell(h10.ret) : '<span class="muted">—</span>'}</td>
-                            <td class="num">${cu ? cell(cu.ret) : '<span class="muted">—</span>'}</td>
-                            <td class="num">${cu ? cell(cu.alpha) : '<span class="muted">—</span>'}</td>
+                            <td class="num">${formatPrice(d.entry_price)}원</td>
+                            <td class="num">${horizonCell(h1)}</td>
+                            <td class="num">${horizonCell(h5)}</td>
+                            <td class="num">${horizonCell(h10)}</td>
+                            <td class="num">${horizonCell(cu)}</td>
+                            <td class="num">${cu && cu.alpha !== undefined ? cell(cu.alpha) : '<span class="muted">—</span>'}</td>
+                            <td>${flags.join(" ")}</td>
                         </tr>`;
                     }).join("")}
                 </tbody>

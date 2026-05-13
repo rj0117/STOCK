@@ -623,6 +623,28 @@ a { color: inherit; text-decoration: none; }
 .bt-name:hover { color: #1565c0; text-decoration: underline; }
 .bt-code { font-size: 10px; color: var(--color-muted); }
 .bt-date { font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 11px; }
+.bt-method-card { padding: 14px 18px; margin-bottom: 14px; background: #fafbff; }
+.bt-method { list-style: none; padding: 0; margin: 0; font-size: 12px; }
+.bt-method li { padding: 3px 0; color: var(--color-text); }
+.bt-flag-dup, .bt-flag-abnormal {
+    display: inline-block; padding: 1px 6px; border-radius: 8px;
+    font-size: 10px; font-weight: 700;
+}
+.bt-flag-dup { background: rgba(120,120,120,0.18); color: #555; }
+.bt-flag-abnormal { background: rgba(229,57,53,0.15); color: #c62828; }
+.bt-row-dup { opacity: 0.65; }
+
+/* 시그널 근거 리스트 (매수 추천 카드 - 민감도 분석용) */
+.rec-sig-reasons {
+    list-style: none; padding: 0; margin: 4px 0 8px 0;
+    font-size: 11px; color: var(--color-muted);
+    display: flex; flex-direction: column; gap: 1px;
+}
+.rec-sig-reasons li { padding: 1px 0 1px 8px; position: relative; }
+.rec-sig-reasons li:before {
+    content: "·"; position: absolute; left: 0; color: #bbb;
+}
+.rec-sig-reasons li.muted { font-style: italic; }
 
 /* 뉴스 종목 카드 - 시그널 두 블록 */
 .snc-signal-row {
