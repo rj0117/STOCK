@@ -421,6 +421,148 @@ def score_stocks(popular_stocks, news_list, volume_stocks=None):
     return ranked[:50]
 
 # ============================================================
+# 데이터 검증 (Validation)
+# 외부 API/크롤링 실패가 누적되지 않도록 3단계 가드.
+# ============================================================
+MIN_STOCKS_REQUIRED = 10       # 최소 종목 수
+PREV_DROP_RATIO_LIMIT = 0.5    # 이전 대비 종목 수 50% 이상 감소 시 중단
+PRICE_JUMP_PCT_LIMIT = 50      # 동일 종목 가격 50% 이상 변동
+ABNORMAL_JUMP_COUNT_LIMIT = 5  # 위 변동이 N개 이상이면 중단
+
+
+def _to_price_number(v):
+    """문자열/숫자 가격을 float로. 실패 시 0.0."""
+    if v is None:
+        return 0.0
+    if isinstance(v, (int, float)):
+        return float(v)
+    try:
+        return float(str(v).replace(",", "").replace("+", "").strip())
+    except (ValueError, TypeError):
+        return 0.0
+
+
+def validate_collected_stocks(stocks, label="collected"):
+    """수집 직후 종목 리스트 검증.
+    - 종목 수 < MIN_STOCKS_REQUIRED → RuntimeError
+    - 가격이 0/None/음수인 종목은 제외 후 다시 카운트
+    Returns: 가격 검증을 통과한 유효 종목 리스트 (원본 리스트는 변경하지 않음).
+    """
+    if len(stocks) < MIN_STOCKS_REQUIRED:
+        raise RuntimeError(
+            f"❌ 검증 실패 ({label}): 수집된 종목 {len(stocks)}개. "
+            f"최소 {MIN_STOCKS_REQUIRED}개 필요. 외부 API 또는 크롤링 차단 의심."
+        )
+
+    valid = []
+    invalid_log = []
+    for s in stocks:
+        price = _to_price_number(s.get("price"))
+        if price <= 0:
+            invalid_log.append(f"{s.get('name', '?')}({s.get('code', '?')}) price={s.get('price')!r}")
+            continue
+        valid.append(s)
+
+    if invalid_log:
+        print(f"   [WARN] 가격 무효로 {len(invalid_log)}개 제외 ({label}):")
+        for line in invalid_log[:10]:
+            print(f"      - {line}")
+        if len(invalid_log) > 10:
+            print(f"      ... 외 {len(invalid_log) - 10}개")
+
+    if len(valid) < MIN_STOCKS_REQUIRED:
+        raise RuntimeError(
+            f"❌ 검증 실패 ({label}): 가격 검증 후 유효 종목 {len(valid)}개. "
+            f"최소 {MIN_STOCKS_REQUIRED}개 필요."
+        )
+    return valid
+
+
+def validate_enriched_change_rates(enriched_stocks, label="enriched"):
+    """enrich 후 등락률 검증.
+    모든 종목의 change_pct 가 정확히 0% 면 시세 수집 실패 신호 → RuntimeError.
+    (실제 정규장에서 모든 종목이 변동 0인 건 거의 불가능)
+    """
+    if not enriched_stocks:
+        raise RuntimeError(f"❌ 검증 실패 ({label}): enrich된 종목 0개.")
+    non_zero = sum(1 for s in enriched_stocks if _to_price_number(s.get("change_pct")) != 0)
+    if non_zero == 0:
+        raise RuntimeError(
+            f"❌ 검증 실패 ({label}): 전체 {len(enriched_stocks)}개 종목의 등락률이 모두 0%. "
+            f"시세 enrich 단계에서 데이터 누락 가능성. 외부 API 응답 점검 필요."
+        )
+
+
+def validate_against_previous(new_top_stocks, prev_data_path):
+    """이전 data.json과 비교.
+    - 종목 수 50% 이상 감소 → RuntimeError
+    - 동일 종목 가격이 50% 이상 변동한 종목이 ABNORMAL_JUMP_COUNT_LIMIT 이상 → RuntimeError
+    이전 파일 없거나 빈 경우 검증 스킵.
+    """
+    if not os.path.exists(prev_data_path):
+        print(f"   [INFO] 이전 data.json 없음 — 비교 검증 스킵 (첫 실행)")
+        return
+    try:
+        with open(prev_data_path, "r", encoding="utf-8") as f:
+            prev = json.load(f)
+    except Exception as e:
+        print(f"   [WARN] 이전 data.json 로드 실패: {e} — 비교 검증 스킵")
+        return
+
+    prev_top = prev.get("top_stocks") or []
+    if not prev_top:
+        print("   [INFO] 이전 top_stocks 비어있음 — 비교 검증 스킵")
+        return
+
+    # (a) 종목 수 급감
+    threshold = len(prev_top) * (1 - PREV_DROP_RATIO_LIMIT)
+    if len(new_top_stocks) < threshold:
+        raise RuntimeError(
+            f"❌ 검증 실패 (이전 비교): 종목 수 급감 "
+            f"{len(prev_top)} → {len(new_top_stocks)} "
+            f"({(1 - len(new_top_stocks)/len(prev_top))*100:.0f}% 감소, "
+            f"한도 {int(PREV_DROP_RATIO_LIMIT*100)}%). 데이터 이상 가능성."
+        )
+
+    # (b) 동일 종목 가격 급변
+    prev_price_map = {}
+    for s in prev_top:
+        code = s.get("code")
+        price = _to_price_number(s.get("price"))
+        if code and price > 0:
+            prev_price_map[code] = (price, s.get("name", "?"))
+
+    big_moves = []
+    for s in new_top_stocks:
+        code = s.get("code")
+        new_p = _to_price_number(s.get("price"))
+        if not code or new_p <= 0:
+            continue
+        prev_info = prev_price_map.get(code)
+        if not prev_info:
+            continue
+        prev_p, _name = prev_info
+        change_pct = abs(new_p - prev_p) / prev_p * 100
+        if change_pct >= PRICE_JUMP_PCT_LIMIT:
+            big_moves.append((code, s.get("name", "?"), prev_p, new_p, change_pct))
+
+    if len(big_moves) >= ABNORMAL_JUMP_COUNT_LIMIT:
+        msg = (f"❌ 검증 실패 (이전 비교): 동일 종목 가격 ≥{PRICE_JUMP_PCT_LIMIT}% 변동 "
+               f"{len(big_moves)}개 발견 (한도 {ABNORMAL_JUMP_COUNT_LIMIT}). 이상 데이터 의심:\n")
+        for c, n, p, np_, ch in big_moves[:8]:
+            msg += f"   - {n}({c}): {int(p):,} → {int(np_):,}원 ({ch:.1f}%)\n"
+        if len(big_moves) > 8:
+            msg += f"   ... 외 {len(big_moves) - 8}개\n"
+        raise RuntimeError(msg.rstrip())
+
+    if big_moves:
+        print(f"   [INFO] {PRICE_JUMP_PCT_LIMIT}%↑ 가격 변동 종목 {len(big_moves)}개 "
+              f"(한도 {ABNORMAL_JUMP_COUNT_LIMIT} 미만, 통과)")
+
+    print(f"   [OK] 이전 비교 검증 통과: 이전 {len(prev_top)}개 → 신규 {len(new_top_stocks)}개")
+
+
+# ============================================================
 # 수급 데이터 (외국인·기관·개인 일별 순매수) - 모바일 API
 # ============================================================
 def fetch_daily_prices_60d(code):
@@ -900,6 +1042,10 @@ def run():
     popular_stocks = fetch_popular_stocks_full()
     volume_top_stocks = fetch_volume_top(limit=80)
 
+    # [V1] 수집 직후 검증 (종목 수 + 가격 유효성)
+    print(f"   ▶ [검증 V1] 수집된 인기 종목 {len(popular_stocks)}개 / 거래량 풀 {len(volume_top_stocks)}개")
+    popular_stocks = validate_collected_stocks(popular_stocks, label="popular_stocks")
+
     print("\n[3/6] 카테고리별 고정 종목 가격 조회 중...")
     category_stocks = fetch_fixed_stocks_prices()
 
@@ -988,9 +1134,20 @@ def run():
     news_by_stock = build_news_by_stock(news, by_code, all_known_stocks, top_n=30)
     print(f"   → 뉴스 종목 카드 {len(news_by_stock)}개 생성")
 
+    # [V2] enrich 후 검증: 등락률 전부 0이면 시세 누락 신호
+    print(f"   ▶ [검증 V2] TOP {len(top30)} 등락률 점검")
+    validate_enriched_change_rates(top30, label="top50_enriched")
+
+    # [V3] 이전 data.json과 비교 검증 (저장 직전, 새 파일 안 쓴 상태)
+    prev_data_path = os.path.join(SITE_DIR, "data.json")
+    print(f"   ▶ [검증 V3] 이전 data.json 비교")
+    validate_against_previous(top30, prev_data_path)
+
+    now_iso = now_kst().strftime("%Y-%m-%dT%H:%M:%S%z")
     data = {
         "generated_at": now_kst().strftime("%Y-%m-%d %H:%M:%S"),
         "generated_date": now_kst().strftime("%Y-%m-%d"),
+        "last_updated": now_iso,  # 검증 통과 직후 시각 (ISO 8601, KST)
         "top_stocks": top30,
         "category_stocks": category_stocks,
         "news": news[:100],
@@ -1019,6 +1176,7 @@ def run():
     path = os.path.join(SITE_DIR, "data.json")
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
+    print(f"\n✅ 데이터 검증 통과: {len(top30)}개 종목 수집 (last_updated={now_iso})")
 
     # 별도 파일로 flow.by_code 저장 (첫 화면 로딩 가속용)
     flow_by_code_path = os.path.join(SITE_DIR, "flow_by_code.json")
@@ -1072,4 +1230,22 @@ def run():
     return data
 
 if __name__ == "__main__":
-    run()
+    import sys
+    try:
+        run()
+    except RuntimeError as e:
+        # 검증 실패: 새 data.json 안 덮어쓰고 종료. 기존 파일 보존됨.
+        print(f"\n{'=' * 60}")
+        print(f"❌ 데이터 갱신 중단 (검증 실패)")
+        print(f"{'=' * 60}")
+        print(str(e))
+        print(f"{'=' * 60}")
+        print("기존 data.json 은 그대로 유지됩니다. GitHub Actions 가 재시도하거나")
+        print("로그를 확인 후 수동 재실행하세요.")
+        sys.exit(1)
+    except Exception as e:
+        # 예상치 못한 일반 예외: 동일하게 중단
+        print(f"\n❌ 데이터 갱신 실패 (예외): {type(e).__name__}: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
