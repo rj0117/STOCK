@@ -1428,8 +1428,22 @@ async function renderSearchResult(main, code) {
     const ch = formatChange(stock.change, stock.change_pct);
     const fav = isFavorite(code);
     const newsArr = Array.isArray(news) ? news : [];
-    const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code), flow && flow.prices_60d);
-    const tech = (flow && flow.prices_60d && flow.prices_60d.length >= 5) ? calcTechnicals(flow.prices_60d) : null;
+    const sig = calcSignal((flow && flow.days) || [], getSentimentForCode(code));
+    const techPrices = flow && flow.prices_60d;
+    let tech = null;
+    let techDebug = "";
+    try {
+        if (!techPrices) techDebug = `prices_60d 필드 없음`;
+        else if (techPrices.length < 5) techDebug = `prices_60d 짧음 (${techPrices.length}일)`;
+        else {
+            tech = calcTechnicals(techPrices);
+            if (!tech) techDebug = `calcTechnicals null 반환 (${techPrices.length}일)`;
+        }
+    } catch (e) {
+        techDebug = `calcTechnicals 예외: ${e.message}`;
+        console.error("calcTechnicals error:", e);
+    }
+    console.log("[검색페이지]", code, "prices_60d:", techPrices?.length, "tech:", tech ? "OK" : "null", techDebug);
 
     main.innerHTML = `
         <div class="search-result">
@@ -1480,6 +1494,7 @@ async function renderSearchResult(main, code) {
                         ` : ""}
                     ` : ""}
                 </div>
+                ${!tech ? `<div class="card" style="margin-top:16px;padding:16px;color:#c62828">⚠ 기술적 지표 표시 불가: ${escapeHtml(techDebug || "원인 미상")}</div>` : ""}
                 ${tech ? `
                     <div class="card tech-card">
                         <h3 class="tech-card-title">📐 기술적 지표 <span class="tech-card-sub">최근 ${tech.dataLength}일 데이터 기반</span></h3>
