@@ -557,7 +557,8 @@ function renderTop30(main) {
     const html = `
         <h2>📊 오늘의 한국 주식 TOP 50</h2>
         <div class="subtitle">
-            인기 검색 순위(1등=50점, 50등=1점) + 뉴스 노출(건당 +15점) 합산 ·
+            1~30위: 인기 검색(1등=30점, 30등=1점) + 뉴스 노출(건당 +15점) 합산 ·
+            31~50위: 당일 거래량 상위에서 보충 ·
             <strong>기준일 ${escapeHtml(asOf)} 종가 기준</strong>
             ${data.generated_at ? ` · 수집 ${escapeHtml(data.generated_at)}` : ""}
         </div>

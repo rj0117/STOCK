@@ -170,6 +170,41 @@ def fetch_popular_stocks_full():
         print(f"[ERROR] 인기 종목 수집 실패: {e}")
         return []
 
+
+def fetch_volume_top(limit=80):
+    """네이버 거래량 상위 (KOSPI + KOSDAQ) - 인기 검색이 30개 한계라 보충용.
+    네이버가 시간대별 자동 처리: 장중=실시간, 장후=마감 기준, 다음 장 시작 전까지 동일.
+    """
+    results = []
+    seen = set()
+    for sosok in [0, 1]:  # 0=KOSPI, 1=KOSDAQ
+        url = f"https://finance.naver.com/sise/sise_quant.naver?sosok={sosok}"
+        try:
+            resp = requests.get(url, headers=HEADERS, timeout=10)
+            _decode_resp(resp)
+            soup = BeautifulSoup(resp.text, "lxml")
+            for a in soup.select("a.tltle"):
+                href = a.get("href", "")
+                m = re.search(r"code=(\d+)", href)
+                if not m:
+                    continue
+                code = m.group(1)
+                if code in seen:
+                    continue
+                name = a.get_text(strip=True)
+                if not name or len(name) < 2:
+                    continue
+                seen.add(code)
+                results.append({"code": code, "name": name})
+                if len(results) >= limit:
+                    break
+            if len(results) >= limit:
+                break
+        except Exception as e:
+            print(f"   [WARN] 거래량 상위(sosok={sosok}) 수집 실패: {e}")
+    print(f"   → 거래량 상위 {len(results)}개 수집 (보충용)")
+    return results
+
 # ============================================================
 # 고정 종목 가격
 # ============================================================
@@ -328,12 +363,13 @@ def match_news_with_stocks(news_list, popular_stocks, category_stocks):
 # ============================================================
 # TOP 50 점수 계산
 # ============================================================
-RANK_SCORE_MAX = 50
+RANK_SCORE_MAX = 30   # 인기 검색 30위까지만 점수, 31~50은 거래량 보충
 NEWS_SCORE_PER_ARTICLE = 15
 
-def score_stocks(popular_stocks, news_list, all_known_stocks=None):
-    """인기 1등=50점, 50등=1점, 뉴스 1건당 15점.
-    인기 검색은 페이지당 30개라 한계 → 뉴스 매칭 ≥2건 종목으로 50개까지 보충."""
+def score_stocks(popular_stocks, news_list, volume_stocks=None):
+    """1~30위: 인기 검색 + 뉴스 노출 점수로 정렬.
+    31~50위: 거래량 상위에서 인기 검색에 없는 종목 순서대로 보충.
+    인기 검색이 페이지당 30개 한계라 그 뒤는 거래량으로 채움."""
     stock_scores = {}
     for stock in popular_stocks:
         rank = stock["popularity_rank"]
@@ -344,42 +380,43 @@ def score_stocks(popular_stocks, news_list, all_known_stocks=None):
             "news_count": 0,
             "news_score": 0,
             "total_score": rank_score,
+            "source": "popular",
         }
 
-    # 전체 뉴스 매칭 카운트
-    news_match_count = {}
     for news in news_list:
         for ms in news["matched_stocks"]:
-            news_match_count[ms["code"]] = news_match_count.get(ms["code"], 0) + 1
-
-    # 인기 종목 점수 갱신
-    for code, cnt in news_match_count.items():
-        if code in stock_scores:
-            stock_scores[code]["news_count"] = cnt
-            stock_scores[code]["news_score"] = cnt * NEWS_SCORE_PER_ARTICLE
-
-    # 인기 외 종목 보충 (뉴스 매칭 ≥ 2건만)
-    name_map = all_known_stocks or {}
-    for code, cnt in news_match_count.items():
-        if code in stock_scores or cnt < 2:
-            continue
-        stock_scores[code] = {
-            "code": code,
-            "name": name_map.get(code, ""),
-            "popularity_rank": 99,
-            "rank_score": 0,
-            "news_count": cnt,
-            "news_score": cnt * NEWS_SCORE_PER_ARTICLE,
-            "total_score": cnt * NEWS_SCORE_PER_ARTICLE,
-            "price": "0",
-            "change": "0",
-        }
+            if ms["code"] in stock_scores:
+                stock_scores[ms["code"]]["news_count"] += 1
+                stock_scores[ms["code"]]["news_score"] += NEWS_SCORE_PER_ARTICLE
 
     for s in stock_scores.values():
         s["total_score"] = s["rank_score"] + s["news_score"]
 
     ranked = sorted(stock_scores.values(), key=lambda x: x["total_score"], reverse=True)
-    for i, s in enumerate(ranked):
+
+    # 인기 검색 풀이 30개라 그 뒤는 거래량 상위로 보충
+    if volume_stocks and len(ranked) < 50:
+        existing = {r["code"] for r in ranked}
+        for v in volume_stocks:
+            if v["code"] in existing:
+                continue
+            ranked.append({
+                "code": v["code"],
+                "name": v["name"],
+                "popularity_rank": 99,
+                "rank_score": 0,
+                "news_count": 0,
+                "news_score": 0,
+                "total_score": 0,
+                "source": "volume",
+                "price": "0",
+                "change": "0",
+            })
+            existing.add(v["code"])
+            if len(ranked) >= 50:
+                break
+
+    for i, s in enumerate(ranked[:50]):
         s["final_rank"] = i + 1
     return ranked[:50]
 
@@ -861,6 +898,7 @@ def run():
 
     print("\n[2/6] 인기 검색 종목 수집 중 (네이버 페이지당 최대 30개)...")
     popular_stocks = fetch_popular_stocks_full()
+    volume_top_stocks = fetch_volume_top(limit=80)
 
     print("\n[3/6] 카테고리별 고정 종목 가격 조회 중...")
     category_stocks = fetch_fixed_stocks_prices()
@@ -881,7 +919,7 @@ def run():
         if sent["sentiment"] == "positive": pos_cnt += 1
         elif sent["sentiment"] == "negative": neg_cnt += 1
     print(f"   → 감성 분류: 호재 {pos_cnt}건, 악재 {neg_cnt}건, 중립 {len(news)-pos_cnt-neg_cnt}건")
-    top30 = score_stocks(popular_stocks, news, all_known_stocks)
+    top30 = score_stocks(popular_stocks, news, volume_top_stocks)
     news_by_keyword = build_news_by_keyword(news)
     print(f"   → TOP 50 선정 완료, 키워드 그룹 {len(news_by_keyword)}개")
 
@@ -897,6 +935,11 @@ def run():
             if s["code"] not in seen_codes_flow:
                 flow_pool.append({"code": s["code"], "name": s["name"]})
                 seen_codes_flow.add(s["code"])
+    # 거래량 상위 (TOP 50 보충용)
+    for s in volume_top_stocks:
+        if s["code"] not in seen_codes_flow:
+            flow_pool.append({"code": s["code"], "name": s["name"]})
+            seen_codes_flow.add(s["code"])
     # 뉴스 매칭 빈도 상위 50개 종목 추가
     news_stock_counts = {}
     for n in news:
