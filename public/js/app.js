@@ -583,6 +583,7 @@ function renderTop30(main) {
     const asOf = (top[0] && top[0].as_of) || data.generated_date || "";
     const html = `
         <h2>📊 오늘의 한국 주식 TOP 50</h2>
+        ${labelBannerHTML()}
         <div class="subtitle">
             1~30위: 인기 검색(1등=30점, 30등=1점) + 뉴스 노출(건당 +15점) 합산 ·
             31~50위: 당일 거래량 상위에서 보충 ·
@@ -645,11 +646,11 @@ function renderRecommendBuy(main) {
     const data = state.data;
     const byCode = data && data.flow && data.flow.by_code;
     if (!data) {
-        main.innerHTML = `<h2>🎯 매수 추천</h2><div class="placeholder">데이터 로딩 실패</div>`;
+        main.innerHTML = `<h2>🎯 매수 참고 신호</h2><div class="placeholder">데이터 로딩 실패</div>`;
         return;
     }
     if (!byCode || Object.keys(byCode).length === 0) {
-        main.innerHTML = `<h2>🎯 매수 추천</h2><div class="placeholder">기술 지표 계산용 시세 데이터를 받는 중입니다... <br><small>(잠시 후 자동 표시)</small></div>`;
+        main.innerHTML = `<h2>🎯 매수 참고 신호</h2><div class="placeholder">기술 지표 계산용 시세 데이터를 받는 중입니다... <br><small>(잠시 후 자동 표시)</small></div>`;
         return;
     }
 
@@ -692,7 +693,8 @@ function renderRecommendBuy(main) {
     candidates.sort((a, b) => b.rankScore - a.rankScore);
 
     main.innerHTML = `
-        <h2>🎯 매수 추천 (둘 다 매수 신호)</h2>
+        <h2>🎯 매수 참고 신호 (시장·기술 둘 다 매수)</h2>
+        ${labelBannerHTML()}
         <div class="subtitle">
             <strong>시장 분위기 = 매수 우위</strong> 그리고 <strong>기술 지표 = 매수 신호</strong>인 종목만.
             추적 풀 ${Object.keys(byCode).length}개 중 ${candidates.length}개 매칭 · 강한 신호 순 정렬 ·
@@ -780,7 +782,7 @@ function toggleRecommendHistory(btn) {
 }
 window.toggleRecommendHistory = toggleRecommendHistory;
 
-/** 추천 시점부터 현재까지 실제 종가선 + 추천 시점의 forecast 곡선(상한/기대/하한) 비교 차트 */
+/** 신호 시점부터 현재까지 실제 종가선 + 신호 시점의 forecast 곡선(상한/기대/하한) 비교 차트 */
 function trendChartHTML(prices60d, snapshotDate, snapshotPrice, forecast, opts = {}) {
     const w = opts.width || 560;
     const h = opts.height || 200;
@@ -792,7 +794,7 @@ function trendChartHTML(prices60d, snapshotDate, snapshotPrice, forecast, opts =
     const ordered = [...(prices60d || [])].reverse();  // 과거→최신
     const after = ordered.filter(d => d.date && d.date >= snapshotDate);
     if (after.length < 1 || !snapshotPrice) {
-        return `<div class="trend-chart-empty">추천일 이후 시세 데이터 없음</div>`;
+        return `<div class="trend-chart-empty">신호일 이후 시세 데이터 없음</div>`;
     }
     // 추천일이 데이터에 정확히 없으면 가장 가까운 첫 날을 day0로
     const day0Date = after[0].date;
@@ -904,7 +906,7 @@ function trendChartHTML(prices60d, snapshotDate, snapshotPrice, forecast, opts =
         <div class="trend-verdict">
             <span class="verdict-pill ${verdict.cls}">${verdict.label}</span>
             <span class="trend-ret ${retCls}">${retSign}${retPct.toFixed(2)}%</span>
-            <span class="trend-meta">추천가 ${formatPrice(snapshotPrice)} → 현재 ${formatPrice(lastPrice)}</span>
+            <span class="trend-meta">신호가 ${formatPrice(snapshotPrice)} → 현재 ${formatPrice(lastPrice)}</span>
         </div>
         <svg class="trend-chart" viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet" style="width:100%;max-width:${w}px;height:auto;">
             ${yTicks.map(t => `<line x1="${padL}" x2="${w - padR}" y1="${t.y.toFixed(1)}" y2="${t.y.toFixed(1)}" stroke="#eef0f4" stroke-width="1"/><text x="${padL - 6}" y="${(t.y + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#888">${t.label}</text>`).join("")}
@@ -928,10 +930,10 @@ async function renderRecommendHistory(main, dateStr) {
     const bh = state.buyHistory;
     if (!bh || !bh.by_date || Object.keys(bh.by_date).length === 0) {
         main.innerHTML = `
-            <h2>🎯 매수 추천 — 일별 트렌드</h2>
+            <h2>🎯 매수 참고 신호 — 일별 트렌드</h2>
             <div class="placeholder">
                 아직 누적된 스냅샷이 없습니다.<br>
-                다음 데이터 갱신부터 매수 추천 종목이 일별로 기록되기 시작합니다.
+                다음 데이터 갱신부터 매수 참고 종목이 일별로 기록되기 시작합니다.
             </div>`;
         return;
     }
@@ -941,15 +943,16 @@ async function renderRecommendHistory(main, dateStr) {
     const byCode = state.data && state.data.flow && state.data.flow.by_code;
 
     main.innerHTML = `
-        <h2>🎯 매수 추천 — ${date} 트렌드 추적</h2>
+        <h2>🎯 매수 참고 신호 — ${date} 트렌드 추적</h2>
         <div class="subtitle">
-            그날 매수 추천된 ${snap.stocks.length}개 종목의 실제 흐름 ·
-            추천 시점 통계 신뢰구간(95%)과 비교 · 스냅샷 시각 ${snap.snapshot_at}
+            그날 매수 참고로 분류된 ${snap.stocks.length}개 종목의 실제 흐름 ·
+            신호 시점 통계 신뢰구간(95%)과 비교 · 스냅샷 시각 ${snap.snapshot_at}
         </div>
+        ${labelBannerHTML()}
         ${(!byCode || Object.keys(byCode).length === 0) ? `
             <div class="placeholder">시세 데이터 로딩 중... (잠시 후 표시)</div>
         ` : (snap.stocks.length === 0 ? `
-            <div class="placeholder">이 날짜에는 매수 추천 후보가 없었습니다.</div>
+            <div class="placeholder">이 날짜에는 매수 참고 후보가 없었습니다.</div>
         ` : `
             <div class="trend-list">
                 ${snap.stocks.map(s => {
@@ -967,7 +970,7 @@ async function renderRecommendHistory(main, dateStr) {
                                     ${industryBadgeHTML(s.code)}
                                 </div>
                                 <div class="trend-snapshot">
-                                    추천 시그널: <strong>${escapeHtml(s.signal)}</strong> · 기술: <strong>${escapeHtml(s.tech)}</strong>
+                                    발생 시그널: <strong>${escapeHtml(s.signal)}</strong> · 기술: <strong>${escapeHtml(s.tech)}</strong>
                                 </div>
                                 ${favIconHTML(s.code)}
                             </header>
@@ -985,13 +988,14 @@ function renderNewsKeywords(main) {
     if (!data) { main.innerHTML = `<div class="placeholder">로딩 중...</div>`; return; }
     const stocks = data.news_by_stock || [];
     if (!stocks.length) {
-        main.innerHTML = `<h2>📰 뉴스 이슈별 주식 추천</h2><div class="placeholder">뉴스 매칭 종목이 없습니다.</div>`;
+        main.innerHTML = `<h2>📰 뉴스 이슈별 주식 참고</h2><div class="placeholder">뉴스 매칭 종목이 없습니다.</div>`;
         return;
     }
 
     main.innerHTML = `
-        <h2>📰 뉴스 이슈별 주식 추천</h2>
+        <h2>📰 뉴스 이슈별 주식 참고</h2>
         <div class="subtitle">뉴스에 가장 많이 언급된 종목 순 · 시세·수급·뉴스를 함께 표시 · 기준일 ${escapeHtml(stocks[0].as_of || data.generated_date || "")}</div>
+        ${labelBannerHTML()}
         <div class="snc-grid">
             ${stocks.map((s, i) => {
                 const ch = formatChange(s.change, s.change_pct);
@@ -1311,6 +1315,7 @@ function renderFlow(main, kind) {
     const tab = FLOW_TABS.find(t => t.kind === kind) || FLOW_TABS[0];
     main.innerHTML = `
         <h2>💰 수급 상위</h2>
+        ${labelBannerHTML()}
         <div class="subtitle">추적 종목 풀(인기 검색 + 카테고리 고정) ${flow.pool_size}개 기준 · 기준일 ${escapeHtml(flow.as_of || "—")}</div>
         ${flowSummaryChartHTML(flow.by_code)}
         <div class="flow-tabs">
@@ -1769,17 +1774,17 @@ function renderSbsBiz(main) {
 
     if (!s || !s.videos || s.videos.length === 0) {
         main.innerHTML = `
-            <h2>📺 SBS Biz 추천 항목</h2>
+            <h2>📺 SBS Biz 참고 항목</h2>
             <div class="placeholder">
                 아직 수집된 영상이 없습니다.<br>
-                <code>run.bat</code>을 실행하면 SBS Biz YouTube 채널 최신 영상에서 추천 종목이 추출됩니다.
+                <code>run.bat</code>을 실행하면 SBS Biz YouTube 채널 최신 영상에서 언급 종목이 추출됩니다.
             </div>
         `;
         return;
     }
     if (videos.length === 0) {
         main.innerHTML = `
-            <h2>📺 SBS Biz 추천 항목</h2>
+            <h2>📺 SBS Biz 참고 항목</h2>
             <div class="placeholder">
                 최근 영상에서 매칭된 종목이 없습니다.<br>
                 다음 갱신 시 자막이 정상 수집되면 표시됩니다.
@@ -1789,8 +1794,9 @@ function renderSbsBiz(main) {
     }
 
     main.innerHTML = `
-        <h2>📺 SBS Biz 추천 항목</h2>
+        <h2>📺 SBS Biz 참고 항목</h2>
         <div class="subtitle">SBS Biz YouTube 채널 영상에서 언급된 종목 · 표시 영상 ${videos.length}개 / 전체 ${s.videos.length}개${s.updated_at ? " · 업데이트 " + s.updated_at : ""}</div>
+        ${labelBannerHTML()}
         <div class="sbs-list">
             ${videos.map((v, vi) => {
                 const stocks = v.stocks.slice(0, 10); // 영상당 상위 10개
@@ -1881,10 +1887,10 @@ function renderBacktest(main) {
     const bt = state.backtest;
     if (!bt || !bt.summary) {
         main.innerHTML = `
-            <h2>📈 백테스트 — 매수 추천 신호의 사후 성과</h2>
+            <h2>📈 백테스트 — 매수 참고 신호의 사후 성과</h2>
             <div class="placeholder">
-                아직 누적된 데이터가 없습니다. 다음 cron부터 매수 추천 스냅샷이 쌓이기 시작하고,
-                추천일 이후 시세가 흐르면서 점차 측정값이 채워집니다.
+                아직 누적된 데이터가 없습니다. 다음 cron부터 매수 참고 스냅샷이 쌓이기 시작하고,
+                신호일 이후 시세가 흐르면서 점차 측정값이 채워집니다.
             </div>`;
         return;
     }
@@ -1941,7 +1947,7 @@ function renderBacktest(main) {
     }
 
     main.innerHTML = `
-        <h2>📈 백테스트 — 매수 추천 신호의 사후 성과</h2>
+        <h2>📈 백테스트 — 매수 참고 신호의 사후 성과</h2>
         <div class="subtitle">
             누적 ${s.days_with_data || 0}일 · 원시 신호 ${s.total_raw_signals || 0}개 (unique ${s.unique_signals_count || 0}, 중복 ${s.duplicate_signals || 0}) ·
             기간 ${escapeHtml(range.from || "—")} ~ ${escapeHtml(range.to || "—")}
@@ -1953,9 +1959,9 @@ function renderBacktest(main) {
                 <li>📍 <strong>진입가</strong>: ${escapeHtml(method.entry || "—")}</li>
                 <li>📍 <strong>측정가</strong>: ${escapeHtml(method.measure || "—")}</li>
                 <li>📍 <strong>거래비용</strong>: 왕복 ${method.cost_pct_roundtrip || 0.3}% 차감 시나리오 별도 표시</li>
-                <li>📍 <strong>중복 신호</strong>: 같은 종목 ${method.cooldown_days || 5}거래일 내 재추천은 duplicate로 분류 (unique 기준 별도 집계)</li>
+                <li>📍 <strong>중복 신호</strong>: 같은 종목 ${method.cooldown_days || 5}거래일 내 재발생 신호는 duplicate로 분류 (unique 기준 별도 집계)</li>
                 <li>📍 <strong>비정상 격리</strong>: 일일 변동 ±${method.abnormal_daily_threshold_pct || 25}% 이상은 거래정지·액면분할·상폐 의심 → 측정 제외 (${s.abnormal_excluded || 0}건)</li>
-                <li>📍 <strong>측정 불가</strong>: 추천 후 시세 데이터 부족 종목 ${s.skipped_unmeasurable || 0}건 제외</li>
+                <li>📍 <strong>측정 불가</strong>: 신호 발생 후 시세 데이터 부족 종목 ${s.skipped_unmeasurable || 0}건 제외</li>
             </ul>
         </div>
 
@@ -2022,7 +2028,7 @@ function renderBacktest(main) {
             <table class="bt-table bt-detail">
                 <thead>
                     <tr>
-                        <th>추천일</th>
+                        <th>신호일</th>
                         <th>종목</th>
                         <th class="num">진입가<br>(다음일 시가)</th>
                         <th class="num">+1일</th>
@@ -2261,6 +2267,7 @@ async function renderSearchResult(main, code) {
                             <div class="signal-line">
                                 <span class="signal-line-label">📈 시장 분위기</span>
                                 <span class="signal-mini ${sig.cls}">${sig.label}</span>
+                                ${infoIconHTML('market')}
                             </div>
                             <div class="signal-reason">${escapeHtml(sig.reasons.join(' · '))}</div>
                         </div>
@@ -2269,6 +2276,7 @@ async function renderSearchResult(main, code) {
                                 <div class="signal-line">
                                     <span class="signal-line-label">📐 기술적 지표</span>
                                     ${techBadgeHTML(code, { prices60d: flow.prices_60d })}
+                                    ${infoIconHTML('tech')}
                                 </div>
                                 ${techMiniHTML(code, { prices60d: flow.prices_60d }) ? `<div class="search-tech-mini">${techMiniHTML(code, { prices60d: flow.prices_60d })}</div>` : ""}
                             </div>
@@ -2277,7 +2285,7 @@ async function renderSearchResult(main, code) {
                 </div>
                 ${tech ? `
                     <div class="card tech-card">
-                        <h3 class="tech-card-title">📐 기술적 지표 <span class="tech-card-sub">최근 ${tech.dataLength}일 데이터 기반</span></h3>
+                        <h3 class="tech-card-title">📐 기술적 지표 ${infoIconHTML('tech')} <span class="tech-card-sub">최근 ${tech.dataLength}일 데이터 기반</span></h3>
                         <div class="tech-grid">
                             ${tech.rsi14 !== null ? `
                                 <div class="tech-cell">
@@ -2375,7 +2383,7 @@ async function renderSearchResult(main, code) {
                     const g = gradeMap[forecast.grade] || gradeMap.stable;
                     return `
                     <div class="card forecast-card">
-                        <h3 class="forecast-title">📅 1-2주 전망 (통계 추정) <span class="forecast-sub">표본 ${forecast.sampleSize}일 · μ ${forecast.dailyMeanPct >= 0 ? '+' : ''}${forecast.dailyMeanPct}% · σ ±${forecast.dailySdPct}% · <span class="fc-grade ${g.cls}" title="${escapeHtml(g.note)}">${g.label}</span></span></h3>
+                        <h3 class="forecast-title">📅 1-2주 전망 (통계 추정) ${infoIconHTML('forecast')} <span class="forecast-sub">표본 ${forecast.sampleSize}일 · μ ${forecast.dailyMeanPct >= 0 ? '+' : ''}${forecast.dailyMeanPct}% · σ ±${forecast.dailySdPct}% · <span class="fc-grade ${g.cls}" title="${escapeHtml(g.note)}">${g.label}</span></span></h3>
                         <div class="forecast-grid">
                             <div class="forecast-cell">
                                 <div class="fc-period">📆 1주 후 (5영업일)</div>
@@ -2581,8 +2589,107 @@ function initSearch() {
     }
 }
 
+// ============ 면책 모달 + 라벨 안내 + ⓘ 모달 ============
+const DISCLAIMER_KEY = "stock-disclaimer-agreed";
+
+function maybeShowDisclaimerModal() {
+    try {
+        if (localStorage.getItem(DISCLAIMER_KEY) === "1") return;
+    } catch (e) { /* localStorage 차단된 환경 */ }
+    const m = document.getElementById("disclaimer-modal");
+    if (m) { m.hidden = false; document.body.classList.add("modal-open"); }
+}
+
+function acceptDisclaimer() {
+    try { localStorage.setItem(DISCLAIMER_KEY, "1"); } catch (e) {}
+    const m = document.getElementById("disclaimer-modal");
+    if (m) { m.hidden = true; document.body.classList.remove("modal-open"); }
+}
+window.acceptDisclaimer = acceptDisclaimer;
+
+/** 라벨이 많이 등장하는 페이지 상단에 항상 표시되는 회색 안내 배너 */
+function labelBannerHTML() {
+    return `<div class="label-banner" role="note">
+        <span class="label-banner-icon" aria-hidden="true">ⓘ</span>
+        이 페이지의 모든 라벨은 <strong>참고용 신호</strong>이며 투자 권유가 아닙니다.
+        최종 판단과 책임은 이용자 본인에게 있습니다.
+    </div>`;
+}
+
+/** 종목 상세 큰 라벨 옆 ⓘ 클릭 시 라벨 산정 방식 + 면책 안내를 모달로 표시 */
+const LABEL_INFO_CONTENT = {
+    market: {
+        title: "📈 시장 분위기 라벨 산정 방식",
+        body: `
+            <p>최근 5거래일 수급(외국인·기관·개인) + 가격 모멘텀 + 뉴스 호재/악재 카운트를 합산해 점수를 냅니다.</p>
+            <ul>
+                <li><strong>점수 ≥ 18</strong>: 강한 매수 우위</li>
+                <li><strong>10 ~ 17</strong>: 매수 우위</li>
+                <li><strong>3 ~ 9</strong>: 약한 매수세 (또는 당일 +7%↑ 급등 시 '관망')</li>
+                <li><strong>-3 ~ 2</strong>: 중립</li>
+                <li><strong>-10 ~ -4</strong>: 매도 우위</li>
+                <li><strong>≤ -11</strong>: 강한 매도 우위</li>
+            </ul>
+            <p>가중치: 외인·기관 동반 매수 ×3, 외인 단독 ×2, 기관 단독 ×1.5, 동반 매도 -3, 외인 매도 -1. 추가로 5일 수익률, 뉴스 호재/악재, 당일 급등락 패널티 반영.</p>`,
+    },
+    tech: {
+        title: "📐 기술적 지표 라벨 산정 방식",
+        body: `
+            <p>60일 일별 종가로 RSI(14), 이동평균(5/20), 골든/데드크로스, 저점반등, 20일선 이격도 5개를 계산합니다.</p>
+            <p>각 항목이 매수 신호면 +1, 매도 신호면 -1을 누적해서 net 값으로 라벨을 정합니다.</p>
+            <ul>
+                <li><strong>net ≥ 2</strong>: 매수 신호 강함</li>
+                <li><strong>net = 1</strong>: 매수 신호</li>
+                <li><strong>net = 0 & 신호 없음</strong>: 중립</li>
+                <li><strong>net = 0 & 신호 있음</strong>: 혼조 (매수·매도가 충돌)</li>
+                <li><strong>net = -1</strong>: 매도 신호</li>
+                <li><strong>net ≤ -2</strong>: 매도 신호 강함</li>
+            </ul>
+            <p>참고 항목: RSI ≤ 30 저가권 / ≥ 70 과열, 골든·데드크로스(5일선이 20일선 돌파/이탈), 저점 반등(5일 -7%↑ 후 어제 +2%↑), 이격도 ±10~15%.</p>`,
+    },
+    forecast: {
+        title: "📅 1·2주 통계 전망 산정 방식",
+        body: `
+            <p>최근 60일 일별 로그 수익률의 평균(μ)과 표준편차(σ)를 구한 뒤, 다음 보정을 거쳐 95% 신뢰구간을 만듭니다.</p>
+            <ul>
+                <li><strong>Historical VaR + 정규모델 50:50</strong>: fat tail을 일부 반영</li>
+                <li><strong>모멘텀 보정</strong>: 60일 평균 0.6 + 최근 5일 평균 0.4 가중</li>
+                <li><strong>RSI mean reversion</strong>: 과열·과매도 시 μ에 회귀 압력</li>
+                <li><strong>이벤트 리스크</strong>: 실적 발표 D-7 이내면 σ × 1.5 확장</li>
+                <li><strong>신뢰도 등급</strong>: 안정 / 주의 / 표본부족 / 불확실</li>
+            </ul>
+            <p>예측이 아닌 <strong>확률 분포 추정</strong>입니다. 실적·정책·해외증시 같은 큰 이벤트가 발생하면 모델 가정이 무력화됩니다.</p>`,
+    },
+};
+
+function openLabelInfo(kind) {
+    const info = LABEL_INFO_CONTENT[kind];
+    if (!info) return;
+    const m = document.getElementById("label-info-modal");
+    const t = document.getElementById("label-info-title");
+    const b = document.getElementById("label-info-body");
+    if (!m || !t || !b) return;
+    t.textContent = info.title;
+    b.innerHTML = info.body;
+    m.hidden = false;
+    document.body.classList.add("modal-open");
+}
+window.openLabelInfo = openLabelInfo;
+
+function closeLabelInfo() {
+    const m = document.getElementById("label-info-modal");
+    if (m) { m.hidden = true; document.body.classList.remove("modal-open"); }
+}
+window.closeLabelInfo = closeLabelInfo;
+
+/** 종목 상세 큰 라벨용 ⓘ 아이콘 HTML */
+function infoIconHTML(kind) {
+    return `<button type="button" class="info-icon" onclick="event.stopPropagation(); openLabelInfo('${kind}')" title="라벨 산정 방식 + 참고용 신호 안내" aria-label="라벨 정보">ⓘ</button>`;
+}
+
 // ============ 초기화 ============
 async function main() {
+    maybeShowDisclaimerModal();
     document.querySelector(".sidebar-menu").addEventListener("click", (e) => {
         const li = e.target.closest("li[data-view]");
         if (!li || e.target.closest(".menu-toggle")) return;

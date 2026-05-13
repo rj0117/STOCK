@@ -28,14 +28,14 @@
                 <li data-view="top30"><span class="icon">📊</span> 오늘의 한국 주식 TOP 50</li>
                 <li class="has-sub" data-view="recommend">
                     <div class="menu-row">
-                        <span class="menu-main"><span class="icon">🎯</span> 매수 추천 (둘 다 매수)</span>
-                        <button type="button" class="menu-toggle" aria-expanded="false" aria-label="과거 추천 펼치기" onclick="event.stopPropagation(); toggleRecommendHistory(this)">▾</button>
+                        <span class="menu-main"><span class="icon">🎯</span> 매수 참고 신호 (둘 다 매수)</span>
+                        <button type="button" class="menu-toggle" aria-expanded="false" aria-label="과거 신호 펼치기" onclick="event.stopPropagation(); toggleRecommendHistory(this)">▾</button>
                     </div>
                     <ul class="submenu" id="recommend-history-list" hidden></ul>
                 </li>
-                <li data-view="news"><span class="icon">📰</span> 뉴스 이슈별 주식 추천</li>
+                <li data-view="news"><span class="icon">📰</span> 뉴스 이슈별 주식 참고</li>
                 <li data-view="flow"><span class="icon">💰</span> 수급 상위</li>
-                <li data-view="sbsbiz"><span class="icon">📺</span> SBS Biz 추천 항목</li>
+                <li data-view="sbsbiz"><span class="icon">📺</span> SBS Biz 참고 항목</li>
                 <li data-view="backtest"><span class="icon">📈</span> 백테스트 (성과 검증)</li>
                 <li data-view="favorites"><span class="icon">⭐</span> 즐겨찾기 <span id="fav-count" class="count">0</span></li>
             </ul>
@@ -133,6 +133,40 @@
         <p>데이터 출처: 네이버 금융 · 네이버 검색 Open API</p>
         <p>본 정보는 투자 참고용이며 매수/매도 권유가 아닙니다.</p>
     </footer>
+
+    <!-- 첫 진입 면책 모달 (localStorage로 1회만) -->
+    <div id="disclaimer-modal" class="modal-backdrop" hidden>
+        <div class="modal-card" role="dialog" aria-labelledby="disclaimer-title" aria-modal="true">
+            <div class="modal-icon" aria-hidden="true">👋</div>
+            <h2 id="disclaimer-title" class="modal-title">이용 안내</h2>
+            <div class="modal-body">
+                <p>본 사이트는 <strong>개인 학습 및 정보 제공 목적</strong>의 프로젝트입니다.</p>
+                <p>제공되는 정보는 <strong>투자 자문이나 매수/매도 권유가 아니며</strong>, 모든 투자 결정과 그 결과에 대한 책임은 이용자 본인에게 있습니다.</p>
+                <p>데이터의 정확성을 보장하지 않으며, 외부 사이트(네이버 금융 등)의 변경에 따라 일부 정보가 부정확할 수 있습니다.</p>
+                <p class="modal-warm">즐겁게, 그리고 신중하게 활용해 주세요. 🙏</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="modal-btn modal-btn-primary" onclick="acceptDisclaimer()">동의하고 계속하기</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 라벨 산정 방식 + 면책 안내 모달 (종목 상세 ⓘ 클릭 시) -->
+    <div id="label-info-modal" class="modal-backdrop" hidden>
+        <div class="modal-card" role="dialog" aria-labelledby="label-info-title" aria-modal="true">
+            <button type="button" class="modal-close" aria-label="닫기" onclick="closeLabelInfo()">✕</button>
+            <h2 id="label-info-title" class="modal-title">라벨 산정 방식</h2>
+            <div class="modal-body" id="label-info-body">
+                <!-- 동적 채움 -->
+            </div>
+            <div class="modal-footer">
+                <p class="modal-warm" style="font-size:12px;color:var(--color-muted);margin:0 0 10px">
+                    📌 위 라벨은 <strong>참고용 신호</strong>이며 투자 권유가 아닙니다. 모든 투자 책임은 이용자 본인에게 있습니다.
+                </p>
+                <button type="button" class="modal-btn modal-btn-primary" onclick="closeLabelInfo()">확인</button>
+            </div>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
