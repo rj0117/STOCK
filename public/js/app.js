@@ -693,10 +693,9 @@ function renderRecommendBuy(main) {
     candidates.sort((a, b) => b.rankScore - a.rankScore);
 
     main.innerHTML = `
-        <h2>🎯 매수 참고 신호 (시장·기술 둘 다 매수)</h2>
+        <h2>🎯 매수 참고 신호 <span class="h2-sub">시장 분위기와 기술 지표가 모두 매수 신호인 종목 <span class="h2-sub-fine">(약한 매수세 이상)</span></span></h2>
         ${labelBannerHTML()}
         <div class="subtitle">
-            <strong>시장 분위기 = 매수 우위</strong> 그리고 <strong>기술 지표 = 매수 신호</strong>인 종목만.
             추적 풀 ${Object.keys(byCode).length}개 중 ${candidates.length}개 매칭 · 강한 신호 순 정렬 ·
             <span class="disclaimer">* 단순 휴리스틱 참고용, 투자 권유 아님</span>
         </div>

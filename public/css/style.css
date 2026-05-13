@@ -237,6 +237,32 @@ a { color: inherit; text-decoration: none; }
 .sl-score.plus { color: var(--color-up); }
 .sl-score.minus { color: var(--color-down); }
 
+/* 강/중/약 강도 그룹핑 — 시장 분위기 산정 details */
+.sl-group {
+    margin: 6px 0 8px;
+    padding: 6px 8px;
+    background: rgba(0,0,0,0.025);
+    border-radius: 6px;
+}
+.sl-group-title {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--color-muted);
+    margin: 0 0 4px;
+    letter-spacing: 0.2px;
+}
+.sl-tier {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 16px; height: 16px;
+    border-radius: 4px;
+    font-size: 9px; font-weight: 700;
+    flex-shrink: 0;
+    margin-right: 4px;
+}
+.sl-tier.strong { background: rgba(229,57,53,0.18); color: #c62828; }
+.sl-tier.mid { background: rgba(251,140,0,0.18); color: #e65100; }
+.sl-tier.weak { background: rgba(120,120,120,0.18); color: #555; }
+
 .sl-labels li {
     padding: 4px 0;
     gap: 6px;
@@ -266,6 +292,23 @@ a { color: inherit; text-decoration: none; }
     margin: 0 0 16px;
     font-size: 22px;
     color: var(--color-primary);
+}
+.h2-sub {
+    display: inline-block;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-muted);
+    margin-left: 8px;
+}
+.h2-sub-fine {
+    font-size: 11px;
+    color: var(--color-muted);
+    opacity: 0.8;
+    white-space: nowrap;
+}
+@media (max-width: 720px) {
+    .h2-sub { display: block; margin-left: 0; margin-top: 4px; font-size: 12px; }
+    .h2-sub-fine { display: block; margin-top: 2px; }
 }
 .view .subtitle { color: var(--color-muted); margin-bottom: 20px; }
 .placeholder {

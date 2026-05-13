@@ -50,27 +50,63 @@
                 <div class="sl-body">
                     <div class="sl-section">
                         <div class="sl-section-title">🟢 가산 (매수 우위)</div>
-                        <ul>
-                            <li><span class="sl-item">외인+기관 동반 매수일</span><span class="sl-score plus">+3/일</span></li>
-                            <li><span class="sl-item">외국인 매수일</span><span class="sl-score plus">+2/일</span></li>
-                            <li><span class="sl-item">기관 매수일</span><span class="sl-score plus">+1.5/일</span></li>
-                            <li><span class="sl-item">뉴스 호재 압도적 (≥10)</span><span class="sl-score plus">+10</span></li>
-                            <li><span class="sl-item">뉴스 호재 우세 (5~9)</span><span class="sl-score plus">+6</span></li>
-                            <li><span class="sl-item">5일 +10% 이상 상승</span><span class="sl-score plus">+3</span></li>
-                            <li><span class="sl-item">5일 +5~10% 상승</span><span class="sl-score plus">+2</span></li>
-                        </ul>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📊 일별 수급 (5일 합산)</div>
+                            <ul>
+                                <li><span class="sl-item">외인+기관 동반 매수일</span><span class="sl-score plus">+3/일</span></li>
+                                <li><span class="sl-item">외국인 매수일</span><span class="sl-score plus">+2/일</span></li>
+                                <li><span class="sl-item">기관 매수일</span><span class="sl-score plus">+1.5/일</span></li>
+                            </ul>
+                        </div>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📈 5일 가격 추세</div>
+                            <ul>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">5일 +10% 이상 상승</span><span class="sl-score plus">+3</span></li>
+                                <li><span class="sl-tier mid">중</span><span class="sl-item">5일 +5~10% 상승</span><span class="sl-score plus">+2</span></li>
+                            </ul>
+                        </div>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📰 뉴스 호재 net (호재 - 악재)</div>
+                            <ul>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">net ≥ 10 (압도적)</span><span class="sl-score plus">+10</span></li>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">net 5~9 (우세)</span><span class="sl-score plus">+6</span></li>
+                                <li><span class="sl-tier mid">중</span><span class="sl-item">net 3~4</span><span class="sl-score plus">+3</span></li>
+                                <li><span class="sl-tier weak">약</span><span class="sl-item">net 1~2</span><span class="sl-score plus">+1</span></li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="sl-section">
                         <div class="sl-section-title">🔴 감산 (매도 우위)</div>
-                        <ul>
-                            <li><span class="sl-item">외인+기관 동반 매도일</span><span class="sl-score minus">-3/일</span></li>
-                            <li><span class="sl-item">외국인 매도일</span><span class="sl-score minus">-1/일</span></li>
-                            <li><span class="sl-item">뉴스 악재 압도적 (≥10)</span><span class="sl-score minus">-10</span></li>
-                            <li><span class="sl-item">뉴스 악재 우세 (5~9)</span><span class="sl-score minus">-6</span></li>
-                            <li><span class="sl-item">5일 -10% 이상 하락</span><span class="sl-score minus">-3</span></li>
-                            <li><span class="sl-item">당일 +7% 급등 (과열)</span><span class="sl-score minus">-2</span></li>
-                            <li><span class="sl-item">당일 -7% 급락</span><span class="sl-score minus">-1</span></li>
-                        </ul>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📊 일별 수급 (5일 합산)</div>
+                            <ul>
+                                <li><span class="sl-item">외인+기관 동반 매도일</span><span class="sl-score minus">-3/일</span></li>
+                                <li><span class="sl-item">외국인 매도일</span><span class="sl-score minus">-1/일</span></li>
+                            </ul>
+                        </div>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📉 5일 가격 추세</div>
+                            <ul>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">5일 -10% 이상 하락</span><span class="sl-score minus">-3</span></li>
+                                <li><span class="sl-tier mid">중</span><span class="sl-item">5일 -5~-10% 하락</span><span class="sl-score minus">-2</span></li>
+                            </ul>
+                        </div>
+                        <div class="sl-group">
+                            <div class="sl-group-title">⚡ 당일 모멘텀 페널티</div>
+                            <ul>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">당일 +7% 이상 급등 (과열)</span><span class="sl-score minus">-2</span></li>
+                                <li><span class="sl-tier mid">중</span><span class="sl-item">당일 -7% 이상 급락</span><span class="sl-score minus">-1</span></li>
+                            </ul>
+                        </div>
+                        <div class="sl-group">
+                            <div class="sl-group-title">📰 뉴스 악재 net (악재 - 호재)</div>
+                            <ul>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">net ≤ -10 (압도적)</span><span class="sl-score minus">-10</span></li>
+                                <li><span class="sl-tier strong">강</span><span class="sl-item">net -5~-9 (우세)</span><span class="sl-score minus">-6</span></li>
+                                <li><span class="sl-tier mid">중</span><span class="sl-item">net -3~-4</span><span class="sl-score minus">-3</span></li>
+                                <li><span class="sl-tier weak">약</span><span class="sl-item">net -1~-2</span><span class="sl-score minus">-1</span></li>
+                            </ul>
+                        </div>
                     </div>
                     <div class="sl-section">
                         <div class="sl-section-title">🏷️ 점수 → 라벨</div>
