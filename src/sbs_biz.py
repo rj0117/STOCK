@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 7  # v7: 자막 추출을 yt-dlp 로 교체 (GitHub Actions IP 차단 우회), 기존 title 폴백 결과 재수집
+FORMAT_VERSION = 8  # v8: 자막 매칭 임계값 2 → 1 (영상에서 종목명 2회 언급 잘 안 되는 패턴 반영)
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -372,7 +372,7 @@ def update(stocks_master):
     for v in new_videos:
         transcript = get_transcript_text(v["video_id"])
         if transcript:
-            stocks = extract_stocks_from_text(transcript, stocks_master, min_mentions=2)
+            stocks = extract_stocks_from_text(transcript, stocks_master, min_mentions=1)
             source = "transcript"
             log_extra = f"자막 {len(transcript)}자"
         else:
