@@ -251,6 +251,27 @@ AI_BRIEFING_TOOL = {
     "input_schema": {
         "type": "object",
         "properties": {
+            "overall_verdict": {
+                "type": "object",
+                "description": "단기 1-2주 시간 지평선의 종합 신호 평가. 시장 분위기·기술 지표·신뢰구간을 종합한 데이터 신호 정렬 상태. 매매 권유 아님.",
+                "properties": {
+                    "level": {
+                        "type": "string",
+                        "enum": ["buy_strong", "buy", "neutral", "caution", "sell", "sell_strong"],
+                        "description": "buy_strong=강한 매수 분위기, buy=매수 분위기 우세, neutral=중립, caution=관망(과열/혼조), sell=매도 분위기 우세, sell_strong=강한 매도 분위기"
+                    },
+                    "horizon": {
+                        "type": "string",
+                        "description": "시간 지평선. 항상 '단기 1-2주' 로 시작.",
+                        "default": "단기 1-2주"
+                    },
+                    "summary": {
+                        "type": "string",
+                        "description": "150~200자 종합 평가. '같은 방향 신호'와 '충돌 신호'를 명시. 단정 표현 금지, '분위기/가능성' 같은 조건부 표현 사용."
+                    }
+                },
+                "required": ["level", "horizon", "summary"]
+            },
             "current_situation_summary": {
                 "type": "object",
                 "properties": {
@@ -341,7 +362,8 @@ AI_BRIEFING_TOOL = {
                 "description": "평단 입력 시 사용자가 평단을 보고 맥락이 될 사실. 매도/추매 권유 절대 금지."
             }
         },
-        "required": ["current_situation_summary", "recent_news_summary",
+        "required": ["overall_verdict",
+                     "current_situation_summary", "recent_news_summary",
                      "fundamental_snapshot", "technical_snapshot",
                      "market_context", "factors_to_consider"]
     }
@@ -351,25 +373,30 @@ AI_BRIEFING_TOOL = {
 AI_SYSTEM_PROMPT = """당신은 한국 주식 정보 비서입니다. 투자 자문가가 아닙니다.
 
 당신의 역할:
-- 정보 수집·요약·분류·정리만 합니다.
-- 사실 기반 정보만 제공하고, 긍정 요인과 부정 요인을 균형 있게 제시합니다.
+- 정보 수집·요약·분류·정리
+- 단기 1-2주 시간 지평선의 종합 신호 평가 (overall_verdict 필드)
 - 사용자가 결정에 활용할 데이터를 정리해서 보여줍니다.
 
-금지 사항 (절대 어기지 마세요):
-- 매매 권유 어휘: "매수/매도하세요", "추천합니다", "사세요/파세요", "꼭/반드시"
+`overall_verdict` 작성 가이드 (이 필드에 한해 종합 평가 허용):
+- 시장 분위기·기술 지표·신뢰구간을 종합해 "데이터 신호 정렬 상태"를 한 라벨로.
+- 단정 표현 금지: "반드시 오른다", "확실한 매수" 같은 표현 금지.
+- 대신 조건부 표현: "매수 분위기 우세", "관망 권장", "혼조" 같이.
+- summary 에는 *같은 방향으로 정렬된 신호*와 *충돌하는 신호*를 균형 있게 명시.
+
+다른 필드 (current_situation_summary / factors_to_consider 등) 금지 사항:
+- 매매 권유 어휘: "매수/매도하세요", "사세요/파세요", "추천합니다"
 - 행동 권고: "부분 익절 고려", "추매 추천", "손절 검토" 같은 행동 동사
-- 미래 예측 단정: "오를 것이다", "조정 받을 것이다", "전망 좋음/나쁨"
-- 데이터에 없는 정보 추측: 미공개 실적, 비공식 루머, 일반 평판
+- 미래 예측 단정: "오를 것이다", "조정 받을 것이다"
+- 데이터에 없는 정보 추측: 미공개 실적, 비공식 루머
 
 표현 원칙:
 - "데이터상으로는…", "최근 N일간 …%", "현재 X 위치에 있음" 같은 사실 진술
-- factors_to_consider 에는 *판단의 근거가 될 사실*만 나열. *권유는 절대 금지*.
-- 결정 동사("사세요/팔세요/유지하세요/추천합니다") 사용 금지
+- factors_to_consider 에는 *판단의 근거가 될 사실*만. *행동 권유 금지*.
 
 출력 형식:
-- 응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공하세요.
-- 자유 텍스트로 답변하지 마세요. 도구 호출만 합니다.
-- 데이터가 부족한 필드는 null 로. 없는 정보를 지어내지 마세요.
+- 응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공.
+- 자유 텍스트 답변 금지. 도구 호출만.
+- 데이터가 부족한 필드는 null. 없는 정보 지어내기 금지.
 """
 
 
@@ -917,7 +944,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib5:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v5: 입력 단축
+    cache_key = f"aib6:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v6: overall_verdict
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1111,10 +1138,21 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
 응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공하세요.
 
 작성 규칙:
-- 모든 필드는 사실 기반. 데이터에 없는 정보 추측·생성 금지.
+- 모든 사실 필드는 데이터 기반. 데이터에 없는 정보 추측·생성 금지.
 - 숫자가 없으면 null, 문자열이 없으면 빈 문자열 "".
-- factors_to_consider 는 *권유*가 아닌 *판단의 근거가 될 사실* 만 3~5개.
-- 매매 권유 어휘·행동 동사 ("매수/매도/사세요/파세요/익절/손절/추매 권장") 절대 금지.
+
+⭐ `overall_verdict` (단기 1-2주 종합 평가, 이 필드만 종합 라벨 허용):
+- 시장 분위기 라벨 + 기술 지표 라벨 + 1·2주 신뢰구간을 종합해 한 level 선택.
+- level: buy_strong / buy / neutral / caution / sell / sell_strong
+  · 시장·기술 둘 다 매수 쪽 + 신뢰구간 +쪽 → buy 또는 buy_strong
+  · 시장·기술 둘 다 매도 쪽 → sell 또는 sell_strong
+  · 시장·기술 충돌 + 변동성 큰 종목 → caution (관망)
+  · 신호 약함 → neutral
+- horizon 은 반드시 "단기 1-2주" 로 시작.
+- summary 에 *같은 방향 정렬된 신호* 와 *충돌 신호* 를 모두 짚어주세요. 150~200자.
+
+다른 필드 (current_situation_summary / factors_to_consider 등):
+- 사실 진술만. 매매 권유·행동 동사 금지.
 - {position_notes_instruction}"""
 
     try:
@@ -1185,9 +1223,31 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
                 user_position["unrealized_text"] = f"{unrealized_pct:+.1f}%"
 
         fetched_at = now_kst().strftime("%Y-%m-%dT%H:%M:%S%z")
+        # overall_verdict 한국어 라벨 매핑 (UI 색상도 함께)
+        verdict_label_map = {
+            "buy_strong":  ("🟢 강한 매수 분위기", "verdict-buy-strong"),
+            "buy":         ("🟢 매수 분위기 우세", "verdict-buy"),
+            "neutral":     ("⚪ 중립", "verdict-neutral"),
+            "caution":     ("🟡 관망", "verdict-caution"),
+            "sell":        ("🔴 매도 분위기 우세", "verdict-sell"),
+            "sell_strong": ("🔴 강한 매도 분위기", "verdict-sell-strong"),
+        }
+        ov_raw = result.get("overall_verdict") or {}
+        ov_level = ov_raw.get("level") or "neutral"
+        if ov_level not in verdict_label_map:
+            ov_level = "neutral"
+        ov_label, ov_cls = verdict_label_map[ov_level]
+        overall_verdict = {
+            "level": ov_level,
+            "label": ov_label,
+            "cls": ov_cls,
+            "horizon": ov_raw.get("horizon") or "단기 1-2주",
+            "summary": ov_raw.get("summary") or "",
+        }
         final_result = {
             "code": code,
             "name": name,
+            "overall_verdict": overall_verdict,
             "current_situation_summary": result.get("current_situation_summary") or {},
             "recent_news_summary": result.get("recent_news_summary") or {},
             "fundamental_snapshot": result.get("fundamental_snapshot") or {},
@@ -1225,6 +1285,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
                 {"avg_price": avg_price_int, "shares": shares_int} if avg_price_int else None
             ),
             "ai_output": {
+                "overall_verdict": final_result["overall_verdict"],
                 "current_situation_summary": final_result["current_situation_summary"],
                 "recent_news_summary": final_result["recent_news_summary"],
                 "fundamental_snapshot": final_result["fundamental_snapshot"],

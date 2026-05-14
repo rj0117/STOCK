@@ -4,7 +4,7 @@
 > `README.md`, `public/index.html` 의 details 섹션, 코드 주석 등은 모두 이 문서와 일치해야 합니다.
 > 변경 시 *코드 → 이 문서 → README → index.html details* 순서로 동기화하세요. ([.claude/CLAUDE.md §5](.claude/CLAUDE.md) 참조)
 
-**📅 마지막 동기화 일자: 2026-05-14** (AI를 매매 판단 → 정보 비서로 방향 전환)
+**📅 마지막 동기화 일자: 2026-05-14** (overall_verdict 단기 1-2주 종합 평가 부활 — C안)
 **🔖 다음 점검 권장 시기:** 점수 로직 변경 시 즉시 / 그 외 월 1회 자율 점검
 
 ---
@@ -282,7 +282,10 @@ rankScore = marketRank × 3 + techRank
 
 ## §AI 종목 브리핑 (2026-05-14 정보 비서로 방향 전환)
 
-**역할:** AI = 정보 수집·요약·분류·정리 보조. **매매 판단·권유는 제공하지 않음.** 결정은 사용자가 함.
+**역할 (2026-05-14 두 번째 결정 — C안):**
+- 기본 7개 섹션은 정보 수집·요약·분류·정리 (사실 진술)
+- **`overall_verdict` 한 필드에 한해** 단기 1-2주 종합 분위기 평가 (buy_strong/buy/neutral/caution/sell/sell_strong) 허용
+- 종합 평가 박스 하단에 강한 면책 ("매매 권유 아님, 결정은 본인") 필수
 
 **코드 위치:** [api/_lib.py](api/_lib.py) / [src/api_handlers.py](src/api_handlers.py) `get_ai_analysis`
 
@@ -292,9 +295,16 @@ rankScore = marketRank × 3 + techRank
 - 사용자가 "📋 정보 받기" 버튼을 누를 때만 호출 (수동 트리거)
 - prompt 입력 토큰: 약 5,000~6,000 (평단 입력 시 약간 증가)
 
-**출력 스키마 (새):**
+**출력 스키마:**
 ```json
 {
+  "overall_verdict": {                  // 신규 (C안, 2026-05-14)
+    "level": "buy_strong|buy|neutral|caution|sell|sell_strong",
+    "horizon": "단기 1-2주",
+    "summary": "150~200자 종합 평가 — 정렬·충돌 신호 명시",
+    "label": "🟢 매수 분위기 우세",    // 코드가 매핑
+    "cls":   "verdict-buy"              // UI 색상
+  },
   "current_situation_summary": { "headline", "key_points": [...] },
   "recent_news_summary":       { "positive": [...], "negative": [...], "neutral": [...] },
   "fundamental_snapshot":      { "per", "pbr", "roe", "op_margin", "market_cap", "industry", "notes" },

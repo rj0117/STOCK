@@ -2927,10 +2927,25 @@ function renderAiBriefing(r) {
             </div>`;
     }
 
+    // 최상단 종합 평가 박스 (C안 — 사용자 명시 요청, 2026-05-14)
+    const ov = r.overall_verdict || null;
+    const overallBlock = ov && ov.level ? `
+        <div class="ai-overall-card ${ov.cls || 'verdict-neutral'}">
+            <div class="ai-overall-horizon">📊 ${escapeHtml(ov.horizon || '단기 1-2주')} 종합 평가</div>
+            <div class="ai-overall-label">${escapeHtml(ov.label || '')}</div>
+            ${ov.summary ? `<div class="ai-overall-summary">${escapeHtml(ov.summary)}</div>` : ""}
+            <div class="ai-overall-disclaimer">
+                ⚠️ 본 평가는 데이터 신호 종합 결과이며 <strong>매매 권유가 아닙니다</strong>.
+                투자 자문이 아니며 모든 결정과 책임은 본인에게 있습니다.
+            </div>
+        </div>
+    ` : "";
+
     return `
         <div class="ai-briefing">
+            ${overallBlock}
             <div class="ai-briefing-banner">
-                ⚠️ 본 응답은 정보 정리이며 매매 권유가 아닙니다. 결정은 본인이 합니다.
+                ⚠️ 아래 정보는 정리 자료이며 매매 권유가 아닙니다. 결정은 본인이 합니다.
             </div>
 
             <div class="ai-section ai-section-headline">

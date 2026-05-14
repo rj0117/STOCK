@@ -107,4 +107,9 @@ README.md 와 사이트 `public/index.html` 의 details 섹션은 SCORING.md 와
 - `src/api_handlers.py` ↔ `api/_lib.py` 는 동일 로직을 양쪽 유지 (Vercel 외부 import 제약 때문)
 - 데이터 파일: `public/data.json`, `public/flow_by_code.json`, `public/sbsbiz.json`, `public/buy_history.json`, `public/backtest.json`
 - 사용자에게 "투자 자문이 아닌 정보 제공"임을 항상 의식하고, 과도한 확신을 주는 표현을 피한다.
-- **AI 기능의 역할 (2026-05-14 결정)**: Claude AI 호출 기능(`get_ai_analysis`)은 *정보 비서/브리핑* 으로 제한. 매매 판단(buy/sell/hold)·행동 권고("부분 익절"·"추매 추천" 등)·미래 예측 단정 절대 추가 금지. 시스템 프롬프트 `AI_SYSTEM_PROMPT` 의 금지 어휘 목록은 단순 가이드가 아니라 **제품 정체성**임. 사용자가 명시적으로 뒤집기 전까진 매매 판단 라벨 부활 금지.
+- **AI 기능의 역할 (2026-05-14 두 번째 결정)**: 사용자가 명시적으로 뒤집어 *제한적 매매 판단 라벨 부활*. 단 다음 제약 유지:
+  · AI 응답에 단일 종합 평가 필드 `overall_verdict` 하나만 매매 분위기 라벨 (buy_strong/buy/neutral/caution/sell/sell_strong) 허용. 그 외 필드(news/fundamental/technical/factors_to_consider 등)는 여전히 사실 정리만, 행동 권유 어휘 금지.
+  · 라벨은 "단기 1-2주" 시간 지평선을 항상 명시 (UI 에 horizon 표기 강제).
+  · 결과 카드 하단에 "이는 데이터 신호 종합 결과이며 매매 권유가 아닙니다. 결정은 본인" 강한 면책 문구 필수.
+  · 단정 표현("반드시", "확실히") 은 여전히 금지. "분위기 우세", "가능성" 같은 조건부 표현 사용.
+  · 사용자가 다시 명시적으로 뒤집기 전까진 이 절충안 유지.
