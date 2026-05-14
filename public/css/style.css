@@ -1256,6 +1256,48 @@ body.modal-open { overflow: hidden; }
     border-radius: 6px;
     margin-bottom: 10px;
 }
+
+/* 정렬/충돌 신호 분리 표시 */
+.ai-overall-signals {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+.ai-overall-signal-row {
+    padding: 8px 10px;
+    background: rgba(255,255,255,0.65);
+    border-radius: 6px;
+    border-left: 3px solid;
+}
+.ai-overall-signal-row ul {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    font-size: 12px;
+    color: var(--color-text);
+    line-height: 1.45;
+}
+.ai-overall-signal-row li {
+    padding: 2px 0 2px 12px;
+    position: relative;
+}
+.ai-overall-signal-row li::before {
+    content: "·";
+    position: absolute;
+    left: 0;
+    color: var(--color-muted);
+}
+.ai-overall-signal-label {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 0;
+}
+.ai-overall-signal-label.aligned { color: #2e7d32; }
+.ai-overall-signal-label.conflicting { color: #ef6c00; }
+.ai-overall-signal-row:has(.aligned) { border-left-color: #2e7d32; }
+.ai-overall-signal-row:has(.conflicting) { border-left-color: #ef6c00; }
 .ai-overall-disclaimer {
     font-size: 11px;
     color: var(--color-muted);

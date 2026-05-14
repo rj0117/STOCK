@@ -253,24 +253,31 @@ AI_BRIEFING_TOOL = {
         "properties": {
             "overall_verdict": {
                 "type": "object",
-                "description": "단기 1-2주 시간 지평선의 종합 신호 평가. 시장 분위기·기술 지표·신뢰구간을 종합한 데이터 신호 정렬 상태. 매매 권유 아님.",
+                "description": "단기 1-2주 종합 신호 평가. 시장+기술+신뢰구간 종합. 매매 권유 아님.",
                 "properties": {
                     "level": {
                         "type": "string",
-                        "enum": ["buy_strong", "buy", "neutral", "caution", "sell", "sell_strong"],
-                        "description": "buy_strong=강한 매수 분위기, buy=매수 분위기 우세, neutral=중립, caution=관망(과열/혼조), sell=매도 분위기 우세, sell_strong=강한 매도 분위기"
+                        "enum": ["buy_strong", "buy", "neutral", "caution", "sell", "sell_strong"]
                     },
-                    "horizon": {
-                        "type": "string",
-                        "description": "시간 지평선. 항상 '단기 1-2주' 로 시작.",
-                        "default": "단기 1-2주"
-                    },
+                    "horizon": {"type": "string", "default": "단기 1-2주"},
                     "summary": {
                         "type": "string",
-                        "description": "150~200자 종합 평가. '같은 방향 신호'와 '충돌 신호'를 명시. 단정 표현 금지, '분위기/가능성' 같은 조건부 표현 사용."
+                        "description": "100자 내외 한 줄 종합 결론. 단정 표현 금지."
+                    },
+                    "aligned_signals": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 6,
+                        "description": "같은 방향으로 정렬된 신호 (사실 진술, 짧은 구문)"
+                    },
+                    "conflicting_signals": {
+                        "type": "array",
+                        "items": {"type": "string"},
+                        "maxItems": 6,
+                        "description": "level 과 반대 방향이거나 충돌·주의 신호 (사실 진술, 짧은 구문)"
                     }
                 },
-                "required": ["level", "horizon", "summary"]
+                "required": ["level", "horizon", "summary", "aligned_signals", "conflicting_signals"]
             },
             "current_situation_summary": {
                 "type": "object",
@@ -944,7 +951,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib6:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v6: overall_verdict
+    cache_key = f"aib7:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v7: signals 분리
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1142,14 +1149,17 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
 - 숫자가 없으면 null, 문자열이 없으면 빈 문자열 "".
 
 ⭐ `overall_verdict` (단기 1-2주 종합 평가, 이 필드만 종합 라벨 허용):
-- 시장 분위기 라벨 + 기술 지표 라벨 + 1·2주 신뢰구간을 종합해 한 level 선택.
-- level: buy_strong / buy / neutral / caution / sell / sell_strong
+- 시장 분위기 + 기술 지표 + 1·2주 신뢰구간 + 수급 + 거시를 종합.
+- level:
   · 시장·기술 둘 다 매수 쪽 + 신뢰구간 +쪽 → buy 또는 buy_strong
   · 시장·기술 둘 다 매도 쪽 → sell 또는 sell_strong
   · 시장·기술 충돌 + 변동성 큰 종목 → caution (관망)
   · 신호 약함 → neutral
-- horizon 은 반드시 "단기 1-2주" 로 시작.
-- summary 에 *같은 방향 정렬된 신호* 와 *충돌 신호* 를 모두 짚어주세요. 150~200자.
+- horizon: "단기 1-2주" 로 시작.
+- summary: 100자 내외 한 줄 결론. 정렬·충돌 *세부 항목은 배열에 분리해서*.
+- aligned_signals 배열: level 과 같은 방향 신호들을 짧은 구문 3~5개. 예: "5·20일선 상승 정렬", "신뢰구간 1주 +5.6%", "외인+기관 동반 매수 3일"
+- conflicting_signals 배열: level 과 반대 방향이거나 주의 신호 3~5개. 예: "RSI 76.9 과열", "외인 5일 연속 매도", "60일 신고가 근접"
+- 둘 다 *사실 진술* 만. 권유 어휘·행동 동사 금지.
 
 다른 필드 (current_situation_summary / factors_to_consider 등):
 - 사실 진술만. 매매 권유·행동 동사 금지.
@@ -1243,6 +1253,8 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
             "cls": ov_cls,
             "horizon": ov_raw.get("horizon") or "단기 1-2주",
             "summary": ov_raw.get("summary") or "",
+            "aligned_signals": (ov_raw.get("aligned_signals") or [])[:6],
+            "conflicting_signals": (ov_raw.get("conflicting_signals") or [])[:6],
         }
         final_result = {
             "code": code,

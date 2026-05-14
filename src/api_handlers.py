@@ -232,9 +232,11 @@ AI_BRIEFING_TOOL = {
                         "enum": ["buy_strong", "buy", "neutral", "caution", "sell", "sell_strong"]
                     },
                     "horizon": {"type": "string", "default": "단기 1-2주"},
-                    "summary": {"type": "string", "description": "150~200자. 정렬·충돌 신호 명시."}
+                    "summary": {"type": "string", "description": "100자 내외 한 줄 결론"},
+                    "aligned_signals": {"type": "array", "items": {"type": "string"}, "maxItems": 6},
+                    "conflicting_signals": {"type": "array", "items": {"type": "string"}, "maxItems": 6}
                 },
-                "required": ["level", "horizon", "summary"]
+                "required": ["level", "horizon", "summary", "aligned_signals", "conflicting_signals"]
             },
             "current_situation_summary": {
                 "type": "object",
@@ -901,7 +903,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib6:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
+    cache_key = f"aib7:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1090,13 +1092,16 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
 응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공하세요.
 
 ⭐ `overall_verdict` (단기 1-2주 종합 평가):
-- level: buy_strong / buy / neutral / caution / sell / sell_strong 중 하나
+- level 선택 기준:
   · 시장·기술 둘 다 매수 쪽 + 신뢰구간 +쪽 → buy 또는 buy_strong
   · 시장·기술 둘 다 매도 쪽 → sell 또는 sell_strong
   · 시장·기술 충돌 + 변동성 큼 → caution
   · 신호 약함 → neutral
 - horizon: "단기 1-2주" 로 시작.
-- summary: 150~200자. 정렬 신호와 충돌 신호 모두 명시.
+- summary: 100자 내외 한 줄 결론. 세부 항목은 아래 배열에 분리.
+- aligned_signals 배열: level 과 같은 방향 신호 3~5개 (짧은 구문, 사실).
+- conflicting_signals 배열: level 과 반대 방향이거나 주의 신호 3~5개.
+- 두 배열 모두 권유 어휘·행동 동사 금지.
 
 다른 필드: 사실 진술만. 매매 권유·행동 동사 금지.
 {position_notes_instruction}"""
@@ -1185,6 +1190,8 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
             "cls": ov_cls,
             "horizon": ov_raw.get("horizon") or "단기 1-2주",
             "summary": ov_raw.get("summary") or "",
+            "aligned_signals": (ov_raw.get("aligned_signals") or [])[:6],
+            "conflicting_signals": (ov_raw.get("conflicting_signals") or [])[:6],
         }
         final_result = {
             "code": code,

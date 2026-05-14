@@ -301,9 +301,11 @@ rankScore = marketRank × 3 + techRank
   "overall_verdict": {                  // 신규 (C안, 2026-05-14)
     "level": "buy_strong|buy|neutral|caution|sell|sell_strong",
     "horizon": "단기 1-2주",
-    "summary": "150~200자 종합 평가 — 정렬·충돌 신호 명시",
-    "label": "🟢 매수 분위기 우세",    // 코드가 매핑
-    "cls":   "verdict-buy"              // UI 색상
+    "summary": "100자 내외 한 줄 결론",
+    "aligned_signals": ["...", "..."],     // level 과 같은 방향 신호
+    "conflicting_signals": ["...", "..."], // 반대·주의 신호
+    "label": "🟢 매수 분위기 우세",        // 코드가 매핑
+    "cls":   "verdict-buy"                  // UI 색상
   },
   "current_situation_summary": { "headline", "key_points": [...] },
   "recent_news_summary":       { "positive": [...], "negative": [...], "neutral": [...] },

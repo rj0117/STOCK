@@ -2929,11 +2929,27 @@ function renderAiBriefing(r) {
 
     // 최상단 종합 평가 박스 (C안 — 사용자 명시 요청, 2026-05-14)
     const ov = r.overall_verdict || null;
+    const aligned = (ov && ov.aligned_signals) || [];
+    const conflicting = (ov && ov.conflicting_signals) || [];
+    const signalsBlock = (aligned.length > 0 || conflicting.length > 0) ? `
+        <div class="ai-overall-signals">
+            ${aligned.length > 0 ? `
+                <div class="ai-overall-signal-row">
+                    <span class="ai-overall-signal-label aligned">✓ 같은 방향 신호</span>
+                    <ul>${aligned.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+                </div>` : ""}
+            ${conflicting.length > 0 ? `
+                <div class="ai-overall-signal-row">
+                    <span class="ai-overall-signal-label conflicting">⚠ 충돌·주의 신호</span>
+                    <ul>${conflicting.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+                </div>` : ""}
+        </div>` : "";
     const overallBlock = ov && ov.level ? `
         <div class="ai-overall-card ${ov.cls || 'verdict-neutral'}">
             <div class="ai-overall-horizon">📊 ${escapeHtml(ov.horizon || '단기 1-2주')} 종합 평가</div>
             <div class="ai-overall-label">${escapeHtml(ov.label || '')}</div>
             ${ov.summary ? `<div class="ai-overall-summary">${escapeHtml(ov.summary)}</div>` : ""}
+            ${signalsBlock}
             <div class="ai-overall-disclaimer">
                 ⚠️ 본 평가는 데이터 신호 종합 결과이며 <strong>매매 권유가 아닙니다</strong>.
                 투자 자문이 아니며 모든 결정과 책임은 본인에게 있습니다.
