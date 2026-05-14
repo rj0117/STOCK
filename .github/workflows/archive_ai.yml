@@ -29,14 +29,14 @@ jobs:
       - name: Install requests
         run: pip install requests
 
-      - name: Archive AI logs from Upstash → archive/ai_results/
+      - name: Archive AI briefings from Upstash → archive/ai_briefings/
         env:
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
         run: python scripts/archive_ai_log.py
 
-      - name: Run AI backtest → public/backtest_ai.json
-        run: python scripts/backtest_ai.py
+      # AI 적중률 백테스트는 2026-05-14 정보 비서로 전환하면서 deprecated.
+      # 옛 스크립트는 scripts/deprecated/backtest_ai.py 에 보존.
 
       - name: Commit & push if changed
         run: |
@@ -44,7 +44,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          FILES="archive/ai_results archive/backtest_ai public/backtest_ai.json"
+          FILES="archive/ai_briefings"
 
           # 변경 없으면 종료
           if ! git status --porcelain $FILES 2>/dev/null | grep -q .; then
@@ -54,9 +54,7 @@ jobs:
 
           # 데이터 백업 (push 재시도 시 origin/main 위에 다시 올리기 위함)
           BAK=$(mktemp -d)
-          cp -r archive/ai_results "$BAK/" 2>/dev/null || true
-          cp -r archive/backtest_ai "$BAK/" 2>/dev/null || true
-          cp public/backtest_ai.json "$BAK/" 2>/dev/null || true
+          cp -r archive/ai_briefings "$BAK/" 2>/dev/null || true
 
           for i in 1 2 3 4 5; do
             echo "Push 시도 $i..."
@@ -65,9 +63,7 @@ jobs:
 
             # 데이터 복원
             mkdir -p archive
-            [ -d "$BAK/ai_results" ] && cp -r "$BAK/ai_results" archive/
-            [ -d "$BAK/backtest_ai" ] && cp -r "$BAK/backtest_ai" archive/
-            [ -f "$BAK/backtest_ai.json" ] && cp "$BAK/backtest_ai.json" public/
+            [ -d "$BAK/ai_briefings" ] && cp -r "$BAK/ai_briefings" archive/
 
             git add $FILES 2>/dev/null || true
             if git diff --cached --quiet; then

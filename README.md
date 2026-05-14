@@ -21,11 +21,11 @@
 - [x] **시장 분위기 라벨** — 수급+모멘텀+뉴스 휴리스틱 (강한 매수 우위 ~ 강한 매도 우위)
 - [x] **기술 지표 라벨** — RSI/MA/골든·데드크로스/이격도/저점반등 종합
 - [x] **1·2주 통계 전망** — Historical VaR + GBM 50:50, 모멘텀·RSI 보정, 신뢰도 등급
-- [x] **Claude AI 분석** — 시세·수급·뉴스·기술·거시·펀더멘털을 종합한 매수/매도/관망 판단 (Sonnet 4.6). system 프롬프트로 단정 표현·미공개 정보 추측 차단. Upstash Redis 기반 캐싱/IP 분당 5·일당 50 rate limit/일일 2,000원 비용 한도
+- [x] **📋 AI 종목 브리핑** (2026-05-14 방향 전환) — Claude(Sonnet 4.6) 가 시세·수급·뉴스·기술·거시·펀더멘털을 정리·요약·분류해 보여줌. **매매 판단은 안 함, 결정은 사용자**. 평단·수량 입력 시 손익·맥락 정보 추가. Upstash Redis 캐싱 / IP 분당 5·일당 50 rate limit / 일일 2,000원 비용 한도
 - [x] **매수 참고 트렌드 추적** — 일별 스냅샷 누적, 신호 시점 forecast 곡선과 실제 종가 비교
 - [x] **백테스트 (매수 참고 신호)** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
-- [x] **백테스트 (AI 적중률)** — Claude 호출 로그 누적 → +1/+5/+10거래일 후 수익률·적중률 측정 + confidence 구간별 검증 (가족 클릭한 종목만, 표본 ≥50 권장)
-- [x] **AI 사용자 컨텍스트 카드** — 종목 상세 AI 카드 아래에 최근 30일 buy/sell/hold 분포 + 적중률 + 동적 안내 메시지. hold 가 많을 때 "시장 상황의 신호" 라는 맥락 제공
+- ~~백테스트 (AI 적중률)~~ — *2026-05-14 deprecated* — AI 를 정보 비서로 전환하면서 action(buy/sell/hold) 라벨 자체 제거. 적중률 측정 무의미.
+- ~~AI 사용자 컨텍스트 분포 카드~~ — *2026-05-14 deprecated* — 같은 이유
 - [x] **GitHub Actions 자동 갱신** — 매시 7분/37분 cron
 - [x] **첫 진입 면책 모달** — localStorage 기반 1회 동의
 
@@ -54,8 +54,7 @@ STOCK/
 │   ├── flow_by_code.json      # 종목별 60일 시세 (용량 큰 부분 분리)
 │   ├── buy_history.json       # 일별 매수 참고 스냅샷 (90일 슬라이딩)
 │   ├── backtest.json          # 매수 참고 신호 백테스트 결과
-│   ├── backtest_ai.json       # AI 분석 적중률 백테스트 결과
-│   ├── ai_stats.json          # 종목 상세 AI 카드 아래 분포·적중률 카드용
+│   ├── deprecated/            # 2026-05-14 deprecated: backtest_ai.json, ai_stats.json
 │   ├── sbsbiz.json            # SBS Biz YouTube 추출 데이터
 │   ├── stocks.json            # KOSPI/KOSDAQ 종목 마스터
 │   ├── css/style.css
@@ -64,11 +63,13 @@ STOCK/
 │   ├── update-data.yml        # 매시 7/37분 자동 데이터 갱신
 │   └── archive_ai.yml         # 매일 KST 02:00 AI 호출 로그 archive + 적중률 백테스트
 ├── 📁 scripts/
-│   ├── archive_ai_log.py      # Upstash LIST → archive/ai_results/*.jsonl
-│   └── backtest_ai.py         # archive 읽고 적중률 산출 → public/backtest_ai.json
+│   ├── archive_ai_log.py      # Upstash LIST → archive/ai_briefings/*.jsonl
+│   └── deprecated/
+│       └── backtest_ai.py     # 2026-05-14 deprecated (정보 비서 전환)
 ├── 📁 archive/
-│   ├── ai_results/{YYYY-MM}/{date}.jsonl   # 일별 AI 호출 로그 (Git 보존)
-│   └── backtest_ai/{YYYY-MM-DD}.json       # 백테스트 히스토리 스냅샷
+│   ├── ai_briefings/{YYYY-MM}/{date}.jsonl   # AI 종목 브리핑 호출 로그 (새 스키마)
+│   ├── ai_results/{YYYY-MM}/{date}.jsonl     # [DEPRECATED] 옛 buy/sell/hold 로그 보존
+│   └── backtest_ai/                          # [DEPRECATED] 옛 백테스트 히스토리
 ├── 📁 .claude/
 │   ├── CLAUDE.md              # Claude 작업 규칙
 │   └── settings.local.json
@@ -247,4 +248,4 @@ update.bat
 
 ---
 
-**📅 README 최종 업데이트:** 2026-05-14 (AI 사용자 컨텍스트 분포·적중률 카드 추가)
+**📅 README 최종 업데이트:** 2026-05-14 (AI를 매매 판단 → 정보 비서로 방향 전환)

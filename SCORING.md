@@ -4,7 +4,7 @@
 > `README.md`, `public/index.html` 의 details 섹션, 코드 주석 등은 모두 이 문서와 일치해야 합니다.
 > 변경 시 *코드 → 이 문서 → README → index.html details* 순서로 동기화하세요. ([.claude/CLAUDE.md §5](.claude/CLAUDE.md) 참조)
 
-**📅 마지막 동기화 일자: 2026-05-14** (AI 사용자 컨텍스트 카드 추가: 30일 분포 + 적중률)
+**📅 마지막 동기화 일자: 2026-05-14** (AI를 매매 판단 → 정보 비서로 방향 전환)
 **🔖 다음 점검 권장 시기:** 점수 로직 변경 시 즉시 / 그 외 월 1회 자율 점검
 
 ---
@@ -280,16 +280,48 @@ rankScore = marketRank × 3 + techRank
 
 ---
 
-## §AI 분석 모델
+## §AI 종목 브리핑 (2026-05-14 정보 비서로 방향 전환)
+
+**역할:** AI = 정보 수집·요약·분류·정리 보조. **매매 판단·권유는 제공하지 않음.** 결정은 사용자가 함.
 
 **코드 위치:** [api/_lib.py](api/_lib.py) / [src/api_handlers.py](src/api_handlers.py) `get_ai_analysis`
 
 - 모델: **`claude-sonnet-4-6`**
 - `max_tokens`: 800
-- **system 프롬프트** (`AI_SYSTEM_PROMPT`): 투자 자문 아님 / 미공개 정보 추측 금지 / 단정 표현 금지 / 학습 데이터 한계 인지 / 불확실 명시 / JSON 스키마 준수
-- 사용자가 "🤖 AI 분석 받기" 버튼을 누를 때만 호출 (수동 트리거)
-- prompt 입력 토큰: 약 5,000 (시세·펀더멘털·시장 환경·거시·기술 지표·신뢰구간·수급·뉴스 본문 포함)
-- 출력 스키마: `{ action, confidence, analysis }` + `cached`, `cached_at`, `cost_krw`, `usage` 부가 필드
+- **system 프롬프트** (`AI_SYSTEM_PROMPT`): 정보 비서 역할 명시 / 매매 권유 어휘 금지 / 행동 권고 금지 / 미래 예측 단정 금지 / 미공개 정보 추측 금지 / 사실 진술 표현 강제
+- 사용자가 "📋 정보 받기" 버튼을 누를 때만 호출 (수동 트리거)
+- prompt 입력 토큰: 약 5,000~6,000 (평단 입력 시 약간 증가)
+
+**출력 스키마 (새):**
+```json
+{
+  "current_situation_summary": { "headline", "key_points": [...] },
+  "recent_news_summary":       { "positive": [...], "negative": [...], "neutral": [...] },
+  "fundamental_snapshot":      { "per", "pbr", "roe", "op_margin", "market_cap", "industry", "notes" },
+  "technical_snapshot":        { "rsi", "ma_alignment", "key_events", "support_resistance", "daily_volatility_pct" },
+  "market_context":            { "kospi_today_pct", "kospi_5d_pct", "usd_krw", "us_market_yesterday" },
+  "user_position": null | {     // 평단 입력 시
+    "avg_price", "shares?", "current_price",
+    "unrealized_pct", "unrealized_amount?", "total_cost?", "current_value?",
+    "unrealized_text", "context_notes": [...]
+  },
+  "factors_to_consider": [...],
+  "metadata": { model, usage, cost_krw, cached, is_information_only: true, disclaimer }
+}
+```
+
+❌ **제거됨**: `action`, `confidence`, `analysis` (매매 결정 어휘 일체)
+
+**평단/수량 입력 (선택):**
+- 평단만 입력 → `user_position` 의 손익률 + `context_notes`
+- 평단 + 수량 입력 → 손익률 + 손익액(원) + 매수원가 + 현재 평가액
+- 손익 계산은 백엔드 코드에서 (모델에 맡기지 않음 — 사실 정확성)
+- 캐시 키 분리: `aib:{code}:{date}:p{avg}q{shares}`
+
+**관련 변경 (2026-05-14):**
+- 옛 buy/sell/hold 백테스트 시스템 → `scripts/deprecated/backtest_ai.py` 이동 (보존)
+- 옛 분포 카드 (`renderAiStatsCard`) → 호출 제거, 함수는 deprecated 주석으로 1주일 보존
+- 옛 호출 로그 → `archive/ai_results/` 그대로 보존, 새 로그는 `archive/ai_briefings/` 로 분리
 
 ### AI 안전장치 (Upstash Redis 기반)
 

@@ -29,7 +29,9 @@ class handler(BaseHTTPRequestHandler):
             except Exception:
                 client_ip = ""
 
-        result = get_ai_analysis(code, client_ip=client_ip)
+        avg_price = qs.get("avg_price", [""])[0] or None
+        shares = qs.get("shares", [""])[0] or None
+        result = get_ai_analysis(code, client_ip=client_ip, avg_price=avg_price, shares=shares)
 
         # 내부 신호 _http_status 를 꺼내 외부로 응답
         status = result.pop("_http_status", 200)

@@ -10,8 +10,8 @@ const state = {
     sbsbiz: null,         // sbsbiz.json - SBS Biz YouTube 추천
     buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
     backtest: null,       // backtest.json - 사후 성과 측정
-    backtestAi: null,     // backtest_ai.json - AI 분석 적중률
-    aiStats: null,        // ai_stats.json - 사용자 컨텍스트 분포
+    // backtestAi / aiStats 는 2026-05-14 AI 정보 비서로 전환하면서 deprecated.
+    // 파일은 public/deprecated/ 에 보존. state 도 더 이상 채우지 않음.
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -96,14 +96,12 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz, buyHistory, backtest, backtestAi, aiStats] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory, backtest] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
             fetchJsonUtf8("buy_history.json", null),
             fetchJsonUtf8("backtest.json", null),
-            fetchJsonUtf8("backtest_ai.json", null),
-            fetchJsonUtf8("ai_stats.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
@@ -111,8 +109,6 @@ async function loadData() {
         state.sbsbiz = sbsbiz;
         state.buyHistory = buyHistory;
         state.backtest = backtest;
-        state.backtestAi = backtestAi;
-        state.aiStats = aiStats;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
@@ -575,11 +571,7 @@ function render() {
     else if (view === "recommend-history") renderRecommendHistory(main, params.get("date"));
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
-    else if (view === "backtest") {
-        const tab = params.get("tab") || "signal";
-        if (tab === "ai") renderBacktestAI(main);
-        else renderBacktest(main);
-    }
+    else if (view === "backtest") renderBacktest(main);
     else if (view === "favorites") renderFavorites(main);
     else if (view === "search") renderSearchResult(main, params.get("code"));
     else renderTop30(main);
@@ -1893,10 +1885,11 @@ function renderSbsBiz(main) {
 
 // ============ 뷰: 백테스트 (사후 성과 검증) ============
 function _backtestTabsHTML(activeTab) {
+    // 2026-05-14: AI 적중률 탭은 정보 비서로 전환하면서 deprecated.
+    // 백테스트 페이지엔 매수 참고 신호 하나만 남음 — 탭 형태는 유지 (미래 확장 대비)
     return `
         <div class="bt-tabs">
             <a href="#backtest" class="bt-tab ${activeTab === 'signal' ? 'active' : ''}">🎯 매수 참고 신호</a>
-            <a href="#backtest?tab=ai" class="bt-tab ${activeTab === 'ai' ? 'active' : ''}">🤖 AI 분석 적중률</a>
         </div>`;
 }
 
@@ -2092,7 +2085,9 @@ function renderBacktest(main) {
 }
 
 // ============ 뷰: AI 분석 적중률 백테스트 ============
-function renderBacktestAI(main) {
+/** @deprecated 2026-05-14 AI 정보 비서 전환으로 buy/sell/hold 적중률 측정 자체가 의미 없어짐.
+ *  라우터에서 호출 제거됨. 함수는 1주일 후 정리 예정. */
+function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
     const bt = state.backtestAi;
 
     function _cell(val, suffix = "%") {
@@ -2663,13 +2658,21 @@ async function renderSearchResult(main, code) {
                     `;
                 })() : ""}
                 <div class="card ai-card">
-                    <h3 class="ai-card-title">🤖 Claude AI 분석 <span class="ai-card-sub">시세·수급·뉴스·기술지표 종합 판단</span></h3>
+                    <h3 class="ai-card-title">📋 AI 종목 브리핑 <span class="ai-card-sub">정보 수집·요약·정리 (매매 권유 아님)</span></h3>
                     <div class="ai-body" id="ai-analysis-body">
-                        <button class="ai-btn" id="ai-analyze-btn" onclick="requestAiAnalysis('${code}')">🤖 AI 분석 받기</button>
-                        <div class="ai-note">버튼을 누르면 Claude(Anthropic)에 종목 종합 정보를 보내 매수/매도/관망 판단과 한 문단 설명을 받습니다. 응답 1~5초 소요.</div>
+                        <div class="ai-position-input">
+                            <label>💰 보유 평단가 (선택)
+                                <input type="number" id="ai-avg-price" min="1" max="10000000" placeholder="50000" />원
+                            </label>
+                            <label>× 수량 (선택)
+                                <input type="number" id="ai-shares" min="1" max="10000000" placeholder="100" />주
+                            </label>
+                            <div class="ai-position-note">입력 시 손익·맥락 정보가 함께 정리됩니다.</div>
+                        </div>
+                        <button class="ai-btn" id="ai-analyze-btn" onclick="requestAiAnalysis('${code}')">📋 정보 받기</button>
+                        <div class="ai-note">버튼을 누르면 Claude(Anthropic)가 시세·수급·뉴스·기술·펀더멘털·시장 환경을 정리해 보여줍니다. 응답 3~8초. <strong>매매 권유가 아닙니다.</strong></div>
                     </div>
                 </div>
-                ${renderAiStatsCard()}
                 <div class="flow-section">
                     <h3>💰 외국인·기관·개인 일별 수급 (최근 ${(flow.days || []).length}일)</h3>
                     ${renderFlowTableForStock(flow)}
@@ -2711,7 +2714,9 @@ async function renderSearchResult(main, code) {
 
 // ============ 네비게이션 헬퍼 ============
 /** 종목 상세의 AI 카드 아래에 표시되는 "최근 30일 AI 분석 분포" 박스. */
-function renderAiStatsCard() {
+/** @deprecated 2026-05-14 AI 정보 비서 전환. buy/sell/hold 분포 의미 없어짐.
+ *  호출 위치 모두 제거됨. 함수는 1주일 후 정리 예정. */
+function renderAiStatsCard() {  // eslint-disable-line no-unused-vars
     const s = state.aiStats;
     if (!s || !s.periods) return "";
     const key = s.default_period || "30d";
@@ -2810,10 +2815,20 @@ function _formatRetrySeconds(s) {
 async function requestAiAnalysis(code) {
     const body = document.getElementById("ai-analysis-body");
     if (!body) return;
-    body.innerHTML = `<div class="ai-loading">🤖 Claude가 분석 중... (3~8초 소요, 캐시된 결과는 즉시)</div>`;
+
+    const avgPriceEl = document.getElementById("ai-avg-price");
+    const sharesEl = document.getElementById("ai-shares");
+    const avgPrice = avgPriceEl && avgPriceEl.value ? avgPriceEl.value.trim() : "";
+    const shares = sharesEl && sharesEl.value ? sharesEl.value.trim() : "";
+
+    body.innerHTML = `<div class="ai-loading">📋 Claude가 정보 정리 중... (3~8초, 캐시된 결과는 즉시)</div>`;
+
+    const params = new URLSearchParams({ code });
+    if (avgPrice) params.set("avg_price", avgPrice);
+    if (shares) params.set("shares", shares);
+
     try {
-        // 직접 fetch 로 status code 확인 (429/503 분기 위해)
-        const resp = await fetch(`/api/ai_analyze?code=${code}`);
+        const resp = await fetch(`/api/ai_analyze?${params.toString()}`);
         let r;
         try {
             const buf = await resp.arrayBuffer();
@@ -2822,7 +2837,6 @@ async function requestAiAnalysis(code) {
             r = { error: "응답 파싱 실패" };
         }
 
-        // 429: rate limit
         if (resp.status === 429) {
             const retry = _formatRetrySeconds(r.retry_after_seconds);
             body.innerHTML = `<div class="ai-error">
@@ -2831,12 +2845,11 @@ async function requestAiAnalysis(code) {
             </div>`;
             return;
         }
-        // 503: 일일 비용 한도
         if (resp.status === 503) {
             const reset = _formatRetrySeconds(r.reset_in_seconds);
             body.innerHTML = `<div class="ai-error">
-                💰 오늘의 AI 분석 한도에 도달했습니다 (${r.used_krw || "?"}원 / ${r.budget_krw || "?"}원).
-                <br><small>${escapeHtml(reset)} 자정에 한도가 리셋됩니다.</small>
+                💰 오늘의 AI 사용 한도에 도달했습니다 (${r.used_krw || "?"}원 / ${r.budget_krw || "?"}원).
+                <br><small>${escapeHtml(reset)} 자정에 리셋됩니다.</small>
             </div>`;
             return;
         }
@@ -2845,27 +2858,147 @@ async function requestAiAnalysis(code) {
             return;
         }
 
-        const cls = r.action === "buy" ? "signal-buy" : r.action === "sell" ? "signal-sell" : "signal-neutral";
-        const label = r.action === "buy" ? "🟢 매수" : r.action === "sell" ? "🔴 매도" : "⚪ 관망";
-        const usage = r.usage || {};
-        const tokenInfo = (usage.input_tokens || usage.output_tokens)
-            ? ` · 토큰 in ${usage.input_tokens || "?"} / out ${usage.output_tokens || "?"}`
-            : "";
-        const cacheBadge = r.cached
-            ? ` · <span class="ai-cache-badge">캐시</span>`
-            : (r.cost_krw ? ` · 비용 ${r.cost_krw}원` : "");
-        body.innerHTML = `
-            <div class="ai-result">
-                <div class="ai-verdict ${cls}">${label} · 확신도 ${r.confidence || "—"}/10</div>
-                <div class="ai-analysis">${escapeHtml(r.analysis || "").replace(/\n/g, "<br>")}</div>
-                <div class="ai-meta">📌 ${escapeHtml(r.model || "")}${tokenInfo}${cacheBadge} · ${escapeHtml(r.cached_at || r.fetched_at || "")}</div>
-            </div>
-        `;
+        body.innerHTML = renderAiBriefing(r);
     } catch (e) {
         body.innerHTML = `<div class="ai-error">❌ 네트워크 오류: ${escapeHtml(String(e))}</div>`;
     }
 }
 window.requestAiAnalysis = requestAiAnalysis;
+
+function toggleAiSection(id, btn) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const hidden = el.classList.toggle("collapsed");
+    if (btn) btn.textContent = hidden ? "▸ 펼치기" : "▾ 접기";
+}
+window.toggleAiSection = toggleAiSection;
+
+function _renderNewsList(items, kind, icon) {
+    if (!items || items.length === 0) return `<div class="muted" style="font-size:12px">${icon} ${kind} (0건)</div>`;
+    return `<div class="ai-news-group">
+        <div class="ai-news-group-title">${icon} ${kind} (${items.length}건)</div>
+        <ul class="ai-news-list">
+            ${items.slice(0, 5).map(n => `<li><strong>${escapeHtml(n.title || "")}</strong>${n.summary ? `<br><span class="ai-news-summary">${escapeHtml(n.summary)}</span>` : ""}</li>`).join("")}
+        </ul>
+    </div>`;
+}
+
+function renderAiBriefing(r) {
+    const meta = r.metadata || {};
+    const usage = meta.usage || {};
+    const cs = r.current_situation_summary || {};
+    const up = r.user_position;
+    const news = r.recent_news_summary || {};
+    const fund = r.fundamental_snapshot || {};
+    const tech = r.technical_snapshot || {};
+    const mkt = r.market_context || {};
+    const factors = r.factors_to_consider || [];
+
+    const cacheBadge = meta.cached
+        ? `<span class="ai-cache-badge">캐시</span>`
+        : (meta.cost_krw ? `비용 ${meta.cost_krw}원` : "");
+    const tokenInfo = (usage.input_tokens || usage.output_tokens)
+        ? `토큰 in ${usage.input_tokens || "?"} / out ${usage.output_tokens || "?"}`
+        : "";
+
+    let upBlock = "";
+    if (up) {
+        const cls = up.unrealized_pct > 0 ? "up" : up.unrealized_pct < 0 ? "down" : "flat";
+        const sharesLine = up.shares
+            ? `<div class="ai-up-line">평단 ${formatPrice(up.avg_price)}원 × ${up.shares.toLocaleString("ko-KR")}주</div>
+               <div class="ai-up-line">매수원가 ${formatPrice(up.total_cost)}원 → 현재 평가액 ${formatPrice(up.current_value)}원</div>`
+            : `<div class="ai-up-line">평단 ${formatPrice(up.avg_price)}원 · 현재가 ${formatPrice(up.current_price)}원</div>`;
+        upBlock = `
+            <div class="ai-section ai-section-position">
+                <div class="ai-section-title">💰 보유자 정보 <span class="muted" style="font-size:11px">(평단 입력 기준)</span></div>
+                ${sharesLine}
+                <div class="ai-up-pnl ${cls}">${escapeHtml(up.unrealized_text || "")}</div>
+                ${(up.context_notes && up.context_notes.length) ? `
+                    <ul class="ai-up-notes">
+                        ${up.context_notes.map(n => `<li>${escapeHtml(n)}</li>`).join("")}
+                    </ul>` : ""}
+                <div class="ai-up-disclaimer">※ 위는 사실 정보이며 매매 의견 아님</div>
+            </div>`;
+    }
+
+    return `
+        <div class="ai-briefing">
+            <div class="ai-briefing-banner">
+                ⚠️ 본 응답은 정보 정리이며 매매 권유가 아닙니다. 결정은 본인이 합니다.
+            </div>
+
+            <div class="ai-section ai-section-headline">
+                <div class="ai-section-title">📍 현재 상황 요약</div>
+                ${cs.headline ? `<div class="ai-headline">${escapeHtml(cs.headline)}</div>` : ""}
+                ${(cs.key_points && cs.key_points.length) ? `
+                    <ul class="ai-keypoints">
+                        ${cs.key_points.map(p => `<li>${escapeHtml(p)}</li>`).join("")}
+                    </ul>` : ""}
+            </div>
+
+            ${upBlock}
+
+            <details class="ai-section" open>
+                <summary class="ai-section-title">📰 최근 뉴스 분류
+                    <span class="muted" style="font-size:11px">
+                        🟢 ${(news.positive||[]).length} · 🔴 ${(news.negative||[]).length} · ⚪ ${(news.neutral||[]).length}
+                    </span>
+                </summary>
+                ${_renderNewsList(news.positive, "긍정", "🟢")}
+                ${_renderNewsList(news.negative, "부정", "🔴")}
+                ${_renderNewsList(news.neutral, "중립", "⚪")}
+            </details>
+
+            <details class="ai-section">
+                <summary class="ai-section-title">💵 펀더멘털</summary>
+                <div class="ai-snapshot-grid">
+                    ${fund.per !== null && fund.per !== undefined ? `<div><span class="muted">PER</span> ${fund.per}</div>` : ""}
+                    ${fund.pbr !== null && fund.pbr !== undefined ? `<div><span class="muted">PBR</span> ${fund.pbr}</div>` : ""}
+                    ${fund.roe !== null && fund.roe !== undefined ? `<div><span class="muted">ROE</span> ${fund.roe}%</div>` : ""}
+                    ${fund.op_margin !== null && fund.op_margin !== undefined ? `<div><span class="muted">영업이익률</span> ${fund.op_margin}%</div>` : ""}
+                    ${fund.market_cap ? `<div><span class="muted">시총</span> ${escapeHtml(fund.market_cap)}</div>` : ""}
+                    ${fund.industry ? `<div><span class="muted">업종</span> ${escapeHtml(fund.industry)}</div>` : ""}
+                </div>
+                ${fund.notes ? `<div class="ai-snapshot-note">${escapeHtml(fund.notes)}</div>` : ""}
+            </details>
+
+            <details class="ai-section">
+                <summary class="ai-section-title">📊 기술적 스냅샷</summary>
+                <div class="ai-snapshot-grid">
+                    ${tech.rsi !== null && tech.rsi !== undefined ? `<div><span class="muted">RSI</span> ${tech.rsi}</div>` : ""}
+                    ${tech.ma_alignment ? `<div><span class="muted">MA</span> ${escapeHtml(tech.ma_alignment)}</div>` : ""}
+                    ${tech.daily_volatility_pct !== null && tech.daily_volatility_pct !== undefined ? `<div><span class="muted">일 변동성</span> ±${tech.daily_volatility_pct}%</div>` : ""}
+                    ${tech.support_resistance ? `<div style="grid-column:span 2"><span class="muted">지지/저항</span> ${escapeHtml(tech.support_resistance)}</div>` : ""}
+                </div>
+                ${(tech.key_events && tech.key_events.length) ? `
+                    <ul class="ai-snapshot-events">
+                        ${tech.key_events.map(e => `<li>${escapeHtml(e)}</li>`).join("")}
+                    </ul>` : ""}
+            </details>
+
+            <details class="ai-section">
+                <summary class="ai-section-title">🌐 시장 환경</summary>
+                <div class="ai-snapshot-grid">
+                    ${mkt.kospi_today_pct !== null && mkt.kospi_today_pct !== undefined ? `<div><span class="muted">KOSPI 오늘</span> ${mkt.kospi_today_pct > 0 ? '+' : ''}${mkt.kospi_today_pct}%</div>` : ""}
+                    ${mkt.kospi_5d_pct !== null && mkt.kospi_5d_pct !== undefined ? `<div><span class="muted">KOSPI 5일</span> ${mkt.kospi_5d_pct > 0 ? '+' : ''}${mkt.kospi_5d_pct}%</div>` : ""}
+                    ${mkt.usd_krw ? `<div><span class="muted">USD/KRW</span> ${formatPrice(Math.round(mkt.usd_krw))}원</div>` : ""}
+                </div>
+                ${mkt.us_market_yesterday ? `<div class="ai-snapshot-note">${escapeHtml(mkt.us_market_yesterday)}</div>` : ""}
+            </details>
+
+            ${(factors && factors.length) ? `
+            <div class="ai-section ai-section-factors">
+                <div class="ai-section-title">🤔 결정 시 고려할 요소</div>
+                <ul class="ai-factors-list">
+                    ${factors.map(f => `<li>${escapeHtml(f)}</li>`).join("")}
+                </ul>
+                <div class="ai-factors-foot">📌 위 정보를 종합해 본인이 판단해주세요.</div>
+            </div>` : ""}
+
+            <div class="ai-meta">📌 ${escapeHtml(meta.model || "")} ${tokenInfo ? "· " + tokenInfo : ""} ${cacheBadge ? "· " + cacheBadge : ""} · ${escapeHtml(r.cached_at || r.fetched_at || "")}</div>
+        </div>
+    `;
+}
 
 function goView(view) { setHash(view); }
 function goSearch(code) { setHash("search", { code }); }

@@ -1,9 +1,12 @@
-"""Upstash LIST 의 어제 KST AI 호출 로그를 archive/ai_results/{YYYY-MM}/{date}.jsonl 로 저장.
+"""Upstash LIST 의 어제 KST AI 브리핑 호출 로그를 archive/ai_briefings/{YYYY-MM}/{date}.jsonl 로 저장.
 
 - GitHub Actions 매일 KST 02:00 cron 으로 실행
 - 어제 KST 날짜 키만 처리 (오늘 키는 아직 LPUSH 중일 수 있음)
 - dedup: 기존 파일에 있는 (timestamp, code) 는 건너뜀 (cron 재실행 안전성)
 - 처리 완료 후 Upstash 키 DEL (TTL 3일은 안전망)
+
+NOTE: 2026-05-14 이전 옛 buy/sell/hold 스키마 로그는 archive/ai_results/ 에 보존.
+이 스크립트는 새 정보 비서 스키마 로그를 archive/ai_briefings/ 에 저장.
 """
 import json
 import os
@@ -49,7 +52,7 @@ def archive_date(date_str):
         print(f"[INFO] {date_str}: 로그 없음 (수집된 AI 호출 없음)")
         return True
 
-    out_dir = os.path.join(ROOT, "archive", "ai_results", date_str[:7])
+    out_dir = os.path.join(ROOT, "archive", "ai_briefings", date_str[:7])
     os.makedirs(out_dir, exist_ok=True)
     out_path = os.path.join(out_dir, f"{date_str}.jsonl")
 

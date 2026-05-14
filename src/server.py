@@ -71,7 +71,10 @@ class Handler(SimpleHTTPRequestHandler):
                     xff = self.headers.get("x-forwarded-for", "")
                     client_ip = (xff.split(",")[0].strip() if xff
                                  else (self.client_address[0] if self.client_address else ""))
-                    result = get_ai_analysis(code, client_ip=client_ip)
+                    avg_price = qs.get("avg_price", [""])[0] or None
+                    shares = qs.get("shares", [""])[0] or None
+                    result = get_ai_analysis(code, client_ip=client_ip,
+                                              avg_price=avg_price, shares=shares)
                     status = result.pop("_http_status", HTTPStatus.OK)
                     self._send_json(status, result)
                 else:

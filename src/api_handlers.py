@@ -216,16 +216,28 @@ def _check_rate_limit(client_ip):
     return None
 
 
-# AI 분석 system 프롬프트 — api/_lib.py 와 동기 유지
-AI_SYSTEM_PROMPT = """당신은 한국 주식 데이터 분석 보조 도구입니다.
+# AI 정보 비서 system 프롬프트 — api/_lib.py 와 동기 유지
+AI_SYSTEM_PROMPT = """당신은 한국 주식 정보 비서입니다. 투자 자문가가 아닙니다.
 
-지켜야 할 원칙:
-1. 본 응답은 투자 자문이 아닙니다. 사용자의 판단을 돕는 정보 제공이 목적입니다.
-2. 제공된 데이터에 없는 회사 정보(미공개 실적, 비공식 루머, 일반 평판 등)는 절대 추측하거나 인용하지 마세요.
-3. 단정적 표현 금지: "반드시 오른다", "확실한 매수 기회", "꼭 사야 한다" 같은 단정 표현을 쓰지 마세요. "가능성", "신호", "고려할 수 있다", "데이터상으로는" 같은 조건부 표현을 사용하세요.
-4. 학습 데이터의 한계를 인지하세요: 당신의 학습 데이터는 종목·시장의 최근 변동을 충분히 반영하지 못할 수 있습니다.
-5. 데이터가 부족하거나 신호가 충돌하면 "불확실"이라고 명시하세요. 억지로 결론을 내지 마세요.
-6. 출력은 반드시 지정된 JSON 스키마만 따르세요. 자유 텍스트 응답 금지.
+당신의 역할:
+- 정보 수집·요약·분류·정리만 합니다.
+- 사실 기반 정보만 제공하고, 긍정 요인과 부정 요인을 균형 있게 제시합니다.
+- 사용자가 결정에 활용할 데이터를 정리해서 보여줍니다.
+
+금지 사항 (절대 어기지 마세요):
+- 매매 권유 어휘: "매수/매도하세요", "추천합니다", "사세요/파세요", "꼭/반드시"
+- 행동 권고: "부분 익절 고려", "추매 추천", "손절 검토" 같은 행동 동사
+- 미래 예측 단정: "오를 것이다", "조정 받을 것이다", "전망 좋음/나쁨"
+- 데이터에 없는 정보 추측: 미공개 실적, 비공식 루머, 일반 평판
+
+표현 원칙:
+- "데이터상으로는…", "최근 N일간 …%", "현재 X 위치에 있음" 같은 사실 진술
+- factors_to_consider 에는 *판단의 근거가 될 사실*만 나열. *권유는 절대 금지*.
+- 결정 동사("사세요/팔세요/유지하세요/추천합니다") 사용 금지
+
+출력 형식:
+- 반드시 지정된 JSON 스키마만 따르세요. 자유 텍스트·markdown·코드펜스 금지.
+- 데이터가 부족한 필드는 null 로. 없는 정보를 지어내지 마세요.
 """
 
 
@@ -778,12 +790,27 @@ def _ai_tech_summary(t):
     return ", ".join(parts) if parts else "(특별한 시그널 없음)"
 
 
-def get_ai_analysis(code: str, client_ip: str = None) -> dict:
-    """Claude AI에게 종목 종합 판단 요청. (캐싱 + rate limit + 일일 비용 한도 포함)"""
+def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=None) -> dict:
+    """AI 정보 비서 — 종목 브리핑 (매매 권유 아님). api/_lib.py 와 동기 유지."""
     import json as _json
     code = (code or "").strip()
     if not re.fullmatch(r"\d{6}", code):
         return {"error": "유효한 6자리 종목 코드가 필요합니다"}
+
+    try:
+        avg_price_int = int(avg_price) if avg_price not in (None, "", "null") else None
+        if avg_price_int is not None and not (1 <= avg_price_int <= 10_000_000):
+            avg_price_int = None
+    except (ValueError, TypeError):
+        avg_price_int = None
+    try:
+        shares_int = int(shares) if shares not in (None, "", "null") else None
+        if shares_int is not None and not (1 <= shares_int <= 10_000_000):
+            shares_int = None
+    except (ValueError, TypeError):
+        shares_int = None
+    if avg_price_int is None:
+        shares_int = None
 
     rl = _check_rate_limit(client_ip)
     if rl:
@@ -794,12 +821,18 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
             "_http_status": 429,
         }
 
-    cache_key = f"ai:{code}:{now_kst().strftime('%Y-%m-%d')}"
+    cache_suffix = ""
+    if avg_price_int:
+        cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
+    cache_key = f"aib:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
             cached_result = _json.loads(cached_raw)
-            cached_result["cached"] = True
+            if isinstance(cached_result.get("metadata"), dict):
+                cached_result["metadata"]["cached"] = True
+            else:
+                cached_result["cached"] = True
             return cached_result
         except Exception:
             pass
@@ -928,7 +961,21 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
             news_lines.append(f"  {i}. {title}")
     news_text = "\n".join(news_lines) or "(없음)"
 
-    prompt = f"""당신은 한국 주식 단기 투자(1-2주) 분석가입니다. 다음 정보를 종합해 '{name}({code})' 의 매수/매도/관망 판단을 내려주세요.
+    position_text = ""
+    if avg_price_int:
+        unrealized_pct = (price - avg_price_int) / avg_price_int * 100 if avg_price_int > 0 else 0
+        line = f"평단 {avg_price_int:,}원"
+        if shares_int:
+            cost = avg_price_int * shares_int
+            curr_val = price * shares_int
+            unrealized_amt = curr_val - cost
+            line += f" × {shares_int:,}주 (매수원가 {cost:,}원, 현재 평가액 {curr_val:,}원, 손익 {unrealized_amt:+,}원, {unrealized_pct:+.1f}%)"
+        else:
+            line += f" (평단 대비 {unrealized_pct:+.1f}%)"
+        position_text = f"\n[사용자 보유 정보 — context_notes 작성에만 활용. 매매 권유 절대 금지]\n{line}\n"
+
+    prompt = f"""'{name}({code})' 의 현재 상황을 정보 비서로서 정리해주세요.
+사용자가 직접 정보를 모을 시간이 없어 당신에게 위탁한 것입니다. 매매 판단은 사용자가 합니다.
 
 [1. 종목 시세]
 현재가: {price:,}원 (전일대비 {change:+,}원 / {change_pct:+.2f}%)
@@ -948,7 +995,7 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
 [4. 기술적 지표 (60일 시세 기반)]
 {tech_text}
 
-[5. 1-2주 통계 신뢰구간 (최근 변동성 기반 95% 추정)]
+[5. 1-2주 통계 신뢰구간 (참고용, 변동성 기반)]
 {forecast_text}
 
 [6. 최근 5일 외인/기관/개인 수급]
@@ -956,22 +1003,42 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
 
 [7. 관련 뉴스 8건 (제목과 요약)]
 {news_text}
-
+{position_text}
 ---
-판단 가이드:
-- 신뢰구간은 변동성 기반 통계일 뿐, 실적·정책 이벤트로 무력해질 수 있다는 점 감안
-- 기술 지표와 수급이 한 방향으로 정렬되면 신뢰도 ↑
-- 뉴스 본문 내용을 가볍게 보지 말 것: 호재성 키워드의 진위와 임팩트 함께 평가
-- 시장 환경(KOSPI/KOSDAQ)과 같은 방향이면 동조 효과 고려
-- 수출주(반도체/자동차/조선 등)는 환율(USD/KRW) 방향과 미국 시장 흐름이 강한 영향
-- 실적 발표 임박 시(D-7 이내) 변동성 급등 가능성 — 신뢰구간 무력화 위험 명시
-- 업종 정보를 활용해 종목 특성과 같은 방향성을 가질 가능성 큰 거시 변수가 무엇인지 판단
+출력은 반드시 다음 JSON 스키마만 따르세요. 자유 텍스트 금지. 데이터 없는 필드는 null:
 
-다음 JSON 형식으로만 응답. 다른 텍스트 금지:
 {{
-  "action": "buy" 또는 "sell" 또는 "hold",
-  "confidence": 1~10 정수,
-  "analysis": "200자 내외 한국어 분석. 핵심 근거 3개 명시. 어떤 시그널들이 같은 방향인지 또는 충돌하는지 짚어주세요."
+  "current_situation_summary": {{
+    "headline": "50자 내외 한 줄 요약 (사실 진술)",
+    "key_points": ["사실 1", "사실 2", "사실 3"]
+  }},
+  "recent_news_summary": {{
+    "positive": [{{"title": "...", "summary": "한 줄"}}],
+    "negative": [{{"title": "...", "summary": "한 줄"}}],
+    "neutral":  [{{"title": "...", "summary": "한 줄"}}]
+  }},
+  "fundamental_snapshot": {{
+    "per": <숫자|null>, "pbr": <숫자|null>, "roe": <숫자|null>, "op_margin": <숫자|null>,
+    "market_cap": "<문자열>", "industry": "<문자열>",
+    "notes": "사실 기반 1~2줄. 평가어 사용 금지"
+  }},
+  "technical_snapshot": {{
+    "rsi": <숫자|null>, "ma_alignment": "<문자열>",
+    "key_events": ["골든크로스", "60일 신고가 근접" 등 사실],
+    "support_resistance": "지지 X / 저항 Y",
+    "daily_volatility_pct": <숫자|null>
+  }},
+  "market_context": {{
+    "kospi_today_pct": <숫자>, "kospi_5d_pct": <숫자|null>,
+    "usd_krw": <숫자|null>, "us_market_yesterday": "<문자열>"
+  }},
+  "factors_to_consider": [
+    "판단에 활용할 *사실*들 3~5개. *권유 금지*. *행동 동사 금지*."
+  ]{f''',
+  "user_position_notes": [
+    "평단 입력 시 *손익은 코드에서 계산해 들어갑니다*. 여기엔 *판단의 맥락이 될 사실*만 2~3개.",
+    "예: '60일 최저 대비 +N% 위치' / '20일 평균선 아래'. *매도/추매 권유 절대 금지*."
+  ]''' if avg_price_int else ""}
 }}
 """
 
@@ -1008,20 +1075,51 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
             if new_total and int(new_total) == cost_krw:
                 _kv_expire(cost_key, _seconds_until_midnight_kst())
 
+        user_position = None
+        if avg_price_int:
+            unrealized_pct = round((price - avg_price_int) / avg_price_int * 100, 2) if avg_price_int > 0 else 0
+            user_position = {
+                "avg_price": avg_price_int,
+                "current_price": price,
+                "unrealized_pct": unrealized_pct,
+                "context_notes": (result.get("user_position_notes") or [])[:3],
+            }
+            if shares_int:
+                cost = avg_price_int * shares_int
+                curr_val = price * shares_int
+                unrealized_amount = curr_val - cost
+                user_position.update({
+                    "shares": shares_int,
+                    "total_cost": cost,
+                    "current_value": curr_val,
+                    "unrealized_amount": unrealized_amount,
+                    "unrealized_text": f"{unrealized_amount:+,}원 ({unrealized_pct:+.1f}%)",
+                })
+            else:
+                user_position["unrealized_text"] = f"{unrealized_pct:+.1f}%"
+
         fetched_at = now_kst().strftime("%Y-%m-%dT%H:%M:%S%z")
         final_result = {
             "code": code,
             "name": name,
-            "action": result.get("action", "hold"),
-            "confidence": result.get("confidence", 5),
-            "analysis": result.get("analysis", ""),
-            "model": data.get("model", "claude-sonnet-4-6"),
-            "usage": {
-                "input_tokens": usage.get("input_tokens"),
-                "output_tokens": usage.get("output_tokens"),
+            "current_situation_summary": result.get("current_situation_summary") or {},
+            "recent_news_summary": result.get("recent_news_summary") or {},
+            "fundamental_snapshot": result.get("fundamental_snapshot") or {},
+            "technical_snapshot": result.get("technical_snapshot") or {},
+            "market_context": result.get("market_context") or {},
+            "user_position": user_position,
+            "factors_to_consider": (result.get("factors_to_consider") or [])[:6],
+            "metadata": {
+                "model": data.get("model", "claude-sonnet-4-6"),
+                "usage": {
+                    "input_tokens": usage.get("input_tokens"),
+                    "output_tokens": usage.get("output_tokens"),
+                },
+                "cost_krw": cost_krw,
+                "cached": False,
+                "is_information_only": True,
+                "disclaimer": "본 응답은 정보 정리이며 매매 권유가 아닙니다. 결정은 사용자가 합니다.",
             },
-            "cost_krw": cost_krw,
-            "cached": False,
             "cached_at": fetched_at,
             "fetched_at": fetched_at,
         }
@@ -1035,14 +1133,20 @@ def get_ai_analysis(code: str, client_ip: str = None) -> dict:
             "code": code,
             "name": name,
             "input_snapshot": _build_input_snapshot(stock, flow, news_list, tech),
+            "user_position_input": (
+                {"avg_price": avg_price_int, "shares": shares_int} if avg_price_int else None
+            ),
             "ai_output": {
-                "action": final_result["action"],
-                "confidence": final_result["confidence"],
-                "analysis": final_result["analysis"],
+                "current_situation_summary": final_result["current_situation_summary"],
+                "recent_news_summary": final_result["recent_news_summary"],
+                "fundamental_snapshot": final_result["fundamental_snapshot"],
+                "technical_snapshot": final_result["technical_snapshot"],
+                "market_context": final_result["market_context"],
+                "factors_to_consider": final_result["factors_to_consider"],
             },
-            "model": final_result["model"],
-            "usage": final_result["usage"],
-            "cost_krw": final_result["cost_krw"],
+            "model": final_result["metadata"]["model"],
+            "usage": final_result["metadata"]["usage"],
+            "cost_krw": cost_krw,
         })
 
         return final_result
