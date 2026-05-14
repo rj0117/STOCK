@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 8  # v8: 자막 매칭 임계값 2 → 1 (영상에서 종목명 2회 언급 잘 안 되는 패턴 반영)
+FORMAT_VERSION = 10  # v10: 2자 한글 매칭 = 양쪽 경계 + 조사 화이트리스트 (디스플레이/레이더 오탐 제거 + 화신이라는 매칭)
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -286,14 +286,27 @@ def extract_stocks_from_text(text, stocks_master, min_mentions=1):
             continue
         name_lower = name.lower()
 
-        # 영문/숫자/기호로만 구성된 종목명(SBS, NEW, KT, LG 등)은 양쪽 단어 경계 적용 -
-        # "News"의 NEW, "Newage"의 NEW 같은 영문 단어 부분 매칭 오탐 방지.
+        # 매칭 룰:
+        # - 영문/숫자/기호로만 구성된 종목명 (SBS, NEW, KT, LG, S&T 등) → 양쪽 단어 경계.
+        #   "News"의 NEW, "Newage"의 NEW 같은 부분 매칭 오탐 방지.
+        # - 한글 2자 종목명 (화신/녹십/한단 등) → 양쪽 경계 OR 흔한 조사 화이트리스트 뒤.
+        #   "디스플레이"/"레이더" 같은 합성어 오탐을 막으면서 "화신이라는"·"화신은" 같은
+        #   자연 발화는 잡기 위한 절충.
+        # - 한글 3자 이상 종목명 → 시작 단어 경계만 (뒤 조사 자유, 충돌 빈도 낮음).
         is_alpha = bool(re.fullmatch(r'[A-Za-z0-9&\-\. ]+', name))
-        if is_alpha or len(name) <= 2:
+        if is_alpha:
             pattern = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + r'(?![가-힣A-Za-z0-9])'
             matches = re.findall(pattern, text_lower)
+        elif len(name) <= 2:
+            # 흔한 한국어 조사·종결 어미 (가장 자주 종목명 뒤에 오는 것들)
+            JOSA = (r'(?:은|는|이|가|을|를|의|에|에서|에게|한테|로|으로|와|과|도|만|'
+                    r'부터|까지|이라|라는|이라는|이다|이나|나|랑|이랑|보다|마저|조차|'
+                    r'등|이며|며|마냥|같이|이고|고)')
+            pat_boundary = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + r'(?![가-힣A-Za-z0-9])'
+            pat_with_josa = (r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + JOSA
+                             + r'(?![가-힣])')
+            matches = re.findall(pat_boundary, text_lower) + re.findall(pat_with_josa, text_lower)
         else:
-            # 한글 3자 이상: 시작 단어 경계만 (뒤에 조사 허용, 앞에 한글 붙으면 안 됨 - "SK하이닉스"의 "이닉스" 오탐 방지)
             pattern = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower)
             matches = re.findall(pattern, text_lower)
 
