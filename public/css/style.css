@@ -545,9 +545,14 @@ a { color: inherit; text-decoration: none; }
 }
 
 /* ============ 사이드바 하위 메뉴 (매수 추천 일별) ============ */
-.sidebar-menu .has-sub { padding: 0; }
+.sidebar-menu .has-sub {
+    padding: 0;
+    flex-direction: column;
+    align-items: stretch;
+}
 .sidebar-menu .has-sub .menu-row {
     padding: 10px 14px; cursor: pointer;
+    display: flex; align-items: center; gap: 10px;
 }
 .sidebar-menu .has-sub .menu-toggle {
     display: block; width: calc(100% - 28px);
