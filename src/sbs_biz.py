@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 10  # v10: 2자 한글 매칭 = 양쪽 경계 + 조사 화이트리스트 (디스플레이/레이더 오탐 제거 + 화신이라는 매칭)
+FORMAT_VERSION = 11  # v11: 영문↔한글 경계 공백 허용(LG디스플레이 ↔ "LG 디스플레이") + 지주사 prefix 차감(LG-LG전자/LG디스플레이/...)
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -286,6 +286,12 @@ def extract_stocks_from_text(text, stocks_master, min_mentions=1):
             continue
         name_lower = name.lower()
 
+        # 종목명 영문↔한글 경계엔 자막 띄어쓰기 변동을 흡수하기 위해 \s* 허용
+        # 예: stocks.json "LG디스플레이" 의 자막 발화 "LG 디스플레이" 도 매칭.
+        escaped = re.escape(name_lower)
+        escaped = re.sub(r'([a-z0-9])([가-힣])', r'\1\\s*\2', escaped)
+        escaped = re.sub(r'([가-힣])([a-z0-9])', r'\1\\s*\2', escaped)
+
         # 매칭 룰:
         # - 영문/숫자/기호로만 구성된 종목명 (SBS, NEW, KT, LG, S&T 등) → 양쪽 단어 경계.
         #   "News"의 NEW, "Newage"의 NEW 같은 부분 매칭 오탐 방지.
@@ -295,19 +301,18 @@ def extract_stocks_from_text(text, stocks_master, min_mentions=1):
         # - 한글 3자 이상 종목명 → 시작 단어 경계만 (뒤 조사 자유, 충돌 빈도 낮음).
         is_alpha = bool(re.fullmatch(r'[A-Za-z0-9&\-\. ]+', name))
         if is_alpha:
-            pattern = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + r'(?![가-힣A-Za-z0-9])'
+            pattern = r'(?<![가-힣A-Za-z0-9])' + escaped + r'(?![가-힣A-Za-z0-9])'
             matches = re.findall(pattern, text_lower)
         elif len(name) <= 2:
-            # 흔한 한국어 조사·종결 어미 (가장 자주 종목명 뒤에 오는 것들)
             JOSA = (r'(?:은|는|이|가|을|를|의|에|에서|에게|한테|로|으로|와|과|도|만|'
                     r'부터|까지|이라|라는|이라는|이다|이나|나|랑|이랑|보다|마저|조차|'
                     r'등|이며|며|마냥|같이|이고|고)')
-            pat_boundary = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + r'(?![가-힣A-Za-z0-9])'
-            pat_with_josa = (r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower) + JOSA
+            pat_boundary = r'(?<![가-힣A-Za-z0-9])' + escaped + r'(?![가-힣A-Za-z0-9])'
+            pat_with_josa = (r'(?<![가-힣A-Za-z0-9])' + escaped + JOSA
                              + r'(?![가-힣])')
             matches = re.findall(pat_boundary, text_lower) + re.findall(pat_with_josa, text_lower)
         else:
-            pattern = r'(?<![가-힣A-Za-z0-9])' + re.escape(name_lower)
+            pattern = r'(?<![가-힣A-Za-z0-9])' + escaped
             matches = re.findall(pattern, text_lower)
 
         n = len(matches)
@@ -320,6 +325,20 @@ def extract_stocks_from_text(text, stocks_master, min_mentions=1):
                 "snippet": snippet,
             })
 
+    # 후처리: 지주사 이름이 자회사의 prefix 면 (예: 'LG' ⊂ 'LG전자') 자회사 매칭 횟수만큼
+    # 지주사 카운트 차감. "LG 전자" 같은 발화가 지주사 'LG'(003550) 로 잘못 카운트되는 문제 해결.
+    by_name = {r["name"]: r for r in results}
+    for short in list(results):
+        for long in results:
+            if short["name"] == long["name"]:
+                continue
+            ln = long["name"]
+            sn = short["name"]
+            # 자회사 이름이 지주사 이름으로 시작 + 그 뒤에 한글이 와야 (LG → LG전자 OK,
+            # LG → LG우 같은 우선주는 한글이 아니라서 차감 대상 아님)
+            if ln.startswith(sn) and len(ln) > len(sn) and re.match(r'[가-힣]', ln[len(sn):]):
+                short["mentions"] = max(0, short["mentions"] - long["mentions"])
+    results = [r for r in results if r["mentions"] >= min_mentions]
     return sorted(results, key=lambda x: x["mentions"], reverse=True)
 
 
