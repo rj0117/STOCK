@@ -2854,7 +2854,13 @@ async function requestAiAnalysis(code) {
             return;
         }
         if (!resp.ok || r.error) {
-            body.innerHTML = `<div class="ai-error">❌ ${escapeHtml(r.error || `HTTP ${resp.status}`)}${r.detail ? `<br><small>${escapeHtml(r.detail)}</small>` : ''}</div>`;
+            let html = `<div class="ai-error">❌ ${escapeHtml(r.error || `HTTP ${resp.status}`)}`;
+            if (r.detail) html += `<br><small>${escapeHtml(r.detail)}</small>`;
+            if (r.raw_preview) {
+                html += `<details style="margin-top:8px"><summary style="cursor:pointer;font-size:11px">🔍 raw 응답 일부 보기 (디버그)</summary><pre style="background:#f4f5f8;padding:8px;border-radius:4px;font-size:11px;max-height:300px;overflow:auto;white-space:pre-wrap;word-break:break-all">${escapeHtml(r.raw_preview)}</pre></details>`;
+            }
+            html += `</div>`;
+            body.innerHTML = html;
             return;
         }
 

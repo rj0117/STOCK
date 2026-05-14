@@ -812,7 +812,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib2:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v2: 2026-05-14 prompt 수정
+    cache_key = f"aib3:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v3: 2026-05-14 max_tokens 2500
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1072,7 +1072,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 1500,  # 정보 비서 스키마가 길어서 800 → 1500
+            "max_tokens": 2500,  # 정보 비서 스키마 길이 보완. 잘림 방지
             "system": AI_SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": prompt}],
         }
