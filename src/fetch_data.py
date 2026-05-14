@@ -1115,7 +1115,31 @@ def run():
             print(f"   + 시총 상위 {added_top}개 추가 (KOSPI 60 + KOSDAQ 30 중 신규)")
     except Exception as e:
         print(f"   [WARN] 시총 상위 추가 실패: {e}")
-    print(f"   풀 크기: {len(flow_pool)}개 (추적 + 뉴스 매칭 + 시총 상위)")
+    # 매수 참고 신호 누적 종목 추가 (트렌드 추적 페이지에서 시세 누락 방지)
+    # buy_history.json 최근 30일 스냅샷에 등장했던 종목은 풀에 유지 → flow_by_code 에 시세 보존
+    try:
+        bh_path = os.path.join(SITE_DIR, "buy_history.json")
+        if os.path.exists(bh_path):
+            from datetime import datetime, timedelta
+            with open(bh_path, "r", encoding="utf-8") as f:
+                bh = json.load(f) or {}
+            cutoff = (datetime.now() - timedelta(days=30)).strftime("%Y-%m-%d")
+            added_bh = 0
+            for date_key, snap in (bh.get("by_date") or {}).items():
+                if date_key < cutoff:
+                    continue
+                for s in snap.get("stocks", []) or []:
+                    code = s.get("code")
+                    name = s.get("name") or all_known_stocks.get(code, "")
+                    if code and code not in seen_codes_flow:
+                        flow_pool.append({"code": code, "name": name})
+                        seen_codes_flow.add(code)
+                        added_bh += 1
+            if added_bh:
+                print(f"   + 매수 참고 누적 {added_bh}개 추가 (최근 30일 buy_history 중 풀 외 종목)")
+    except Exception as e:
+        print(f"   [WARN] buy_history 종목 추가 실패: {e}")
+    print(f"   풀 크기: {len(flow_pool)}개 (추적 + 뉴스 매칭 + 시총 상위 + 매수참고 누적)")
     flow_data = fetch_flow_for_pool(flow_pool)
     # top30에 종가·등락액·등락률·기준일 enrich
     by_code = flow_data["by_code"]
