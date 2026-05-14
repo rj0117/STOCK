@@ -105,7 +105,7 @@ def _estimate_cost_krw(input_tokens, output_tokens):
 
 
 _RL_PER_MIN = 5
-_RL_PER_DAY = 50
+_RL_PER_DAY = 100
 
 
 def _log_ai_call(record):
@@ -859,15 +859,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     if avg_price_int is None:
         shares_int = None
 
-    rl = _check_rate_limit(client_ip)
-    if rl:
-        return {
-            "error": "요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.",
-            "limit": rl["limit"],
-            "retry_after_seconds": rl["retry_after_seconds"],
-            "_http_status": 429,
-        }
-
+    # 캐시 히트는 실제 Claude 호출이 아니므로 rate limit 카운트 미차감 (가족용 사용성)
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
@@ -883,6 +875,15 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
             return cached_result
         except Exception:
             pass
+
+    rl = _check_rate_limit(client_ip)
+    if rl:
+        return {
+            "error": "요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.",
+            "limit": rl["limit"],
+            "retry_after_seconds": rl["retry_after_seconds"],
+            "_http_status": 429,
+        }
 
     budget_krw = int(os.environ.get("DAILY_BUDGET_KRW", "2000"))
     cost_key = f"cost:{now_kst().strftime('%Y-%m-%d')}"

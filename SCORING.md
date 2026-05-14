@@ -339,8 +339,8 @@ rankScore = marketRank × 3 + techRank
 
 | 항목 | 동작 | 위치 |
 |---|---|---|
-| **캐싱** | 같은 종목 + 같은 날짜는 캐시 응답. TTL: 평일 장중(KST 09~16) 1시간, 그 외 다음 09시까지 | `_kv_get/set` + `_calc_ai_cache_ttl` |
-| **Rate Limit** | IP당 분당 **5회**, 일당 **50회**. 초과 시 HTTP 429 + Retry-After 헤더 | `_check_rate_limit`, 상수 `_RL_PER_MIN=5`, `_RL_PER_DAY=50` |
+| **캐싱** | 같은 종목 + 같은 날짜는 캐시 응답. TTL: 평일 장중(KST 09~16) 1시간, 그 외 다음 09시까지. **캐시 히트는 rate limit 카운트 미차감** (실제 Claude 호출이 아니므로) | `_kv_get/set` + `_calc_ai_cache_ttl` |
+| **Rate Limit** | IP당 분당 **5회**, 일당 **100회**. 캐시 미스(실제 Claude 호출)에만 카운트. 초과 시 HTTP 429 + Retry-After 헤더 | `_check_rate_limit`, 상수 `_RL_PER_MIN=5`, `_RL_PER_DAY=100` |
 | **일일 비용 한도** | `DAILY_BUDGET_KRW`(기본 2000원) 초과 시 HTTP 503. Sonnet 4.6 토큰가로 매 호출 비용 추정 → 자정 KST 리셋 | `_estimate_cost_krw`, 키 `cost:{YYYY-MM-DD}` |
 
 ### AI 적중률 백테스트 (정확도 측정) — C안 부활 버전 (2026-05-14)

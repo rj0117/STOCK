@@ -111,7 +111,7 @@ def _estimate_cost_krw(input_tokens, output_tokens):
 
 # Rate limit: 분당 5 / 일당 50 (per IP)
 _RL_PER_MIN = 5
-_RL_PER_DAY = 50
+_RL_PER_DAY = 100
 
 
 # ============================================================
@@ -905,17 +905,8 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     if avg_price_int is None:
         shares_int = None
 
-    # ── (1) Rate limit (IP별 분당 5 / 일당 50) ──────────────────────
-    rl = _check_rate_limit(client_ip)
-    if rl:
-        return {
-            "error": "요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.",
-            "limit": rl["limit"],
-            "retry_after_seconds": rl["retry_after_seconds"],
-            "_http_status": 429,
-        }
-
-    # ── (2) 캐시 조회 — 평단·수량 입력 시 별도 키 ─────────────────────
+    # ── (1) 캐시 조회 — 평단·수량 입력 시 별도 키 ─────────────────────
+    #       캐시 히트는 실제 Claude 호출이 아니므로 rate limit 카운트 미차감 (가족용 사용성)
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
@@ -931,6 +922,16 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
             return cached_result
         except Exception:
             pass  # 캐시 손상 시 무시하고 새로 호출
+
+    # ── (2) Rate limit (IP별 분당 5 / 일당 100) — 캐시 미스에만 차감 ─────
+    rl = _check_rate_limit(client_ip)
+    if rl:
+        return {
+            "error": "요청이 잠시 몰렸어요. 잠시 후 다시 시도해주세요.",
+            "limit": rl["limit"],
+            "retry_after_seconds": rl["retry_after_seconds"],
+            "_http_status": 429,
+        }
 
     # ── (3) 일일 비용 한도 체크 (호출 전) ────────────────────────────
     budget_krw = int(os.environ.get("DAILY_BUDGET_KRW", "2000"))
