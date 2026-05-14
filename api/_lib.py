@@ -919,7 +919,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib8:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v8: 중복 섹션 3개 제거
+    cache_key = f"aib9:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v9: max_tokens 2500 (1500 시 뉴스 분류 잘림)
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1141,7 +1141,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 1500,  # 응답 속도 우선. Tool Use 스키마 maxItems 제한으로 잘림 위험 낮음
+            "max_tokens": 2500,  # 1500은 overall_verdict 자세히 작성 시 recent_news_summary 잘림
             "system": AI_SYSTEM_PROMPT,
             "tools": [AI_BRIEFING_TOOL],
             "tool_choice": {"type": "tool", "name": "report_stock_briefing"},

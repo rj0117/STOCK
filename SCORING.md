@@ -290,7 +290,7 @@ rankScore = marketRank × 3 + techRank
 **코드 위치:** [api/_lib.py](api/_lib.py) / [src/api_handlers.py](src/api_handlers.py) `get_ai_analysis`
 
 - 모델: **`claude-sonnet-4-6`**
-- `max_tokens`: 800
+- `max_tokens`: 2500 (1500은 overall_verdict 자세히 작성 시 recent_news_summary 가 잘림)
 - **system 프롬프트** (`AI_SYSTEM_PROMPT`): 정보 비서 역할 명시 / 매매 권유 어휘 금지 / 행동 권고 금지 / 미래 예측 단정 금지 / 미공개 정보 추측 금지 / 사실 진술 표현 강제
 - 사용자가 "📋 정보 받기" 버튼을 누를 때만 호출 (수동 트리거)
 - prompt 입력 토큰: 약 5,000~6,000 (평단 입력 시 약간 증가)
