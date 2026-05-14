@@ -1079,11 +1079,11 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 2500,  # 정보 비서 스키마 길이 보완. 잘림 방지
+            "max_tokens": 2000,  # 응답 길이 vs 시간 균형
             "system": AI_SYSTEM_PROMPT,
             "messages": [{"role": "user", "content": prompt}],
         }
-        resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=30)
+        resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=55)
         if resp.status_code != 200:
             return {"error": f"Claude API 오류 {resp.status_code}", "detail": resp.text[:200]}
         data = resp.json()
