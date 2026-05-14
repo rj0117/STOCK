@@ -1106,7 +1106,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
 [6. 최근 5일 외인/기관/개인 수급]
 {days_text}
 
-[7. 관련 뉴스 8건 (제목과 요약)]
+[7. 관련 뉴스 (제목과 요약, 최대 5건)]
 {news_text}
 {position_text}
 ---
