@@ -561,7 +561,7 @@ a { color: inherit; text-decoration: none; }
 }
 .sidebar-menu .submenu li {
     padding: 6px 14px 6px 32px; font-size: 12px;
-    display: flex; justify-content: space-between; align-items: center;
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
     cursor: pointer; color: var(--color-text);
 }
 .sidebar-menu .submenu li:hover { background: rgba(0,0,0,0.05); }
