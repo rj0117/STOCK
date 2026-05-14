@@ -126,6 +126,35 @@ async function loadData() {
     }
 }
 
+// 자동 갱신: data.json 의 generated_at 이 바뀌었으면 조용히 전체 재로딩 + 현재 뷰 재렌더.
+// 호출 트리거: 10분 주기 setInterval + 탭 활성화 (visibilitychange) + window focus.
+// 캐시 회피: fetch 에 cache: 'no-store' 강제 (Vercel JSON 캐시 60초).
+let _lastAutoCheckAt = 0;
+const _AUTO_CHECK_COOLDOWN_MS = 30 * 1000;   // 트리거 폭주 방지
+const _AUTO_CHECK_INTERVAL_MS = 10 * 60 * 1000;  // 10분 주기
+
+async function checkAndRefreshIfNewer() {
+    const now = Date.now();
+    if (now - _lastAutoCheckAt < _AUTO_CHECK_COOLDOWN_MS) return;
+    _lastAutoCheckAt = now;
+    try {
+        const r = await fetch("data.json", { cache: "no-store" });
+        if (!r.ok) return;
+        const buf = await r.arrayBuffer();
+        const fresh = JSON.parse(new TextDecoder("utf-8").decode(buf));
+        const oldGen = state.data && state.data.generated_at;
+        const newGen = fresh && fresh.generated_at;
+        if (!newGen || newGen === oldGen) return;  // 변동 없음
+        // 변경 감지 → 전체 데이터 다시 로드
+        await loadData();
+        loadFlowByCode();  // 백그라운드, 끝나면 자체적으로 render() 다시 호출
+        try { render(); } catch (e) { console.error(e); }
+        console.log(`[auto-refresh] data updated: ${oldGen} → ${newGen}`);
+    } catch (e) {
+        // 네트워크 실패는 조용히 무시 (다음 주기에 재시도)
+    }
+}
+
 // 2단계: 무거운 flow_by_code 백그라운드 로드 → _flowCache 채우고 현재 뷰 재렌더
 async function loadFlowByCode() {
     try {
@@ -3282,6 +3311,13 @@ async function main() {
     render();
     // 백그라운드: 60일 시세/수급 상세 로드 → 완료 시 재렌더
     loadFlowByCode();
+
+    // 자동 갱신: 10분 주기 + 탭 활성화 시 즉시 체크
+    setInterval(checkAndRefreshIfNewer, _AUTO_CHECK_INTERVAL_MS);
+    document.addEventListener("visibilitychange", () => {
+        if (document.visibilityState === "visible") checkAndRefreshIfNewer();
+    });
+    window.addEventListener("focus", checkAndRefreshIfNewer);
 }
 
 main();
