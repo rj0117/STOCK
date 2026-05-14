@@ -1003,7 +1003,7 @@ function renderNewsKeywords(main) {
 
     main.innerHTML = `
         <h2>📰 뉴스 이슈별 주식 참고</h2>
-        <div class="subtitle">뉴스에 가장 많이 언급된 종목 순 · 시세·수급·뉴스를 함께 표시 · 기준일 ${escapeHtml(stocks[0].as_of || data.generated_date || "")}</div>
+        <div class="subtitle">뉴스에 가장 많이 언급된 종목 순 · 시세 기준일 ${escapeHtml(stocks[0].as_of || data.generated_date || "")} 종가 · 수집 ${escapeHtml((data.generated_at || "").slice(0, 16))}</div>
         ${labelBannerHTML()}
         <div class="snc-grid">
             ${stocks.map((s, i) => {
