@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 6  # v6: 채널 변경 (@SBSBizStock) - 캐시 무효화
+FORMAT_VERSION = 7  # v7: 자막 추출을 yt-dlp 로 교체 (GitHub Actions IP 차단 우회), 기존 title 폴백 결과 재수집
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -148,20 +148,102 @@ def fetch_recent_videos(channel_id):
 # ============================================================
 # 자막 추출
 # ============================================================
+def _fetch_transcript_via_ytdlp(video_id):
+    """yt-dlp 로 한국어 자막 URL → json3 다운로드 → 텍스트 합치기. 실패 시 None.
+    youtube-transcript-api 가 GitHub Actions 등 데이터센터 IP에서 차단되는 문제 회피용."""
+    try:
+        import yt_dlp
+    except ImportError:
+        return None
+    url = f"https://www.youtube.com/watch?v={video_id}"
+    ydl_opts = {
+        "skip_download": True,
+        "writeautomaticsub": True,
+        "writesubtitles": True,
+        "subtitleslangs": ["ko", "ko-KR", "a.ko"],
+        "subtitlesformat": "json3",
+        "quiet": True,
+        "no_warnings": True,
+        "extract_flat": False,
+    }
+    try:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            info = ydl.extract_info(url, download=False)
+    except Exception as e:
+        print(f"   [SBS Biz] yt-dlp info 추출 실패 {video_id}: {type(e).__name__}: {str(e)[:120]}")
+        return None
+
+    # 수동 자막 우선, 없으면 자동 자막
+    for src in (info.get("subtitles") or {}, info.get("automatic_captions") or {}):
+        for lang_key in ("ko", "ko-KR", "ko_KR"):
+            entries = src.get(lang_key)
+            if not entries:
+                continue
+            # json3 우선
+            ent = next((e for e in entries if e.get("ext") == "json3"), None) or entries[0]
+            sub_url = ent.get("url")
+            ext = ent.get("ext")
+            if not sub_url:
+                continue
+            try:
+                import urllib.request
+                req = urllib.request.Request(sub_url, headers={"User-Agent": HEADERS["User-Agent"]})
+                with urllib.request.urlopen(req, timeout=15) as r:
+                    raw = r.read().decode("utf-8", errors="ignore")
+            except Exception as e:
+                print(f"   [SBS Biz] 자막 fetch 실패 {video_id}: {type(e).__name__}")
+                continue
+            text = _parse_subtitle_text(raw, ext)
+            if text:
+                return text
+    return None
+
+
+def _parse_subtitle_text(raw, ext):
+    """yt-dlp 가 받아온 자막 데이터에서 본문 텍스트만 추출."""
+    try:
+        if ext == "json3":
+            data = json.loads(raw)
+            events = data.get("events") or []
+            text = " ".join(
+                seg.get("utf8", "")
+                for ev in events
+                for seg in (ev.get("segs") or [])
+            )
+        elif ext in ("vtt", "srt"):
+            # 타임스탬프 라인·번호 제거
+            lines = []
+            for line in raw.splitlines():
+                line = line.strip()
+                if not line or "-->" in line or line.isdigit() or line.startswith("WEBVTT"):
+                    continue
+                lines.append(line)
+            text = " ".join(lines)
+        else:
+            # srv1, srv2, srv3, ttml 등 XML 계열은 태그 제거 후 텍스트만
+            text = re.sub(r"<[^>]+>", " ", raw)
+        text = re.sub(r"\s+", " ", text).strip()
+        return text or None
+    except Exception:
+        return None
+
+
 def get_transcript_text(video_id):
-    """한국어 자막을 한 문자열로 합쳐 반환. 실패 시 None"""
+    """한국어 자막 텍스트 (yt-dlp 우선, 실패 시 youtube-transcript-api 폴백). 모두 실패 시 None."""
+    text = _fetch_transcript_via_ytdlp(video_id)
+    if text:
+        return text
+    # 폴백: youtube-transcript-api (개인 IP에서는 더 빠를 수 있음)
     try:
         from youtube_transcript_api import YouTubeTranscriptApi
     except ImportError:
         return None
-
     try:
         api = YouTubeTranscriptApi()
         transcript = api.fetch(video_id, languages=["ko", "ko-KR"])
         snippets = transcript.snippets if hasattr(transcript, "snippets") else transcript
         return " ".join(s.text for s in snippets if getattr(s, "text", None))
     except Exception:
-        # 구버전 호환 (정적 메서드)
         try:
             from youtube_transcript_api import YouTubeTranscriptApi as _YTA
             data = _YTA.get_transcript(video_id, languages=["ko", "ko-KR"])
