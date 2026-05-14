@@ -295,23 +295,23 @@ rankScore = marketRank × 3 + techRank
 - 사용자가 "📋 정보 받기" 버튼을 누를 때만 호출 (수동 트리거)
 - prompt 입력 토큰: 약 5,000~6,000 (평단 입력 시 약간 증가)
 
-**출력 스키마:**
+**출력 스키마 (2026-05-14: 사이트 다른 카드와 중복되는 펀더/기술/시장 환경 3섹션 제거):**
 ```json
 {
-  "overall_verdict": {                  // 신규 (C안, 2026-05-14)
+  "overall_verdict": {
     "level": "buy_strong|buy|neutral|caution|sell|sell_strong",
     "horizon": "단기 1-2주",
     "summary": "100자 내외 한 줄 결론",
-    "aligned_signals": ["...", "..."],     // level 과 같은 방향 신호
-    "conflicting_signals": ["...", "..."], // 반대·주의 신호
-    "label": "🟢 매수 분위기 우세",        // 코드가 매핑
-    "cls":   "verdict-buy"                  // UI 색상
+    "aligned_signals": ["...", "..."],
+    "conflicting_signals": ["...", "..."],
+    "label": "🟢 매수 분위기 우세",
+    "cls":   "verdict-buy"
   },
   "current_situation_summary": { "headline", "key_points": [...] },
   "recent_news_summary":       { "positive": [...], "negative": [...], "neutral": [...] },
-  "fundamental_snapshot":      { "per", "pbr", "roe", "op_margin", "market_cap", "industry", "notes" },
-  "technical_snapshot":        { "rsi", "ma_alignment", "key_events", "support_resistance", "daily_volatility_pct" },
-  "market_context":            { "kospi_today_pct", "kospi_5d_pct", "usd_krw", "us_market_yesterday" },
+  // 2026-05-14: fundamental_snapshot, technical_snapshot, market_context 3섹션 제거.
+  // 사이트 종목 상세의 기술 지표 카드·1-2주 전망 카드 등과 중복이라 출력 X.
+  // prompt 입력엔 그대로 전달되어 overall_verdict 산정엔 활용됨.
   "user_position": null | {     // 평단 입력 시
     "avg_price", "shares?", "current_price",
     "unrealized_pct", "unrealized_amount?", "total_cost?", "current_value?",

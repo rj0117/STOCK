@@ -2895,9 +2895,6 @@ function renderAiBriefing(r) {
     const cs = r.current_situation_summary || {};
     const up = r.user_position;
     const news = r.recent_news_summary || {};
-    const fund = r.fundamental_snapshot || {};
-    const tech = r.technical_snapshot || {};
-    const mkt = r.market_context || {};
     const factors = r.factors_to_consider || [];
 
     const cacheBadge = meta.cached
@@ -2984,43 +2981,6 @@ function renderAiBriefing(r) {
                 ${_renderNewsList(news.positive, "긍정", "🟢")}
                 ${_renderNewsList(news.negative, "부정", "🔴")}
                 ${_renderNewsList(news.neutral, "중립", "⚪")}
-            </details>
-
-            <details class="ai-section">
-                <summary class="ai-section-title">💵 펀더멘털</summary>
-                <div class="ai-snapshot-grid">
-                    ${fund.per !== null && fund.per !== undefined ? `<div><span class="muted">PER</span> ${fund.per}</div>` : ""}
-                    ${fund.pbr !== null && fund.pbr !== undefined ? `<div><span class="muted">PBR</span> ${fund.pbr}</div>` : ""}
-                    ${fund.roe !== null && fund.roe !== undefined ? `<div><span class="muted">ROE</span> ${fund.roe}%</div>` : ""}
-                    ${fund.op_margin !== null && fund.op_margin !== undefined ? `<div><span class="muted">영업이익률</span> ${fund.op_margin}%</div>` : ""}
-                    ${fund.market_cap ? `<div><span class="muted">시총</span> ${escapeHtml(fund.market_cap)}</div>` : ""}
-                    ${fund.industry ? `<div><span class="muted">업종</span> ${escapeHtml(fund.industry)}</div>` : ""}
-                </div>
-                ${fund.notes ? `<div class="ai-snapshot-note">${escapeHtml(fund.notes)}</div>` : ""}
-            </details>
-
-            <details class="ai-section">
-                <summary class="ai-section-title">📊 기술적 스냅샷</summary>
-                <div class="ai-snapshot-grid">
-                    ${tech.rsi !== null && tech.rsi !== undefined ? `<div><span class="muted">RSI</span> ${tech.rsi}</div>` : ""}
-                    ${tech.ma_alignment ? `<div><span class="muted">MA</span> ${escapeHtml(tech.ma_alignment)}</div>` : ""}
-                    ${tech.daily_volatility_pct !== null && tech.daily_volatility_pct !== undefined ? `<div><span class="muted">일 변동성</span> ±${tech.daily_volatility_pct}%</div>` : ""}
-                    ${tech.support_resistance ? `<div style="grid-column:span 2"><span class="muted">지지/저항</span> ${escapeHtml(tech.support_resistance)}</div>` : ""}
-                </div>
-                ${(tech.key_events && tech.key_events.length) ? `
-                    <ul class="ai-snapshot-events">
-                        ${tech.key_events.map(e => `<li>${escapeHtml(e)}</li>`).join("")}
-                    </ul>` : ""}
-            </details>
-
-            <details class="ai-section">
-                <summary class="ai-section-title">🌐 시장 환경</summary>
-                <div class="ai-snapshot-grid">
-                    ${mkt.kospi_today_pct !== null && mkt.kospi_today_pct !== undefined ? `<div><span class="muted">KOSPI 오늘</span> ${mkt.kospi_today_pct > 0 ? '+' : ''}${mkt.kospi_today_pct}%</div>` : ""}
-                    ${mkt.kospi_5d_pct !== null && mkt.kospi_5d_pct !== undefined ? `<div><span class="muted">KOSPI 5일</span> ${mkt.kospi_5d_pct > 0 ? '+' : ''}${mkt.kospi_5d_pct}%</div>` : ""}
-                    ${mkt.usd_krw ? `<div><span class="muted">USD/KRW</span> ${formatPrice(Math.round(mkt.usd_krw))}원</div>` : ""}
-                </div>
-                ${mkt.us_market_yesterday ? `<div class="ai-snapshot-note">${escapeHtml(mkt.us_market_yesterday)}</div>` : ""}
             </details>
 
             ${(factors && factors.length) ? `

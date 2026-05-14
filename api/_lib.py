@@ -325,37 +325,6 @@ AI_BRIEFING_TOOL = {
                 },
                 "required": ["positive", "negative", "neutral"]
             },
-            "fundamental_snapshot": {
-                "type": "object",
-                "properties": {
-                    "per": {"type": ["number", "null"]},
-                    "pbr": {"type": ["number", "null"]},
-                    "roe": {"type": ["number", "null"]},
-                    "op_margin": {"type": ["number", "null"]},
-                    "market_cap": {"type": "string"},
-                    "industry": {"type": "string"},
-                    "notes": {"type": "string", "description": "사실 기반 1~2줄, 평가어 사용 금지"}
-                }
-            },
-            "technical_snapshot": {
-                "type": "object",
-                "properties": {
-                    "rsi": {"type": ["number", "null"]},
-                    "ma_alignment": {"type": "string"},
-                    "key_events": {"type": "array", "items": {"type": "string"}, "maxItems": 5},
-                    "support_resistance": {"type": "string"},
-                    "daily_volatility_pct": {"type": ["number", "null"]}
-                }
-            },
-            "market_context": {
-                "type": "object",
-                "properties": {
-                    "kospi_today_pct": {"type": ["number", "null"]},
-                    "kospi_5d_pct": {"type": ["number", "null"]},
-                    "usd_krw": {"type": ["number", "null"]},
-                    "us_market_yesterday": {"type": "string"}
-                }
-            },
             "factors_to_consider": {
                 "type": "array",
                 "items": {"type": "string"},
@@ -371,8 +340,7 @@ AI_BRIEFING_TOOL = {
         },
         "required": ["overall_verdict",
                      "current_situation_summary", "recent_news_summary",
-                     "fundamental_snapshot", "technical_snapshot",
-                     "market_context", "factors_to_consider"]
+                     "factors_to_consider"]
     }
 }
 
@@ -951,7 +919,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib7:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v7: signals 분리
+    cache_key = f"aib8:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v8: 중복 섹션 3개 제거
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -1262,9 +1230,6 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
             "overall_verdict": overall_verdict,
             "current_situation_summary": result.get("current_situation_summary") or {},
             "recent_news_summary": result.get("recent_news_summary") or {},
-            "fundamental_snapshot": result.get("fundamental_snapshot") or {},
-            "technical_snapshot": result.get("technical_snapshot") or {},
-            "market_context": result.get("market_context") or {},
             "user_position": user_position,
             "factors_to_consider": (result.get("factors_to_consider") or [])[:6],
             "metadata": {
@@ -1300,9 +1265,6 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
                 "overall_verdict": final_result["overall_verdict"],
                 "current_situation_summary": final_result["current_situation_summary"],
                 "recent_news_summary": final_result["recent_news_summary"],
-                "fundamental_snapshot": final_result["fundamental_snapshot"],
-                "technical_snapshot": final_result["technical_snapshot"],
-                "market_context": final_result["market_context"],
                 "factors_to_consider": final_result["factors_to_consider"],
             },
             "model": final_result["metadata"]["model"],
