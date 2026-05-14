@@ -216,6 +216,71 @@ def _check_rate_limit(client_ip):
     return None
 
 
+# Anthropic Tool Use 스키마 (api/_lib.py 와 동기)
+AI_BRIEFING_TOOL = {
+    "name": "report_stock_briefing",
+    "description": "종목 정보를 사용자에게 정리해 보고하는 도구. 매매 권유가 아닌 사실 정리만 담음.",
+    "input_schema": {
+        "type": "object",
+        "properties": {
+            "current_situation_summary": {
+                "type": "object",
+                "properties": {
+                    "headline": {"type": "string"},
+                    "key_points": {"type": "array", "items": {"type": "string"}, "maxItems": 5}
+                },
+                "required": ["headline", "key_points"]
+            },
+            "recent_news_summary": {
+                "type": "object",
+                "properties": {
+                    "positive": {"type": "array", "items": {"type": "object", "properties": {"title": {"type": "string"}, "summary": {"type": "string"}}, "required": ["title", "summary"]}, "maxItems": 5},
+                    "negative": {"type": "array", "items": {"type": "object", "properties": {"title": {"type": "string"}, "summary": {"type": "string"}}, "required": ["title", "summary"]}, "maxItems": 5},
+                    "neutral":  {"type": "array", "items": {"type": "object", "properties": {"title": {"type": "string"}, "summary": {"type": "string"}}, "required": ["title", "summary"]}, "maxItems": 5}
+                },
+                "required": ["positive", "negative", "neutral"]
+            },
+            "fundamental_snapshot": {
+                "type": "object",
+                "properties": {
+                    "per": {"type": ["number", "null"]},
+                    "pbr": {"type": ["number", "null"]},
+                    "roe": {"type": ["number", "null"]},
+                    "op_margin": {"type": ["number", "null"]},
+                    "market_cap": {"type": "string"},
+                    "industry": {"type": "string"},
+                    "notes": {"type": "string"}
+                }
+            },
+            "technical_snapshot": {
+                "type": "object",
+                "properties": {
+                    "rsi": {"type": ["number", "null"]},
+                    "ma_alignment": {"type": "string"},
+                    "key_events": {"type": "array", "items": {"type": "string"}, "maxItems": 5},
+                    "support_resistance": {"type": "string"},
+                    "daily_volatility_pct": {"type": ["number", "null"]}
+                }
+            },
+            "market_context": {
+                "type": "object",
+                "properties": {
+                    "kospi_today_pct": {"type": ["number", "null"]},
+                    "kospi_5d_pct": {"type": ["number", "null"]},
+                    "usd_krw": {"type": ["number", "null"]},
+                    "us_market_yesterday": {"type": "string"}
+                }
+            },
+            "factors_to_consider": {"type": "array", "items": {"type": "string"}, "maxItems": 5},
+            "user_position_notes": {"type": "array", "items": {"type": "string"}, "maxItems": 3}
+        },
+        "required": ["current_situation_summary", "recent_news_summary",
+                     "fundamental_snapshot", "technical_snapshot",
+                     "market_context", "factors_to_consider"]
+    }
+}
+
+
 # AI 정보 비서 system 프롬프트 — api/_lib.py 와 동기 유지
 AI_SYSTEM_PROMPT = """당신은 한국 주식 정보 비서입니다. 투자 자문가가 아닙니다.
 
@@ -236,7 +301,8 @@ AI_SYSTEM_PROMPT = """당신은 한국 주식 정보 비서입니다. 투자 자
 - 결정 동사("사세요/팔세요/유지하세요/추천합니다") 사용 금지
 
 출력 형식:
-- 반드시 지정된 JSON 스키마만 따르세요. 자유 텍스트·markdown·코드펜스 금지.
+- 응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공하세요.
+- 자유 텍스트로 답변하지 마세요. 도구 호출만 합니다.
 - 데이터가 부족한 필드는 null 로. 없는 정보를 지어내지 마세요.
 """
 
@@ -824,7 +890,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib3:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
+    cache_key = f"aib4:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -962,8 +1028,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     news_text = "\n".join(news_lines) or "(없음)"
 
     position_text = ""
-    position_notes_schema = ""
-    position_notes_instruction = ""
+    position_notes_instruction = "user_position_notes 는 평단 입력이 없으므로 비워두세요."
     if avg_price_int:
         unrealized_pct = (price - avg_price_int) / avg_price_int * 100 if avg_price_int > 0 else 0
         line = f"평단 {avg_price_int:,}원"
@@ -975,15 +1040,9 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
         else:
             line += f" (평단 대비 {unrealized_pct:+.1f}%)"
         position_text = f"\n[사용자 보유 정보 — user_position_notes 작성에만 활용. 매매 권유 절대 금지]\n{line}\n"
-        position_notes_schema = (
-            ',\n  "user_position_notes": ['
-            '\n    "60일 최저 47,200원 대비 +2.0% 위치",'
-            '\n    "20일 평균선 49,500원 아래"'
-            '\n  ]'
-        )
         position_notes_instruction = (
-            "평단 입력이 있으므로 `user_position_notes` 키를 응답에 *추가* 하세요 (사실 기반 2~3개, "
-            "매도/추매 권유 절대 금지). "
+            "평단 입력이 있으므로 user_position_notes 에 사실 2~3개를 적어주세요 "
+            "(예: '60일 최저 대비 +N% 위치'). 매도/추매/익절/손절 행동 권유 금지."
         )
 
     prompt = f"""'{name}({code})' 의 현재 상황을 정보 비서로서 정리해주세요.
@@ -1017,59 +1076,13 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
 {news_text}
 {position_text}
 ---
-출력 규칙 (엄격):
-- 응답은 반드시 단 하나의 JSON 객체. 처음 글자는 `{{`, 마지막 글자는 `}}`.
-- 자유 텍스트·markdown·코드펜스(```) 절대 금지.
-- 숫자 값에 데이터가 없으면 `null` (큰따옴표 없이). placeholder 텍스트 복사 금지.
-- 문자열 값에 정보가 없으면 빈 문자열 "".
-- 배열은 비어있어도 `[]`.
+응답은 반드시 `report_stock_briefing` 도구를 호출해서 제공하세요.
 
-아래는 응답 *형식* 예시입니다. 값은 실제 데이터로 교체하세요:
-{{
-  "current_situation_summary": {{
-    "headline": "외인 5일 연속 매도 가운데 RSI 86 과열 구간",
-    "key_points": [
-      "최근 5일 외국인 -560만주 누적 순매도",
-      "RSI 86 으로 60일 신고가 근접",
-      "5·20일선 상승 정렬 유지 중"
-    ]
-  }},
-  "recent_news_summary": {{
-    "positive": [{{"title": "1분기 호실적 발표", "summary": "영업이익 전년 동기 대비 +18%"}}],
-    "negative": [{{"title": "외인 차익실현 본격화", "summary": "5일 누적 -560만주 순매도"}}],
-    "neutral":  []
-  }},
-  "fundamental_snapshot": {{
-    "per": 35.2,
-    "pbr": 1.8,
-    "roe": 12.5,
-    "op_margin": 18.3,
-    "market_cap": "455조",
-    "industry": "반도체",
-    "notes": "업종 평균 PER 대비 다소 높은 수준, ROE 두 자릿수 유지"
-  }},
-  "technical_snapshot": {{
-    "rsi": 86,
-    "ma_alignment": "5·20일선 상승 정렬",
-    "key_events": ["골든크로스", "60일 신고가 근접"],
-    "support_resistance": "지지 75,000 / 저항 84,000",
-    "daily_volatility_pct": 2.3
-  }},
-  "market_context": {{
-    "kospi_today_pct": 0.42,
-    "kospi_5d_pct": 2.1,
-    "usd_krw": 1385.0,
-    "us_market_yesterday": "다우 +0.5% / 나스닥 +0.8%"
-  }},
-  "factors_to_consider": [
-    "실적 발표 D-14, 변동성 급등 가능",
-    "외인 매도와 펀더멘털 양호가 상반 신호",
-    "RSI 과열 vs 5일선 상승 정렬"
-  ]{position_notes_schema}
-}}
-
-⚠️ `user_position` 키는 출력하지 마세요 — 손익은 코드에서 추가됩니다.
-{position_notes_instruction}데이터에 없는 정보는 추측·생성하지 마세요."""
+작성 규칙:
+- 모든 필드는 사실 기반. 데이터에 없는 정보 추측·생성 금지.
+- factors_to_consider 는 *권유*가 아닌 *판단 근거가 될 사실* 만 3~5개.
+- 매매 권유·행동 동사 ("매수/매도/사세요/파세요/익절/손절/추매 권장") 절대 금지.
+- {position_notes_instruction}"""
 
     try:
         headers = {
@@ -1079,8 +1092,10 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 2000,  # 응답 길이 vs 시간 균형
+            "max_tokens": 2000,
             "system": AI_SYSTEM_PROMPT,
+            "tools": [AI_BRIEFING_TOOL],
+            "tool_choice": {"type": "tool", "name": "report_stock_briefing"},
             "messages": [{"role": "user", "content": prompt}],
         }
         resp = requests.post("https://api.anthropic.com/v1/messages", json=body, headers=headers, timeout=55)
@@ -1088,24 +1103,19 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
             return {"error": f"Claude API 오류 {resp.status_code}", "detail": resp.text[:200]}
         data = resp.json()
         content = data.get("content", [])
-        text = ""
+        result = None
+        text_fallback = ""
         for c in content:
+            if c.get("type") == "tool_use" and c.get("name") == "report_stock_briefing":
+                result = c.get("input") or {}
+                break
             if c.get("type") == "text":
-                text += c.get("text", "")
-        text_clean = text.strip()
-        if text_clean.startswith("```"):
-            text_clean = re.sub(r"^```(?:json)?\s*", "", text_clean)
-            text_clean = re.sub(r"\s*```\s*$", "", text_clean)
-        m = re.search(r'\{[\s\S]*\}', text_clean)
-        if not m:
-            return {"error": "AI 응답 파싱 실패", "detail": text[:300]}
-        try:
-            result = _json.loads(m.group(0))
-        except _json.JSONDecodeError as je:
+                text_fallback += c.get("text", "")
+        if result is None:
             return {
-                "error": "AI 응답 JSON 파싱 실패",
-                "detail": f"{je.msg} at line {je.lineno} col {je.colno}",
-                "raw_preview": m.group(0)[:500],
+                "error": "AI 응답 파싱 실패: tool_use 없음",
+                "detail": f"stop_reason={data.get('stop_reason')}",
+                "raw_preview": text_fallback[:500],
             }
         usage = data.get("usage", {}) or {}
 
