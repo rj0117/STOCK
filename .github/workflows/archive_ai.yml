@@ -35,8 +35,9 @@ jobs:
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
         run: python scripts/archive_ai_log.py
 
-      # AI 적중률 백테스트는 2026-05-14 정보 비서로 전환하면서 deprecated.
-      # 옛 스크립트는 scripts/deprecated/backtest_ai.py 에 보존.
+      # AI 적중률 백테스트 (2026-05-14 C안 부활 — overall_verdict.level 3그룹 기준)
+      - name: Backtest AI verdict accuracy
+        run: python scripts/backtest_ai.py
 
       - name: Commit & push if changed
         run: |
@@ -44,7 +45,7 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-          FILES="archive/ai_briefings"
+          FILES="archive/ai_briefings archive/backtest_ai public/backtest_ai.json public/ai_stats.json"
 
           # 변경 없으면 종료
           if ! git status --porcelain $FILES 2>/dev/null | grep -q .; then
@@ -54,7 +55,10 @@ jobs:
 
           # 데이터 백업 (push 재시도 시 origin/main 위에 다시 올리기 위함)
           BAK=$(mktemp -d)
-          cp -r archive/ai_briefings "$BAK/" 2>/dev/null || true
+          cp -r archive/ai_briefings    "$BAK/" 2>/dev/null || true
+          cp -r archive/backtest_ai     "$BAK/" 2>/dev/null || true
+          cp    public/backtest_ai.json "$BAK/" 2>/dev/null || true
+          cp    public/ai_stats.json    "$BAK/" 2>/dev/null || true
 
           for i in 1 2 3 4 5; do
             echo "Push 시도 $i..."
@@ -62,8 +66,11 @@ jobs:
             git reset --hard origin/main
 
             # 데이터 복원
-            mkdir -p archive
-            [ -d "$BAK/ai_briefings" ] && cp -r "$BAK/ai_briefings" archive/
+            mkdir -p archive public
+            [ -d "$BAK/ai_briefings" ]    && cp -r "$BAK/ai_briefings"    archive/
+            [ -d "$BAK/backtest_ai" ]     && cp -r "$BAK/backtest_ai"     archive/
+            [ -f "$BAK/backtest_ai.json" ] && cp    "$BAK/backtest_ai.json" public/
+            [ -f "$BAK/ai_stats.json" ]   && cp    "$BAK/ai_stats.json"   public/
 
             git add $FILES 2>/dev/null || true
             if git diff --cached --quiet; then

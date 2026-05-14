@@ -24,8 +24,8 @@
 - [x] **📋 AI 종목 브리핑 + 단기 1-2주 종합 평가** (2026-05-14 C안) — Claude(Sonnet 4.6) 가 시세·수급·뉴스·기술·거시·펀더멘털을 정리하고 **단기 1-2주 종합 분위기**(매수/매도/관망/혼조) 라벨 제공. 종합 평가 박스 하단에 매매 권유 아님 강한 면책. 평단·수량 입력 시 손익·맥락 정보 추가. Upstash Redis 캐싱 / IP 분당 5·일당 50 rate limit / 일일 2,000원 비용 한도
 - [x] **매수 참고 트렌드 추적** — 일별 스냅샷 누적, 신호 시점 forecast 곡선과 실제 종가 비교
 - [x] **백테스트 (매수 참고 신호)** — KOSPI 대비 알파 측정 (look-ahead bias 제거, 중복/비정상 격리, 거래비용 차감)
-- ~~백테스트 (AI 적중률)~~ — *2026-05-14 deprecated* — AI 를 정보 비서로 전환하면서 action(buy/sell/hold) 라벨 자체 제거. 적중률 측정 무의미.
-- ~~AI 사용자 컨텍스트 분포 카드~~ — *2026-05-14 deprecated* — 같은 이유
+- [x] **백테스트 (AI 분석 적중률)** — *2026-05-14 C안 부활* — AI 응답의 `overall_verdict.level` 6단계를 3그룹(buy/hold/sell)으로 묶어 +5거래일 ±2% 기준 적중률 측정. 기간별/그룹별/raw level별 통계 + 최근 60건 상세
+- [x] **AI 사용자 컨텍스트 분포 카드** — 종목 상세 AI 카드 아래에 최근 30일 verdict 분포 + (≥5건 시) 3그룹 적중률 표시
 - [x] **GitHub Actions 자동 갱신** — 매시 7분/37분 cron
 - [x] **첫 진입 면책 모달** — localStorage 기반 1회 동의
 
@@ -54,7 +54,9 @@ STOCK/
 │   ├── flow_by_code.json      # 종목별 60일 시세 (용량 큰 부분 분리)
 │   ├── buy_history.json       # 일별 매수 참고 스냅샷 (90일 슬라이딩)
 │   ├── backtest.json          # 매수 참고 신호 백테스트 결과
-│   ├── deprecated/            # 2026-05-14 deprecated: backtest_ai.json, ai_stats.json
+│   ├── backtest_ai.json       # AI overall_verdict 적중률 백테스트 (3그룹/6단계)
+│   ├── ai_stats.json          # 종목 상세 AI 카드용 최근 30일 verdict 분포·적중률
+│   ├── deprecated/            # 2026-05-14 정보 비서 전환 시 잠시 deprecated 됐던 빈 사본 보존
 │   ├── sbsbiz.json            # SBS Biz YouTube 추출 데이터
 │   ├── stocks.json            # KOSPI/KOSDAQ 종목 마스터
 │   ├── css/style.css
@@ -64,12 +66,13 @@ STOCK/
 │   └── archive_ai.yml         # 매일 KST 02:00 AI 호출 로그 archive + 적중률 백테스트
 ├── 📁 scripts/
 │   ├── archive_ai_log.py      # Upstash LIST → archive/ai_briefings/*.jsonl
+│   ├── backtest_ai.py         # overall_verdict.level 3그룹 적중률 백테스트 (C안 부활)
 │   └── deprecated/
-│       └── backtest_ai.py     # 2026-05-14 deprecated (정보 비서 전환)
+│       └── backtest_ai.py     # 옛 buy/sell/hold 백테스트 보존 (2026-05-14 정보 비서 전환 시점)
 ├── 📁 archive/
-│   ├── ai_briefings/{YYYY-MM}/{date}.jsonl   # AI 종목 브리핑 호출 로그 (새 스키마)
-│   ├── ai_results/{YYYY-MM}/{date}.jsonl     # [DEPRECATED] 옛 buy/sell/hold 로그 보존
-│   └── backtest_ai/                          # [DEPRECATED] 옛 백테스트 히스토리
+│   ├── ai_briefings/{YYYY-MM}/{date}.jsonl   # AI 종목 브리핑 호출 로그 (현재 스키마)
+│   ├── ai_results/{YYYY-MM}/{date}.jsonl     # 옛 buy/sell/hold 로그 (백테스트가 자동 호환 로드)
+│   └── backtest_ai/{date}.json               # 매일 KST 02:00 적중률 백테스트 히스토리
 ├── 📁 .claude/
 │   ├── CLAUDE.md              # Claude 작업 규칙
 │   └── settings.local.json

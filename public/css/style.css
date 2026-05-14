@@ -1484,6 +1484,26 @@ body.modal-open { overflow: hidden; }
     color: var(--color-muted);
     font-size: 10px;
 }
+.ai-stats-details {
+    margin-top: 6px;
+    padding: 6px 0;
+    border-top: 1px dashed var(--color-border);
+}
+.ai-stats-details > summary {
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--color-muted);
+    padding: 4px 0;
+    user-select: none;
+}
+.ai-stats-level-table {
+    margin-top: 6px;
+    font-size: 11px;
+}
+.ai-stats-level-table th, .ai-stats-level-table td {
+    padding: 4px 6px;
+}
+/* deprecated 옛 confidence 라인 — 호환성을 위해 유지 가능 */
 .ai-stats-conf {
     font-size: 12px; color: var(--color-muted);
     padding: 8px 0 4px;

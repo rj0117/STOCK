@@ -331,9 +331,9 @@ rankScore = marketRank × 3 + techRank
 - 캐시 키 분리: `aib:{code}:{date}:p{avg}q{shares}`
 
 **관련 변경 (2026-05-14):**
-- 옛 buy/sell/hold 백테스트 시스템 → `scripts/deprecated/backtest_ai.py` 이동 (보존)
-- 옛 분포 카드 (`renderAiStatsCard`) → 호출 제거, 함수는 deprecated 주석으로 1주일 보존
-- 옛 호출 로그 → `archive/ai_results/` 그대로 보존, 새 로그는 `archive/ai_briefings/` 로 분리
+- 정보 비서 전환 시: 옛 buy/sell/hold 백테스트 → `scripts/deprecated/` 이동, `renderAiStatsCard` 호출 제거
+- C안 부활 시 (같은 날): `overall_verdict.level` (6단계) 라벨이 부활해 적중률 측정 다시 가능
+- 백테스트 재구동: `scripts/backtest_ai.py` 복원 (deprecated 사본은 그대로 두고 새 파일을 작성), 새 로그는 `archive/ai_briefings/`, 옛 로그 `archive/ai_results/` 도 자동 병합 로드
 
 ### AI 안전장치 (Upstash Redis 기반)
 
@@ -343,18 +343,19 @@ rankScore = marketRank × 3 + techRank
 | **Rate Limit** | IP당 분당 **5회**, 일당 **50회**. 초과 시 HTTP 429 + Retry-After 헤더 | `_check_rate_limit`, 상수 `_RL_PER_MIN=5`, `_RL_PER_DAY=50` |
 | **일일 비용 한도** | `DAILY_BUDGET_KRW`(기본 2000원) 초과 시 HTTP 503. Sonnet 4.6 토큰가로 매 호출 비용 추정 → 자정 KST 리셋 | `_estimate_cost_krw`, 키 `cost:{YYYY-MM-DD}` |
 
-### AI 적중률 백테스트 (정확도 측정)
+### AI 적중률 백테스트 (정확도 측정) — C안 부활 버전 (2026-05-14)
 
 | 항목 | 동작 | 위치 |
 |---|---|---|
-| **호출 로깅** | 캐시 미스(실제 Claude 호출)만 Upstash LIST `ai_log:{YYYY-MM-DD}` 에 LPUSH (input_snapshot + ai_output + usage) | `_log_ai_call` + `_build_input_snapshot` |
-| **아카이브** | 매일 KST 02:00 GitHub Actions cron 이 어제 LIST → `archive/ai_results/{YYYY-MM}/{date}.jsonl` 로 옮기고 LIST DEL | `scripts/archive_ai_log.py`, `.github/workflows/archive_ai.yml` |
-| **백테스트** | 같은 cron 안에서 archive 전체 + `flow_by_code.json` + `buy_history.json` 의 KOSPI 으로 +1/+5/+10거래일 후 수익률·알파·적중률 산출 → `public/backtest_ai.json` 갱신 + `archive/backtest_ai/{date}.json` 보존 | `scripts/backtest_ai.py` |
-| **적중 기준** | buy: +5거래일 후 ≥ +2% / sell: ≤ -2% / hold: \|Δ\| ≤ 2% (상수 `HIT_THRESHOLD_PCT=2.0`, `PRIMARY_HORIZON='5'`) | `scripts/backtest_ai.py` 상단 |
-| **사이트 표시** | 사이드바 **📈 백테스트 → AI 분석 적중률** 탭. 기간별(7d/30d/all) + action별(buy/sell/hold) + confidence 구간(9~10/7~8/5~6/1~4) 적중률 표 | `public/js/app.js` `renderBacktestAI` |
-| **사용자 컨텍스트 카드** | 종목 상세의 AI 분석 카드 **아래에 항상 표시**. 최근 30일 buy/sell/hold 분포 + 평균 확신도 + (≥5건 시) +5거래일 적중률. hold 비율에 따라 동적 안내 메시지 4종. `public/ai_stats.json` (정적, 매일 02:00 cron 갱신) | `scripts/backtest_ai.py` `_build_ai_stats`, `public/js/app.js` `renderAiStatsCard` |
+| **호출 로깅** | 캐시 미스(실제 Claude 호출)만 Upstash LIST `ai_log:{YYYY-MM-DD}` 에 LPUSH (input_snapshot + ai_output 전체 + usage). ai_output 에는 `overall_verdict.level` 포함 | `_log_ai_call` + `_build_input_snapshot` |
+| **아카이브** | 매일 KST 02:00 GitHub Actions cron 이 어제 LIST → `archive/ai_briefings/{YYYY-MM}/{date}.jsonl` 로 옮기고 LIST DEL | `scripts/archive_ai_log.py`, `.github/workflows/archive_ai.yml` |
+| **백테스트** | 같은 cron 안에서 archive 전체 (`ai_briefings/` + 옛 `ai_results/`) + `flow_by_code.json` + `buy_history.json` 의 KOSPI 로 +1/+5/+10거래일 후 수익률·알파·적중률 산출 → `public/backtest_ai.json` 갱신 + `archive/backtest_ai/{date}.json` 보존 | `scripts/backtest_ai.py` |
+| **라벨 매핑** | `overall_verdict.level` 6단계를 3그룹으로: `buy_strong+buy → buy`, `neutral+caution → hold`, `sell+sell_strong → sell` | `LEVEL_TO_GROUP` 상수 |
+| **적중 기준** | buy 그룹: +5거래일 후 ≥ +2% / sell 그룹: ≤ -2% / hold 그룹: \|Δ\| ≤ 2% (상수 `HIT_THRESHOLD_PCT=2.0`, `PRIMARY_HORIZON='5'`) | `scripts/backtest_ai.py` 상단 |
+| **사이트 표시** | 사이드바 **📈 백테스트 → 🤖 AI 분석 적중률** 탭. 기간별(7d/30d/all) + 3그룹 적중률 + 6단계 raw level별 적중률 + 최근 60건 상세 | `public/js/app.js` `renderBacktestAI` |
+| **사용자 컨텍스트 카드** | 종목 상세의 AI 분석 카드 **아래에 항상 표시**. 최근 30일 3그룹 분포 + 6단계 상세 분포(접힘) + (≥5건 시) +5거래일 적중률. 분포에 따라 동적 안내 메시지 4종. `public/ai_stats.json` (정적, 매일 02:00 cron 갱신) | `scripts/backtest_ai.py` `_build_ai_stats`, `public/js/app.js` `renderAiStatsCard` |
 
-**ai_stats.json 구조 (확장 가능):**
+**ai_stats.json 구조:**
 ```json
 {
   "default_period": "30d",
@@ -362,12 +363,12 @@ rankScore = marketRank × 3 + techRank
     "30d": {
       "total_calls": N,
       "insufficient": <10건 여부,
-      "distribution": { "buy/sell/hold": { count, pct } },
-      "confidence": { "avg", "median", "by_bucket": {…} },
+      "distribution_by_group": { "buy/hold/sell": { count, pct } },
+      "distribution_by_level": { "buy_strong/buy/neutral/caution/sell/sell_strong": { count, pct } },
       "accuracy_5d": {
         "buy_signals":  { total, correct, rate, criterion, insufficient },
-        "sell_signals": {…},
         "hold_signals": {…},
+        "sell_signals": {…},
         "measurable_after": "YYYY-MM-DD",
         "insufficient_sample_threshold": 5
       }

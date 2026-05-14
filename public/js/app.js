@@ -10,8 +10,8 @@ const state = {
     sbsbiz: null,         // sbsbiz.json - SBS Biz YouTube 추천
     buyHistory: null,     // buy_history.json - 일별 매수 추천 스냅샷
     backtest: null,       // backtest.json - 사후 성과 측정
-    // backtestAi / aiStats 는 2026-05-14 AI 정보 비서로 전환하면서 deprecated.
-    // 파일은 public/deprecated/ 에 보존. state 도 더 이상 채우지 않음.
+    backtestAi: null,     // backtest_ai.json - AI overall_verdict 적중률 백테스트 (C안 부활)
+    aiStats: null,        // ai_stats.json - 종목 상세 페이지 AI 카드용 분포·적중률
     favorites: loadFavorites(),
     currentView: null,
 };
@@ -96,12 +96,14 @@ async function fetchJsonUtf8(url, fallback) {
 async function loadData() {
     try {
         // 1단계: 가벼운 파일만 먼저 로드 → 첫 화면 즉시 표시
-        const [data, stocks, sbsbiz, buyHistory, backtest] = await Promise.all([
+        const [data, stocks, sbsbiz, buyHistory, backtest, backtestAi, aiStats] = await Promise.all([
             fetchJsonUtf8("data.json", null),
             fetchJsonUtf8("stocks.json", []),
             fetchJsonUtf8("sbsbiz.json", null),
             fetchJsonUtf8("buy_history.json", null),
             fetchJsonUtf8("backtest.json", null),
+            fetchJsonUtf8("backtest_ai.json", null),
+            fetchJsonUtf8("ai_stats.json", null),
         ]);
         if (!data) throw new Error("data.json 로드 실패");
         state.data = data;
@@ -109,6 +111,8 @@ async function loadData() {
         state.sbsbiz = sbsbiz;
         state.buyHistory = buyHistory;
         state.backtest = backtest;
+        state.backtestAi = backtestAi;
+        state.aiStats = aiStats;
         if (data.flow && !data.flow.by_code) data.flow.by_code = {};
         populateRecommendHistoryMenu();
         const gen = document.getElementById("generated-at");
@@ -571,7 +575,10 @@ function render() {
     else if (view === "recommend-history") renderRecommendHistory(main, params.get("date"));
     else if (view === "flow") renderFlow(main, params.get("kind") || "foreign_top");
     else if (view === "sbsbiz") renderSbsBiz(main);
-    else if (view === "backtest") renderBacktest(main);
+    else if (view === "backtest") {
+        if (params.get("tab") === "ai") renderBacktestAI(main);
+        else renderBacktest(main);
+    }
     else if (view === "favorites") renderFavorites(main);
     else if (view === "search") renderSearchResult(main, params.get("code"));
     else renderTop30(main);
@@ -1885,11 +1892,11 @@ function renderSbsBiz(main) {
 
 // ============ 뷰: 백테스트 (사후 성과 검증) ============
 function _backtestTabsHTML(activeTab) {
-    // 2026-05-14: AI 적중률 탭은 정보 비서로 전환하면서 deprecated.
-    // 백테스트 페이지엔 매수 참고 신호 하나만 남음 — 탭 형태는 유지 (미래 확장 대비)
+    // 2026-05-14 C안 부활: AI 적중률 탭 복구 (overall_verdict.level 3그룹 기준)
     return `
         <div class="bt-tabs">
             <a href="#backtest" class="bt-tab ${activeTab === 'signal' ? 'active' : ''}">🎯 매수 참고 신호</a>
+            <a href="#backtest?tab=ai" class="bt-tab ${activeTab === 'ai' ? 'active' : ''}">🤖 AI 분석 적중률</a>
         </div>`;
 }
 
@@ -2084,9 +2091,18 @@ function renderBacktest(main) {
     `;
 }
 
-// ============ 뷰: AI 분석 적중률 백테스트 ============
-/** @deprecated 2026-05-14 AI 정보 비서 전환으로 buy/sell/hold 적중률 측정 자체가 의미 없어짐.
- *  라우터에서 호출 제거됨. 함수는 1주일 후 정리 예정. */
+// ============ 뷰: AI 분석 적중률 백테스트 (C안 부활) ============
+// AI overall_verdict.level 6단계를 3그룹(buy/hold/sell)으로 묶어 적중률 측정.
+// archive/ai_briefings/ 에 누적된 캐시 미스 호출 로그가 표본.
+const _LEVEL_META = {
+    buy_strong:  { icon: "🟢", label: "buy_strong",  cls: "verdict-buy-strong" },
+    buy:         { icon: "🟢", label: "buy",         cls: "verdict-buy" },
+    neutral:     { icon: "⚪", label: "neutral",     cls: "verdict-neutral" },
+    caution:     { icon: "🟡", label: "caution",     cls: "verdict-caution" },
+    sell:        { icon: "🔴", label: "sell",        cls: "verdict-sell" },
+    sell_strong: { icon: "🔴", label: "sell_strong", cls: "verdict-sell-strong" },
+};
+
 function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
     const bt = state.backtestAi;
 
@@ -2148,32 +2164,31 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
     const totalSignals = s.total_signals || 0;
     const insufficient = totalSignals < 50;
 
-    // 기간별 (메인: 30d)
     const byPeriod = s.by_period || {};
-    const byAction = s.by_action || {};
-    const byConfidence = s.by_confidence || {};
+    const byGroup = s.by_group || {};
+    const byLevel = s.by_level || {};
     const detail = (bt.detail || []).slice(0, 60);
 
-    function _actionRow(label, action) {
-        const a = byAction[action] || {};
-        const horizons = a.by_horizon || {};
-        const h = horizons[primary] || {};
+    function _groupRow(label, group) {
+        const g = byGroup[group] || {};
+        const h = (g.by_horizon || {})[primary] || {};
         return `<tr>
             <td><strong>${label}</strong></td>
-            <td class="num">${a.total_signals || 0}</td>
+            <td class="num">${g.total_signals || 0}</td>
             <td class="num">${_cell(h.avg_ret)}</td>
             <td class="num">${_cell(h.avg_alpha)}</td>
             <td class="num">${_hitRateCell(h)}</td>
         </tr>`;
     }
-    function _confRow(bucket) {
-        const c = byConfidence[bucket] || {};
-        const horizons = c.by_horizon || {};
-        const h = horizons[primary] || {};
+    function _levelRow(level) {
+        const meta = _LEVEL_META[level] || { icon: "•", label: level };
+        const l = byLevel[level] || {};
+        const h = (l.by_horizon || {})[primary] || {};
         return `<tr>
-            <td><strong>${bucket}</strong></td>
-            <td class="num">${c.total_signals || 0}</td>
+            <td><strong>${meta.icon} ${meta.label}</strong></td>
+            <td class="num">${l.total_signals || 0}</td>
             <td class="num">${_cell(h.avg_ret)}</td>
+            <td class="num">${_cell(h.avg_alpha)}</td>
             <td class="num">${_hitRateCell(h)}</td>
         </tr>`;
     }
@@ -2183,17 +2198,22 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
         ${_backtestTabsHTML('ai')}
         <div class="subtitle">
             총 ${totalSignals}건 측정 · skipped(시세 부족) ${s.skipped_no_price || 0}건 ·
-            이 측정은 <strong>${totalSignals}개의 신호 기준</strong>입니다
+            level 없음 ${s.skipped_no_level || 0}건
         </div>
 
         <div class="card bt-method-card">
-            <h3 class="bt-section">🧪 측정 방법론</h3>
+            <h3 class="bt-section">🧪 측정 방법론 (C안 부활 버전)</h3>
             <ul class="bt-method">
-                <li>📍 <strong>로그 대상</strong>: 캐시 미스 = 실제 Claude 호출만 (가족 클릭 횟수 ≠ 호출 횟수)</li>
+                <li>📍 <strong>판정 대상</strong>: AI 응답의 <code>overall_verdict.level</code> (단기 1-2주 종합 평가)</li>
+                <li>📍 <strong>6단계 → 3그룹 매핑</strong>:
+                    buy_strong+buy → <span class="up">buy</span> /
+                    neutral+caution → <span class="flat">hold</span> /
+                    sell+sell_strong → <span class="down">sell</span></li>
                 <li>📍 <strong>주 horizon</strong>: +${primary}거래일 후 종가</li>
                 <li>📍 <strong>적중 기준 (±${hitThr}%)</strong>:
                     buy → +${hitThr}%↑ 상승 / sell → -${hitThr}%↓ 하락 / hold → |Δ| ≤ ${hitThr}%</li>
-                <li>📍 <strong>알파</strong>: 종목 수익률 - 같은 구간 KOSPI 수익률</li>
+                <li>📍 <strong>알파</strong>: 종목 수익률 − 같은 구간 KOSPI 수익률</li>
+                <li>📍 <strong>로그 대상</strong>: 캐시 미스 = 실제 Claude 호출만 (가족 클릭 횟수 ≠ 호출 횟수)</li>
                 <li>📍 <strong>모집단 한계</strong>: 가족이 클릭한 종목만 측정. 시장 전체 임의표본 아님.</li>
             </ul>
         </div>
@@ -2209,7 +2229,7 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
         ` : ""}
 
         <div class="card">
-            <h3 class="bt-section">📅 기간별 (전체 적중률, +${primary}거래일 기준)</h3>
+            <h3 class="bt-section">📅 기간별 전체 적중률 (+${primary}거래일)</h3>
             <table class="bt-table">
                 ${_horizonHeader()}
                 <tbody>
@@ -2221,11 +2241,11 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
         </div>
 
         <div class="card">
-            <h3 class="bt-section">🟢🔴⚪ action별 적중률 (+${primary}거래일)</h3>
+            <h3 class="bt-section">🟢🟡🔴 그룹별 적중률 (+${primary}거래일)</h3>
             <table class="bt-table">
                 <thead>
                     <tr>
-                        <th>action</th>
+                        <th>group</th>
                         <th class="num">건수</th>
                         <th class="num">평균 수익률</th>
                         <th class="num">평균 알파</th>
@@ -2233,37 +2253,35 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
                     </tr>
                 </thead>
                 <tbody>
-                    ${_actionRow("🟢 buy", "buy")}
-                    ${_actionRow("🔴 sell", "sell")}
-                    ${_actionRow("⚪ hold", "hold")}
+                    ${_groupRow("🟢 buy (buy_strong+buy)", "buy")}
+                    ${_groupRow("⚪ hold (neutral+caution)", "hold")}
+                    ${_groupRow("🔴 sell (sell+sell_strong)", "sell")}
                 </tbody>
             </table>
             <div class="bt-note">
-                💡 buy 적중 = +${hitThr}%↑ 상승. sell 적중 = -${hitThr}%↓ 하락. hold 적중 = |Δ| ≤ ${hitThr}%.
+                💡 buy 적중 = +${hitThr}%↑ 상승 · sell 적중 = -${hitThr}%↓ 하락 · hold 적중 = |Δ| ≤ ${hitThr}%.
             </div>
         </div>
 
         <div class="card">
-            <h3 class="bt-section">🎯 confidence 구간별 적중률 (+${primary}거래일)</h3>
+            <h3 class="bt-section">🎯 6단계 raw level별 적중률 (+${primary}거래일)</h3>
             <table class="bt-table">
                 <thead>
                     <tr>
-                        <th>confidence</th>
+                        <th>level</th>
                         <th class="num">건수</th>
                         <th class="num">평균 수익률</th>
-                        <th class="num">적중률</th>
+                        <th class="num">평균 알파</th>
+                        <th class="num">적중률 (그룹 기준)</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${_confRow("9-10")}
-                    ${_confRow("7-8")}
-                    ${_confRow("5-6")}
-                    ${_confRow("1-4")}
+                    ${["buy_strong","buy","neutral","caution","sell","sell_strong"].map(_levelRow).join("")}
                 </tbody>
             </table>
             <div class="bt-note">
-                💡 confidence 가 높을수록 적중률이 높아져야 모델 신뢰도가 의미 있습니다.
-                고 confidence 군이 저 confidence 군보다 낮은 적중률이면 모델 self-evaluation 신뢰 불가.
+                💡 각 level 의 적중 판정은 위 3그룹 기준을 그대로 사용합니다.
+                buy_strong 이 buy 보다 평균 수익률·적중률이 높아야 모델의 강도 표현이 의미 있습니다.
             </div>
         </div>
 
@@ -2276,8 +2294,8 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
                         <th>호출 시각</th>
                         <th>종목</th>
                         <th class="num">호출가</th>
-                        <th>action</th>
-                        <th class="num">conf</th>
+                        <th>level</th>
+                        <th>group</th>
                         <th class="num">+1일</th>
                         <th class="num">+5일</th>
                         <th class="num">+10일</th>
@@ -2294,13 +2312,16 @@ function renderBacktestAI(main) {  // eslint-disable-line no-unused-vars
                         const hitTxt = hit === true ? '<span class="up">✓</span>'
                                      : hit === false ? '<span class="down">✗</span>'
                                      : '<span class="muted">—</span>';
-                        const aIcon = d.action === "buy" ? "🟢" : d.action === "sell" ? "🔴" : "⚪";
+                        const lvl = d.level || "—";
+                        const lvlMeta = _LEVEL_META[lvl] || { icon: "•", label: lvl };
+                        const grp = d.group || "—";
+                        const grpIcon = grp === "buy" ? "🟢" : grp === "sell" ? "🔴" : "⚪";
                         return `<tr>
                             <td class="bt-date">${escapeHtml(d.timestamp.replace("T", " ").substring(0, 16))}</td>
                             <td><span class="bt-name" onclick="goSearch('${d.code}')">${escapeHtml(d.name)}</span><br><span class="bt-code">${d.code}</span></td>
                             <td class="num">${formatPrice(d.base_price)}원</td>
-                            <td>${aIcon} ${d.action}</td>
-                            <td class="num">${d.confidence}</td>
+                            <td>${lvlMeta.icon} ${lvlMeta.label}</td>
+                            <td>${grpIcon} ${grp}</td>
                             <td class="num">${h1 ? _cell(h1.ret) : '<span class="muted">—</span>'}</td>
                             <td class="num">${h5 ? _cell(h5.ret) : '<span class="muted">—</span>'}</td>
                             <td class="num">${h10 ? _cell(h10.ret) : '<span class="muted">—</span>'}</td>
@@ -2713,9 +2734,8 @@ async function renderSearchResult(main, code) {
 }
 
 // ============ 네비게이션 헬퍼 ============
-/** 종목 상세의 AI 카드 아래에 표시되는 "최근 30일 AI 분석 분포" 박스. */
-/** @deprecated 2026-05-14 AI 정보 비서 전환. buy/sell/hold 분포 의미 없어짐.
- *  호출 위치 모두 제거됨. 함수는 1주일 후 정리 예정. */
+/** 종목 상세의 AI 카드 아래에 표시되는 "최근 30일 AI 분석 분포" 박스 (C안 부활).
+ *  6단계 verdict.level 분포 + 3그룹(buy/hold/sell) 적중률. */
 function renderAiStatsCard() {  // eslint-disable-line no-unused-vars
     const s = state.aiStats;
     if (!s || !s.periods) return "";
@@ -2735,25 +2755,26 @@ function renderAiStatsCard() {  // eslint-disable-line no-unused-vars
         </div>`;
     }
 
-    const dist = p.distribution || {};
-    const buy  = dist.buy  || { count: 0, pct: 0 };
-    const sell = dist.sell || { count: 0, pct: 0 };
-    const hold = dist.hold || { count: 0, pct: 0 };
+    const dg = p.distribution_by_group || {};
+    const dl = p.distribution_by_level || {};
+    const buy  = dg.buy  || { count: 0, pct: 0 };
+    const sell = dg.sell || { count: 0, pct: 0 };
+    const hold = dg.hold || { count: 0, pct: 0 };
 
-    // 동적 안내 메시지
+    // 동적 안내 메시지 (3그룹 비율 기준)
     let note;
     if (hold.pct >= 70) {
-        note = "💡 현재 시장이 과열/조정 국면일 때 AI는 보수적으로 답하는 경향이 있습니다. 관망 답변이 많다는 것 자체가 시장 상황의 신호일 수 있습니다.";
+        note = "💡 현재 시장이 과열/조정 국면일 때 AI는 보수적으로 답하는 경향이 있습니다. 관망(neutral·caution) 답변이 많다는 것 자체가 시장 상황의 신호일 수 있습니다.";
     } else if (buy.pct >= 40) {
-        note = "📈 매수 신호가 많은 시기입니다. 다만 이 분포는 전체 시장 분위기 지표일 뿐, 개별 종목의 실제 성과를 보장하지 않습니다.";
+        note = "📈 매수 분위기 신호가 많은 시기입니다. 다만 이 분포는 전체 시장 분위기 지표일 뿐, 개별 종목의 실제 성과를 보장하지 않습니다.";
     } else if (sell.pct >= 40) {
-        note = "📉 조정 압력이 강한 시기입니다. 매도 신호가 많을 때는 시장 전반의 변동성이 큰 경우가 많습니다.";
+        note = "📉 조정 압력이 강한 시기입니다. 매도 분위기가 많을 때는 시장 전반의 변동성이 큰 경우가 많습니다.";
     } else {
-        note = "🔄 매수/매도/관망이 고르게 분포된 상태입니다. 시장 방향성이 불명확할 가능성이 있습니다.";
+        note = "🔄 매수/관망/매도 분위기가 고르게 분포된 상태입니다. 시장 방향성이 불명확할 가능성이 있습니다.";
     }
 
-    function bar(label, icon, val, cls) {
-        const w = Math.max(2, val.pct);  // 0% 도 시각적으로 살짝 보이게
+    function groupBar(label, icon, val, cls) {
+        const w = Math.max(2, val.pct);
         return `<div class="ai-stat-row">
             <span class="ai-stat-label">${icon} ${label}</span>
             <span class="ai-stat-bar-wrap"><span class="ai-stat-bar ${cls}" style="width:${w}%"></span></span>
@@ -2761,7 +2782,17 @@ function renderAiStatsCard() {  // eslint-disable-line no-unused-vars
         </div>`;
     }
 
-    // 적중률 섹션 (있을 때만 표시. 각 카테고리는 표본 미달 시 회색)
+    // 6단계 raw level 표
+    function levelRow(level) {
+        const meta = _LEVEL_META[level] || { icon: "•", label: level };
+        const v = dl[level] || { count: 0, pct: 0 };
+        return `<tr>
+            <td><strong>${meta.icon} ${meta.label}</strong></td>
+            <td class="num">${v.count}</td>
+            <td class="num">${v.pct}%</td>
+        </tr>`;
+    }
+
     const acc = p.accuracy_5d;
     let accHTML = "";
     if (acc && (acc.buy_signals || acc.sell_signals || acc.hold_signals)) {
@@ -2783,23 +2814,30 @@ function renderAiStatsCard() {  // eslint-disable-line no-unused-vars
         }
         accHTML = `
             <div class="ai-stats-divider"></div>
-            <div class="ai-stats-section-title">🎯 +5거래일 적중률</div>
-            ${accLine("매수 → +2%↑", "buy_signals",  "🟢")}
-            ${accLine("매도 → -2%↓", "sell_signals", "🔴")}
-            ${accLine("관망 → ±2% 이내", "hold_signals", "⚪")}
+            <div class="ai-stats-section-title">🎯 +5거래일 적중률 (3그룹 기준)</div>
+            ${accLine("매수 분위기 → +2%↑", "buy_signals",  "🟢")}
+            ${accLine("관망 → ±2% 이내",   "hold_signals", "⚪")}
+            ${accLine("매도 분위기 → -2%↓", "sell_signals", "🔴")}
         `;
     }
 
-    const conf = p.confidence || {};
     return `<div class="card ai-stats-card">
         <h3 class="ai-stats-title">📊 최근 30일 AI 분석 분포 <span class="ai-stats-count">(${p.total_calls}건 기준)</span></h3>
-        <div class="ai-stats-sub">이 사이트에서 다른 종목들을 분석했을 때 나온 결과 분포</div>
+        <div class="ai-stats-sub">이 사이트에서 다른 종목들을 분석했을 때 나온 verdict 분포</div>
         <div class="ai-stats-bars">
-            ${bar("매수 (buy)",  "🟢", buy,  "ai-bar-up")}
-            ${bar("매도 (sell)", "🔴", sell, "ai-bar-down")}
-            ${bar("관망 (hold)", "⚪", hold, "ai-bar-flat")}
+            ${groupBar("매수 분위기 (buy_strong+buy)",  "🟢", buy,  "ai-bar-up")}
+            ${groupBar("관망 (neutral+caution)",        "⚪", hold, "ai-bar-flat")}
+            ${groupBar("매도 분위기 (sell+sell_strong)", "🔴", sell, "ai-bar-down")}
         </div>
-        <div class="ai-stats-conf">평균 확신도 ${conf.avg ?? "—"} / 10 <span class="muted">(중앙값 ${conf.median ?? "—"})</span></div>
+        <details class="ai-stats-details">
+            <summary>6단계 상세 분포 보기</summary>
+            <table class="bt-table ai-stats-level-table">
+                <thead><tr><th>level</th><th class="num">건수</th><th class="num">비율</th></tr></thead>
+                <tbody>
+                    ${["buy_strong","buy","neutral","caution","sell","sell_strong"].map(levelRow).join("")}
+                </tbody>
+            </table>
+        </details>
         ${accHTML}
         <div class="ai-stats-note">${note}</div>
     </div>`;
@@ -2864,7 +2902,7 @@ async function requestAiAnalysis(code) {
             return;
         }
 
-        body.innerHTML = renderAiBriefing(r);
+        body.innerHTML = renderAiBriefing(r) + renderAiStatsCard();
     } catch (e) {
         body.innerHTML = `<div class="ai-error">❌ 네트워크 오류: ${escapeHtml(String(e))}</div>`;
     }
