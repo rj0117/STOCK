@@ -623,7 +623,7 @@ function renderTop30(main) {
                         const flow = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[s.code];
                         const today = flow && flow.days && flow.days[0];
                         return `
-                            <tr>
+                            <tr data-live-code="${s.code}">
                                 <td class="rk ${rankCls}">${i + 1}</td>
                                 <td>
                                     <div class="name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)} ${industryBadgeHTML(s.code)}</div>
@@ -632,8 +632,8 @@ function renderTop30(main) {
                                 <td>${signalBadgeHTML(s.code, {compact: true})}</td>
                                 <td>${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
                                 <td>${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
-                                <td class="num"><strong>${formatPrice(s.price)}</strong>원</td>
-                                <td class="num ${ch.cls}">${ch.text}</td>
+                                <td class="num" data-live-price><strong>${formatPrice(s.price)}</strong>원</td>
+                                <td class="num ${ch.cls}" data-live-change>${ch.text}</td>
                                 <td class="num ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
                                 <td class="num ${today ? netCls(today.organ_net) : 'muted'}">${today ? formatSignedQty(today.organ_net) : '—'}</td>
                                 <td class="num ${today ? netCls(today.individual_net) : 'muted'}">${today ? formatSignedQty(today.individual_net) : '—'}</td>
@@ -647,6 +647,7 @@ function renderTop30(main) {
         </div>
     `;
     main.innerHTML = html;
+    refreshLivePrices(main);
 }
 
 // ============ 뷰: 뉴스 이슈별 ============
@@ -718,7 +719,7 @@ function renderRecommendBuy(main) {
                 ${candidates.map((c, i) => {
                     const ch = formatChange(c.change, c.change_pct);
                     return `
-                        <article class="card rec-card" onclick="goSearch('${c.code}')">
+                        <article class="card rec-card" data-live-code="${c.code}" onclick="goSearch('${c.code}')">
                             <header class="rec-head">
                                 <span class="rec-rank">${i + 1}</span>
                                 <div class="rec-name-block">
@@ -729,8 +730,8 @@ function renderRecommendBuy(main) {
                                 ${favIconHTML(c.code)}
                             </header>
                             <div class="rec-price-row">
-                                <div class="rec-now">${formatPrice(c.close)}원</div>
-                                <div class="rec-change ${ch.cls}">${ch.text}</div>
+                                <div class="rec-now" data-live-price>${formatPrice(c.close)}원</div>
+                                <div class="rec-change ${ch.cls}" data-live-change>${ch.text}</div>
                             </div>
                             <div class="rec-chart">${chartHTML(c.days, {width: 260, height: 70})}</div>
                             <div class="rec-signals">
@@ -762,6 +763,7 @@ function renderRecommendBuy(main) {
             </div>
         `}
     `;
+    refreshLivePrices(main);
 }
 
 // ============ 매수 추천 일별 추적 ============
@@ -1009,7 +1011,7 @@ function renderNewsKeywords(main) {
                 const ch = formatChange(s.change, s.change_pct);
                 const hasFlow = s.foreign_net !== 0 || s.organ_net !== 0 || s.individual_net !== 0;
                 return `
-                    <article class="card snc-card">
+                    <article class="card snc-card" data-live-code="${s.code}">
                         <header class="snc-head">
                             <div class="snc-rank">${i + 1}</div>
                             <div class="snc-name-block">
@@ -1041,13 +1043,13 @@ function renderNewsKeywords(main) {
                         <div class="snc-price-block">
                             <div class="snc-now">
                                 <span class="label">현재가</span>
-                                <span class="value">${s.price ? formatPrice(s.price) + "원" : "—"}</span>
+                                <span class="value" data-live-price>${s.price ? formatPrice(s.price) + "원" : "—"}</span>
                             </div>
                             <div class="snc-prev">
                                 <span class="label">전일</span>
-                                <span class="value">${s.prev_close ? formatPrice(s.prev_close) + "원" : "—"}</span>
+                                <span class="value" data-live-prev>${s.prev_close ? formatPrice(s.prev_close) + "원" : "—"}</span>
                             </div>
-                            <div class="snc-change ${ch.cls}">${ch.text}</div>
+                            <div class="snc-change ${ch.cls}" data-live-change>${ch.text}</div>
                         </div>
                         ${hasFlow ? `
                             <div class="snc-flow">
@@ -1084,6 +1086,7 @@ function renderNewsKeywords(main) {
             }).join("")}
         </div>
     `;
+    refreshLivePrices(main);
 }
 
 function renderKeywordDetail(main, keyword) {
@@ -1402,13 +1405,43 @@ function formatPublished(iso) {
     } catch (e) { return iso; }
 }
 
-// 시세 조회 캐시 (같은 코드를 여러 카드에서 쓰면 한 번만 호출)
+// 시세 조회 캐시 (같은 코드를 여러 카드에서 쓰면 한 번만 호출, 60초 TTL)
 const _priceCache = new Map();
+const _PRICE_TTL_MS = 60 * 1000;
 function fetchStockCached(code) {
-    if (_priceCache.has(code)) return _priceCache.get(code);
+    const cached = _priceCache.get(code);
+    if (cached && Date.now() - cached.t < _PRICE_TTL_MS) return cached.p;
     const p = fetchJsonUtf8(`/api/stock?code=${code}`, { code, error: true });
-    _priceCache.set(code, p);
+    _priceCache.set(code, { p, t: Date.now() });
     return p;
+}
+
+/** 목록 페이지 진입 시 배치 데이터의 가격을 실시간으로 덮어쓰기.
+ *  마킹 규칙: 행에 [data-live-code], 셀에 [data-live-price] / [data-live-change] / [data-live-prev]. */
+function refreshLivePrices(container) {
+    if (!container) return;
+    const rows = container.querySelectorAll('[data-live-code]');
+    rows.forEach(row => {
+        const code = row.dataset.liveCode;
+        if (!code) return;
+        fetchStockCached(code).then(stock => {
+            if (!stock || stock.error || !stock.price) return;
+            const priceEl = row.querySelector('[data-live-price]');
+            if (priceEl) {
+                const strong = priceEl.querySelector('strong');
+                if (strong) strong.textContent = formatPrice(stock.price);
+                else priceEl.textContent = formatPrice(stock.price) + '원';
+            }
+            const prevEl = row.querySelector('[data-live-prev]');
+            if (prevEl && stock.prev_close) prevEl.textContent = formatPrice(stock.prev_close) + '원';
+            const changeEl = row.querySelector('[data-live-change]');
+            if (changeEl) {
+                const ch = formatChange(stock.change, stock.change_pct);
+                changeEl.textContent = ch.text;
+                changeEl.className = (changeEl.className.replace(/\b(up|down|flat)\b/g, '').trim()) + ' ' + ch.cls;
+            }
+        }).catch(() => {});
+    });
 }
 
 const _flowCache = new Map();
