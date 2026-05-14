@@ -917,7 +917,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib4:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v4: Tool Use 도입
+    cache_key = f"aib5:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"  # v5: 입력 단축
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -956,7 +956,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     flow = get_flow(code)
     news_query = stock.get("name") or code
     news = get_news(news_query, display=10)
-    news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:8]
+    news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:5]  # 8→5 응답속도 단축
     indexes = get_market_indexes()
     macro = get_macro_context()
 
@@ -1050,7 +1050,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
     news_lines = []
     for i, n in enumerate(news_list, 1):
         title = (n.get("title") or "")[:120]
-        summary = (n.get("summary") or "")[:200]
+        summary = (n.get("summary") or "")[:120]  # 200→120 입력 단축
         if summary:
             news_lines.append(f"  {i}. {title}\n     └ {summary}")
         else:
@@ -1125,7 +1125,7 @@ def get_ai_analysis(code, client_ip=None, avg_price=None, shares=None):
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 2000,
+            "max_tokens": 1500,  # 응답 속도 우선. Tool Use 스키마 maxItems 제한으로 잘림 위험 낮음
             "system": AI_SYSTEM_PROMPT,
             "tools": [AI_BRIEFING_TOOL],
             "tool_choice": {"type": "tool", "name": "report_stock_briefing"},

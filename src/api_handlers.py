@@ -890,7 +890,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     cache_suffix = ""
     if avg_price_int:
         cache_suffix = f":p{avg_price_int}" + (f"q{shares_int}" if shares_int else "")
-    cache_key = f"aib4:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
+    cache_key = f"aib5:{code}:{now_kst().strftime('%Y-%m-%d')}{cache_suffix}"
     cached_raw = _kv_get(cache_key)
     if cached_raw:
         try:
@@ -926,7 +926,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     flow = get_flow(code)
     news_query = stock.get("name") or code
     news = get_news(news_query, display=10)
-    news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:8]
+    news_list = [n for n in news if isinstance(n, dict) and n.get("title")][:5]
     indexes = get_market_indexes()
     macro = get_macro_context()
 
@@ -1020,7 +1020,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
     news_lines = []
     for i, n in enumerate(news_list, 1):
         title = (n.get("title") or "")[:120]
-        summary = (n.get("summary") or "")[:200]
+        summary = (n.get("summary") or "")[:120]
         if summary:
             news_lines.append(f"  {i}. {title}\n     └ {summary}")
         else:
@@ -1092,7 +1092,7 @@ def get_ai_analysis(code: str, client_ip: str = None, avg_price=None, shares=Non
         }
         body = {
             "model": "claude-sonnet-4-6",
-            "max_tokens": 2000,
+            "max_tokens": 1500,
             "system": AI_SYSTEM_PROMPT,
             "tools": [AI_BRIEFING_TOOL],
             "tool_choice": {"type": "tool", "name": "report_stock_briefing"},
