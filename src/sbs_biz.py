@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 11  # v11: 영문↔한글 경계 공백 허용(LG디스플레이 ↔ "LG 디스플레이") + 지주사 prefix 차감(LG-LG전자/LG디스플레이/...)
+FORMAT_VERSION = 12  # v12: 자막 추출 단계별 진단 stash (GitHub Actions 자막 실패 원인 추적용, 일회성)
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -148,12 +148,20 @@ def fetch_recent_videos(channel_id):
 # ============================================================
 # 자막 추출
 # ============================================================
+_TRANSCRIPT_DIAG = {}  # 직전 자막 시도의 단계별 결과 (sbsbiz.json 에 임시 stash 용)
+
+
 def _fetch_transcript_via_ytdlp(video_id):
     """yt-dlp 로 한국어 자막 URL → json3 다운로드 → 텍스트 합치기. 실패 시 None.
     youtube-transcript-api 가 GitHub Actions 등 데이터센터 IP에서 차단되는 문제 회피용."""
+    diag = {"video_id": video_id, "stages": []}
     try:
         import yt_dlp
-    except ImportError:
+        diag["stages"].append("yt_dlp_import_ok")
+        diag["yt_dlp_version"] = getattr(yt_dlp.version, "__version__", "?")
+    except ImportError as e:
+        diag["fail"] = f"yt_dlp ImportError: {e}"
+        _TRANSCRIPT_DIAG.update(diag)
         return None
     url = f"https://www.youtube.com/watch?v={video_id}"
     ydl_opts = {
@@ -169,33 +177,52 @@ def _fetch_transcript_via_ytdlp(video_id):
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(url, download=False)
+        diag["stages"].append("extract_info_ok")
     except Exception as e:
-        print(f"   [SBS Biz] yt-dlp info 추출 실패 {video_id}: {type(e).__name__}: {str(e)[:120]}")
+        msg = f"{type(e).__name__}: {str(e)[:200]}"
+        diag["fail"] = f"extract_info: {msg}"
+        _TRANSCRIPT_DIAG.update(diag)
+        print(f"   [SBS Biz] yt-dlp info 추출 실패 {video_id}: {msg[:120]}")
         return None
 
-    # 수동 자막 우선, 없으면 자동 자막
-    for src in (info.get("subtitles") or {}, info.get("automatic_captions") or {}):
+    subs = info.get("subtitles") or {}
+    auto = info.get("automatic_captions") or {}
+    diag["manual_lang_count"] = len(subs)
+    diag["auto_lang_count"] = len(auto)
+    diag["has_ko_manual"] = any(k in subs for k in ("ko", "ko-KR", "ko_KR"))
+    diag["has_ko_auto"] = any(k in auto for k in ("ko", "ko-KR", "ko_KR"))
+
+    for src in (subs, auto):
         for lang_key in ("ko", "ko-KR", "ko_KR"):
             entries = src.get(lang_key)
             if not entries:
                 continue
-            # json3 우선
             ent = next((e for e in entries if e.get("ext") == "json3"), None) or entries[0]
             sub_url = ent.get("url")
             ext = ent.get("ext")
             if not sub_url:
                 continue
+            diag["subtitle_url_obtained"] = True
             try:
                 import urllib.request
                 req = urllib.request.Request(sub_url, headers={"User-Agent": HEADERS["User-Agent"]})
                 with urllib.request.urlopen(req, timeout=15) as r:
                     raw = r.read().decode("utf-8", errors="ignore")
+                diag["stages"].append(f"subtitle_fetch_ok({len(raw)}B)")
             except Exception as e:
-                print(f"   [SBS Biz] 자막 fetch 실패 {video_id}: {type(e).__name__}")
+                msg = f"{type(e).__name__}: {str(e)[:200]}"
+                diag.setdefault("subtitle_fetch_errors", []).append(msg)
+                print(f"   [SBS Biz] 자막 fetch 실패 {video_id}: {msg[:120]}")
                 continue
             text = _parse_subtitle_text(raw, ext)
             if text:
+                diag["stages"].append(f"parsed_ok({len(text)}chars)")
+                _TRANSCRIPT_DIAG.update(diag)
                 return text
+            else:
+                diag["stages"].append("parse_empty")
+    diag["fail"] = "no_korean_subtitle_or_all_fetch_failed"
+    _TRANSCRIPT_DIAG.update(diag)
     return None
 
 
@@ -432,6 +459,9 @@ def update(stocks_master):
     data["videos"] = data["videos"][:200]  # 최대 200개 누적
 
     data["updated_at"] = now_kst().strftime("%Y-%m-%d %H:%M:%S")
+    # 임시 진단: 직전 자막 시도의 단계별 결과 (실 영상에서 자막 성공/실패 원인 추적)
+    if _TRANSCRIPT_DIAG:
+        data["last_transcript_diagnostic"] = dict(_TRANSCRIPT_DIAG)
     _save(data)
     print(f"   ✅ 저장: {JSON_PATH} (총 {len(data['videos'])}개 영상)")
     return data
