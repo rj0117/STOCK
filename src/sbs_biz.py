@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 14  # v14: yt-dlp 포맷 검증 우회 (ignore_no_formats_error) — "Requested format" 에러 회피
+FORMAT_VERSION = 15  # v15: yt-dlp player_client 다양화 (ios/tv_embedded/web_safari/...) — 데이터센터 IP에서 자막 dict 비는 문제 우회
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -177,6 +177,13 @@ def _fetch_transcript_via_ytdlp(video_id):
         "ignore_no_formats_error": True,
         "youtube_include_dash_manifest": False,
         "youtube_include_hls_manifest": False,
+        # 데이터센터 IP 에서 WEB 클라이언트 응답이 자막 dict 를 비워서 보내는 사례.
+        # ios/tv_embedded 같은 다른 클라이언트는 자막 dict 가 채워지는 경우가 많음.
+        "extractor_args": {
+            "youtube": {
+                "player_client": ["ios", "tv_embedded", "web_safari", "mweb", "web"]
+            }
+        },
     }
     # YouTube 봇 차단 우회용 쿠키 (GitHub Actions에서 환경변수로 전달)
     cookie_file = os.environ.get("YOUTUBE_COOKIES_FILE")
