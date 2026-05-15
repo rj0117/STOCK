@@ -1,8 +1,8 @@
 {
-  "format_version": 13,
+  "format_version": 14,
   "channel": "SBS Biz 증권",
   "channel_id": "UCArMoa6lEdcDIsT7srY8YsA",
-  "updated_at": "2026-05-16 00:05:49",
+  "updated_at": "2026-05-16 00:28:02",
   "videos": [
     {
       "video_id": "ylSIjPwjkSA",
@@ -306,10 +306,15 @@
   "last_transcript_diagnostic": {
     "video_id": "JhgWFQ1wOqY",
     "stages": [
-      "yt_dlp_import_ok"
+      "yt_dlp_import_ok",
+      "extract_info_ok"
     ],
     "yt_dlp_version": "2026.03.17",
     "cookie_file": "/tmp/yt_cookies.txt",
-    "fail": "extract_info: DownloadError: ERROR: [youtube] JhgWFQ1wOqY: Requested format is not available. Use --list-formats for a list of available formats"
+    "manual_lang_count": 0,
+    "auto_lang_count": 0,
+    "has_ko_manual": false,
+    "has_ko_auto": false,
+    "fail": "no_korean_subtitle_or_all_fetch_failed"
   }
 }
