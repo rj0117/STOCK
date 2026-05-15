@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 13  # v13: YouTube 쿠키 인증 지원 (YOUTUBE_COOKIES_FILE 환경변수 → yt-dlp cookiefile)
+FORMAT_VERSION = 14  # v14: yt-dlp 포맷 검증 우회 (ignore_no_formats_error) — "Requested format" 에러 회피
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -173,6 +173,10 @@ def _fetch_transcript_via_ytdlp(video_id):
         "quiet": True,
         "no_warnings": True,
         "extract_flat": False,
+        # 자막만 필요하므로 비디오 포맷 매칭 실패해도 통과 (Requested format is not available 회피)
+        "ignore_no_formats_error": True,
+        "youtube_include_dash_manifest": False,
+        "youtube_include_hls_manifest": False,
     }
     # YouTube 봇 차단 우회용 쿠키 (GitHub Actions에서 환경변수로 전달)
     cookie_file = os.environ.get("YOUTUBE_COOKIES_FILE")
