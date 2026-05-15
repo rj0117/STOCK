@@ -33,7 +33,7 @@ SITE_DIR = os.path.join(BASE_DIR, "public")
 JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
-FORMAT_VERSION = 15  # v15: yt-dlp player_client 다양화 (ios/tv_embedded/web_safari/...) — 데이터센터 IP에서 자막 dict 비는 문제 우회
+FORMAT_VERSION = 16  # v16: SBSBIZ_SKIP / SBSBIZ_RETRY_TITLE 환경변수 + 옛 title 폴백 영상 자막 재시도 로직 (PC 로컬 cron 위임)
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -422,7 +422,15 @@ def _save(data):
 
 
 def update(stocks_master):
-    """전체 갱신 엔트리포인트"""
+    """전체 갱신 엔트리포인트.
+
+    SBSBIZ_SKIP=1 환경변수가 설정되면 즉시 종료 (GitHub Actions 에서 자막 차단 우회 안 시도).
+    SBSBIZ_RETRY_TITLE=1 이면 기존 source=='title' 폴백 영상도 자막 재시도 (PC 로컬 실행 용).
+    """
+    if os.environ.get("SBSBIZ_SKIP"):
+        print("[SBS Biz] SBSBIZ_SKIP=1 → 자막 수집 건너뜀 (PC 로컬 실행에 위임)")
+        return _load_existing()
+
     print("=" * 60)
     print(f"📺 SBS Biz YouTube 추천 종목 수집 - {now_kst().strftime('%Y-%m-%d %H:%M')}")
     print("=" * 60)
@@ -440,35 +448,66 @@ def update(stocks_master):
         return data
     print(f"   RSS 영상 {len(videos)}개")
 
-    existing_ids = {v["video_id"] for v in data["videos"]}
-    new_videos = [v for v in videos if v["video_id"] not in existing_ids]
-    print(f"   신규 영상 {len(new_videos)}개")
+    retry_title = bool(os.environ.get("SBSBIZ_RETRY_TITLE"))
+    existing_by_id = {v["video_id"]: v for v in data["videos"]}
+    new_videos = [v for v in videos if v["video_id"] not in existing_by_id]
+    retry_targets = []
+    if retry_title:
+        # RSS 에 있는 영상 중 기존 entry 가 title 폴백된 것 — 자막 재시도 후보
+        retry_targets = [v for v in videos
+                         if v["video_id"] in existing_by_id
+                         and existing_by_id[v["video_id"]].get("source") == "title"]
+        print(f"   신규 영상 {len(new_videos)}개 / 자막 재시도 대상 (옛 title 폴백) {len(retry_targets)}개")
+    else:
+        print(f"   신규 영상 {len(new_videos)}개")
 
-    for v in new_videos:
+    def _process(v, existing_entry=None):
         transcript = get_transcript_text(v["video_id"])
         if transcript:
             stocks = extract_stocks_from_text(transcript, stocks_master, min_mentions=1)
-            source = "transcript"
-            log_extra = f"자막 {len(transcript)}자"
-        else:
-            text = f"{v['title']}\n{v['description']}"
-            stocks = extract_stocks_from_text(text, stocks_master, min_mentions=1)
-            source = "title"
-            log_extra = "제목/설명"
-
-        entry = {
+            return {
+                "video_id": v["video_id"],
+                "title": v["title"],
+                "url": v["url"],
+                "published": v["published"],
+                "thumbnail": v["thumbnail"],
+                "is_short": v.get("is_short", False),
+                "source": "transcript",
+                "stocks": stocks[:20],
+            }, f"자막 {len(transcript)}자", len(stocks)
+        # 자막 실패 → title 폴백 (재시도 케이스면 기존 entry 유지)
+        if existing_entry is not None:
+            return None, None, None
+        text = f"{v['title']}\n{v['description']}"
+        stocks = extract_stocks_from_text(text, stocks_master, min_mentions=1)
+        return {
             "video_id": v["video_id"],
             "title": v["title"],
             "url": v["url"],
             "published": v["published"],
             "thumbnail": v["thumbnail"],
             "is_short": v.get("is_short", False),
-            "source": source,
-            "stocks": stocks[:20],  # 상위 20개로 제한
-        }
+            "source": "title",
+            "stocks": stocks[:20],
+        }, "제목/설명", len(stocks)
+
+    for v in new_videos:
+        entry, log_extra, n_stocks = _process(v)
         data["videos"].insert(0, entry)
-        print(f"   [+] {v['title'][:50]}  ({log_extra}, 종목 {len(stocks)}개)")
-        time.sleep(0.5)  # 자막 API 부하 줄이기
+        print(f"   [+] {v['title'][:50]}  ({log_extra}, 종목 {n_stocks}개)")
+        time.sleep(0.5)
+
+    for v in retry_targets:
+        new_entry, log_extra, n_stocks = _process(v, existing_entry=existing_by_id[v["video_id"]])
+        if new_entry is None:
+            continue  # 자막 또 실패 → 기존 title 폴백 유지
+        # 기존 entry 를 교체
+        for i, vv in enumerate(data["videos"]):
+            if vv["video_id"] == v["video_id"]:
+                data["videos"][i] = new_entry
+                break
+        print(f"   [↻] {v['title'][:50]}  ({log_extra}, 종목 {n_stocks}개) ← title→transcript 갱신")
+        time.sleep(0.5)
 
     # 최신순 정렬 (published 기준 내림차순) + 상한
     data["videos"].sort(key=lambda x: x.get("published", ""), reverse=True)

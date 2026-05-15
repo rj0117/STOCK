@@ -46,7 +46,9 @@ jobs:
         env:
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
-          # 위 step 에서 GITHUB_ENV 로 전달된 YOUTUBE_COOKIES_FILE 가 자동 흘러들어감
+          # GitHub Actions IP 에서는 YouTube 자막 추출이 모든 우회로도 막힘(데이터센터 IP 차단).
+          # SBS Biz 영상 자막은 PC 로컬 cron 에 위임 (run.bat 의 SBSBIZ_RETRY_TITLE=1 흐름).
+          SBSBIZ_SKIP: "1"
         run: python src/fetch_data.py
 
       - name: Commit & push if changed
