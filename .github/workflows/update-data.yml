@@ -30,10 +30,23 @@ jobs:
       - name: Install deps
         run: pip install -r requirements.txt
 
+      - name: Write YouTube cookies (SBS Biz 자막 봇 차단 우회)
+        env:
+          YOUTUBE_COOKIES: ${{ secrets.YOUTUBE_COOKIES }}
+        run: |
+          if [ -n "$YOUTUBE_COOKIES" ]; then
+            printf '%s' "$YOUTUBE_COOKIES" > /tmp/yt_cookies.txt
+            echo "YOUTUBE_COOKIES_FILE=/tmp/yt_cookies.txt" >> "$GITHUB_ENV"
+            echo "쿠키 파일 생성 완료 ($(wc -l < /tmp/yt_cookies.txt) lines)"
+          else
+            echo "[INFO] YOUTUBE_COOKIES secret 미설정 — 자막은 title 폴백으로만 동작"
+          fi
+
       - name: Run fetch_data
         env:
           NAVER_CLIENT_ID: ${{ secrets.NAVER_CLIENT_ID }}
           NAVER_CLIENT_SECRET: ${{ secrets.NAVER_CLIENT_SECRET }}
+          # 위 step 에서 GITHUB_ENV 로 전달된 YOUTUBE_COOKIES_FILE 가 자동 흘러들어감
         run: python src/fetch_data.py
 
       - name: Commit & push if changed
