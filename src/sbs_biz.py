@@ -34,6 +34,9 @@ JSON_PATH = os.path.join(SITE_DIR, "sbsbiz.json")
 
 # 포맷 변경 시 증가시켜 기존 데이터를 폐기하고 재수집
 FORMAT_VERSION = 16  # v16: SBSBIZ_SKIP / SBSBIZ_RETRY_TITLE 환경변수 + 옛 title 폴백 영상 자막 재시도 로직 (PC 로컬 cron 위임)
+# (참고) 2026-05-22: YouTube 가 SBSBizStock 채널의 RSS feed 만 404 차단.
+# 채널 페이지 (/videos, /shorts) HTML 의 ytInitialData 파싱 폴백을 _parse_rss 안에 추가.
+# 데이터 구조는 동일하므로 FORMAT_VERSION 유지.
 
 # 종목 매칭 시 제외할 흔한 단어 (실제 종목명이지만 본문에 자주 등장해 오탐 유발)
 NAME_BLACKLIST = {
@@ -123,15 +126,178 @@ def _parse_rss(url, is_short=False):
     return out
 
 
+def _find_all_keys(obj, target_key, depth_limit=60):
+    """obj 트리에서 target_key 인 모든 값을 평탄화해 반환."""
+    out = []
+    def walk(o, depth):
+        if depth > depth_limit:
+            return
+        if isinstance(o, dict):
+            for k, v in o.items():
+                if k == target_key:
+                    out.append(v)
+                walk(v, depth + 1)
+        elif isinstance(o, list):
+            for v in o:
+                walk(v, depth + 1)
+    walk(obj, 0)
+    return out
+
+
+def _relative_time_to_iso(text):
+    """'15시간 전', '2일 전', '1주 전' 같은 상대시각을 KST ISO 시간으로 근사 변환.
+    정렬·dedup 용. 빈 문자열은 빈 채로 반환."""
+    if not text:
+        return ""
+    m = re.match(r"(\d+)\s*(분|시간|일|주|개월|달|년)\s*전", text.strip())
+    if not m:
+        return ""
+    n = int(m.group(1))
+    unit = m.group(2)
+    delta_map = {
+        "분": timedelta(minutes=n),
+        "시간": timedelta(hours=n),
+        "일": timedelta(days=n),
+        "주": timedelta(weeks=n),
+        "개월": timedelta(days=n * 30),
+        "달": timedelta(days=n * 30),
+        "년": timedelta(days=n * 365),
+    }
+    delta = delta_map.get(unit)
+    if delta is None:
+        return ""
+    return (now_kst() - delta).strftime("%Y-%m-%dT%H:%M:%S+09:00")
+
+
+def _parse_channel_page(url, is_short=False):
+    """채널 페이지 HTML 의 ytInitialData 를 파싱해 영상 리스트 반환 (RSS 404 폴백).
+    YouTube 가 SBS Biz 채널 RSS 만 차단한 상황에서도 채널 페이지(/videos, /shorts)는 정상 응답."""
+    try:
+        resp = requests.get(url, headers=HEADERS, timeout=15)
+        resp.raise_for_status()
+    except Exception as e:
+        print(f"   [SBS Biz] 채널 페이지 조회 실패 ({'쇼츠' if is_short else '일반'}): {e}")
+        return []
+
+    html = resp.text
+    m = re.search(r"var ytInitialData = (\{.+?\});</script>", html)
+    if not m:
+        m = re.search(r"ytInitialData\s*=\s*(\{.+?\})\s*;\s*</script>", html)
+    if not m:
+        print(f"   [SBS Biz] ytInitialData 패턴 미발견 ({'쇼츠' if is_short else '일반'})")
+        return []
+    try:
+        data = json.loads(m.group(1))
+    except Exception as e:
+        print(f"   [SBS Biz] ytInitialData JSON 파싱 실패 ({'쇼츠' if is_short else '일반'}): {e}")
+        return []
+
+    out = []
+    seen = set()
+
+    if is_short:
+        # /shorts 탭은 shortsLockupViewModel 구조. published 정보 없음.
+        items = _find_all_keys(data, "shortsLockupViewModel")
+        for it in items:
+            entity = it.get("entityId") or ""
+            mm = re.match(r"shorts-shelf-item-([\w-]{11})$", entity)
+            if not mm:
+                continue
+            vid = mm.group(1)
+            if vid in seen:
+                continue
+            seen.add(vid)
+            acc = it.get("accessibilityText") or ""
+            # "제목, 조회수 X회 - Shorts 동영상 재생" 형태에서 제목만 분리
+            title = re.split(r",\s*조회수", acc, maxsplit=1)[0].strip()
+            out.append({
+                "video_id": vid,
+                "title": title,
+                "description": "",
+                "url": f"https://www.youtube.com/shorts/{vid}",
+                "published": "",  # shorts 탭에는 발행일 표기 없음
+                "thumbnail": f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg",
+                "is_short": True,
+            })
+    else:
+        # /videos 탭은 lockupViewModel + lockupMetadataViewModel 구조 (2026 신구조).
+        lockups = _find_all_keys(data, "lockupViewModel")
+        for lvm in lockups:
+            if not isinstance(lvm, dict):
+                continue
+            # video_id 는 contentImage 의 썸네일 URL '/vi/{id}/' 에서 추출
+            blob = json.dumps(lvm)
+            mm = re.search(r"/vi/([\w-]{11})/", blob)
+            if not mm:
+                continue
+            vid = mm.group(1)
+            if vid in seen:
+                continue
+
+            title = ""
+            published_text = ""
+            for mvm in _find_all_keys(lvm, "lockupMetadataViewModel"):
+                if not isinstance(mvm, dict):
+                    continue
+                t = ((mvm.get("title") or {}) if isinstance(mvm.get("title"), dict) else {}).get("content") or ""
+                if t and not title:
+                    title = t
+                try:
+                    rows = mvm["metadata"]["contentMetadataViewModel"]["metadataRows"]
+                    for row in rows:
+                        for part in row.get("metadataParts", []):
+                            txt = ((part.get("text") or {}) if isinstance(part.get("text"), dict) else {}).get("content", "")
+                            if "전" in txt and re.match(r"\d+\s*(분|시간|일|주|개월|달|년)\s*전", txt.strip()):
+                                published_text = txt
+                                break
+                        if published_text:
+                            break
+                except (KeyError, TypeError):
+                    pass
+                if title and published_text:
+                    break
+
+            if not title:
+                # 최후 폴백: lvm 안 어디든 title.content
+                for t in _find_all_keys(lvm, "title"):
+                    if isinstance(t, dict) and isinstance(t.get("content"), str):
+                        title = t["content"]
+                        break
+
+            seen.add(vid)
+            out.append({
+                "video_id": vid,
+                "title": title,
+                "description": "",
+                "url": f"https://www.youtube.com/watch?v={vid}",
+                "published": _relative_time_to_iso(published_text),
+                "thumbnail": f"https://i.ytimg.com/vi/{vid}/mqdefault.jpg",
+                "is_short": False,
+            })
+
+    return out
+
+
 def fetch_recent_videos(channel_id):
-    """일반 영상 + 쇼츠를 모두 수집해 합치고 video_id로 dedup"""
-    # 일반 영상
+    """일반 영상 + 쇼츠를 모두 수집해 합치고 video_id로 dedup.
+
+    YouTube RSS 차단 시 채널 페이지 HTML 파싱으로 폴백.
+    """
+    # 1차: RSS
     normal = _parse_rss(RSS_URL_TEMPLATE.format(channel_id), is_short=False)
-    # 쇼츠 (채널 ID UC... → playlist UUSH... 변환)
     shorts = []
     if channel_id.startswith("UC"):
         shorts_playlist_id = "UUSH" + channel_id[2:]
         shorts = _parse_rss(SHORTS_RSS_URL_TEMPLATE.format(shorts_playlist_id), is_short=True)
+
+    # 2차: RSS 가 0개면 채널 페이지 HTML 폴백 (RSS 복구 시 자동 원복)
+    if not normal:
+        print("   [SBS Biz] RSS 일반 0개 → 채널 페이지 폴백 시도")
+        normal = _parse_channel_page(f"{CHANNEL_HANDLE_URL}/videos", is_short=False)
+    if not shorts:
+        print("   [SBS Biz] RSS 쇼츠 0개 → 채널 페이지 폴백 시도")
+        shorts = _parse_channel_page(f"{CHANNEL_HANDLE_URL}/shorts", is_short=True)
+
     print(f"   영상 일반 {len(normal)}개 / 쇼츠 {len(shorts)}개")
 
     # 합치고 dedup (일반이 쇼츠와 겹치면 일반 우선이라 쇼츠 정보 덮어쓰기 방지)
