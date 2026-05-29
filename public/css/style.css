@@ -1,3 +1,11 @@
+/* 모바일에서 사이드바 가로 메뉴 스와이프가 페이지로 전파되는 문제 방지:
+   html/body 둘 다 가로 overflow 차단 + max-width 명시.
+   일부 모바일 브라우저는 body 만으로 부족해 html 도 같이 막아야 함. */
+html {
+    overflow-x: hidden;
+    max-width: 100vw;
+}
+
 :root {
     --color-primary: #1a237e;
     --color-up: #e53935;
@@ -26,6 +34,7 @@ body {
        않도록 전역 가로 스크롤 차단. 의도된 본문은 어차피 viewport 폭 안에
        들어와야 하므로 부작용 없음. */
     overflow-x: hidden;
+    max-width: 100vw;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -2462,8 +2471,11 @@ body.modal-open { overflow: hidden; }
 
 /* ============ 반응형 ============ */
 @media (max-width: 768px) {
-    /* ===== 헤더 ===== */
-    .topbar { flex-direction: column; gap: 8px; padding: 10px 12px; position: relative; }
+    /* ===== 헤더 =====
+       기본 .topbar 는 sticky top:0 인데 모바일에서는 사이드바와 top:0 이 충돌해
+       사이드바가 헤더 뒤에 가려짐. 모바일은 헤더 sticky 해제 → 사이드바 메뉴 바만
+       상단 고정. 사용자가 페이지 위로 스와이프하면 헤더(브랜드+검색바) 다시 보임. */
+    .topbar { flex-direction: column; gap: 8px; padding: 10px 12px; position: static; }
     .brand { min-width: 0; flex-direction: column; gap: 2px; align-items: flex-start; width: 100%; }
     .logo { font-size: 16px; }
     .generated { font-size: 11px; }
