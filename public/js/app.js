@@ -661,8 +661,8 @@ function renderTop30(main) {
                                 <td class="col-signal">${signalBadgeHTML(s.code, {compact: true})}</td>
                                 <td class="col-tech">${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
                                 <td class="col-forecast">${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
-                                <td class="num col-price" data-live-price><strong>${formatPrice(s.price)}</strong>원</td>
-                                <td class="num col-change ${ch.cls}" data-live-change>${ch.text}</td>
+                                <td class="num col-price" data-live-price><strong>${formatPrice(s.price) || '—'}</strong>${s.price ? '원' : ''}</td>
+                                <td class="num col-change ${ch.cls}" data-live-change>${ch.text || '—'}</td>
                                 <td class="num col-foreign ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
                                 <td class="num col-organ ${today ? netCls(today.organ_net) : 'muted'}">${today ? formatSignedQty(today.organ_net) : '—'}</td>
                                 <td class="num col-individual ${today ? netCls(today.individual_net) : 'muted'}">${today ? formatSignedQty(today.individual_net) : '—'}</td>

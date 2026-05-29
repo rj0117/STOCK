@@ -1,9 +1,15 @@
 /* 모바일에서 사이드바 가로 메뉴 스와이프가 페이지로 전파되는 문제 방지:
-   html/body 둘 다 가로 overflow 차단 + max-width 명시.
-   일부 모바일 브라우저는 body 만으로 부족해 html 도 같이 막아야 함. */
+   - overflow-x: clip 은 hidden 과 달리 새 scroll container 를 만들지 않아
+     자식 sticky 와 자식 overflow-x:auto 의 터치 팬을 방해하지 않음.
+   - Samsung Internet 5.x 는 부모 overflow-x:hidden 일 때 자식 가로 스크롤
+     컨테이너의 터치 팬을 흡수하는 알려진 버그가 있어 clip 로 회피. */
 html {
-    overflow-x: hidden;
+    overflow-x: clip;
     max-width: 100vw;
+}
+/* clip 미지원 (iOS Safari 15 이하, 구형 Edge) 환경 fallback */
+@supports not (overflow-x: clip) {
+    html { overflow-x: hidden; }
 }
 
 :root {
@@ -30,11 +36,14 @@ body {
     color: var(--color-text);
     font-size: 14px;
     line-height: 1.5;
-    /* 사이드바 가로 스크롤 메뉴(모바일)의 스와이프가 페이지 전체로 전파되지
-       않도록 전역 가로 스크롤 차단. 의도된 본문은 어차피 viewport 폭 안에
-       들어와야 하므로 부작용 없음. */
-    overflow-x: hidden;
+    /* html 과 동일하게 clip 으로. 자식 가로 스크롤 컨테이너의 터치 팬을
+       방해하지 않음 (Samsung Internet 호환). 미지원 환경은 위 @supports
+       에서 hidden 으로 fallback. */
+    overflow-x: clip;
     max-width: 100vw;
+}
+@supports not (overflow-x: clip) {
+    body { overflow-x: hidden; }
 }
 
 a { color: inherit; text-decoration: none; }
@@ -2500,22 +2509,31 @@ body.modal-open { overflow: hidden; }
         background: #fff;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
         z-index: 50;              /* 본문 위, 헤더(100) 아래 */
-        /* 데스크탑에서 적용된 max-height/overflow-y 무력화 (모바일은 가로 메뉴) */
+        /* 데스크탑 max-height/overflow 무력화 — 모바일은 가로 메뉴 */
         max-height: none;
         overflow-y: visible;
+        overflow-x: visible;      /* submenu(absolute) 가 sidebar 밖으로 clip 안 되게 */
     }
     .sidebar-menu {
         display: flex;
+        flex-wrap: nowrap;        /* 줄바꿈 차단 — 한 줄에 강제 */
+        position: relative;       /* submenu(absolute) positioning context */
         overflow-x: auto;
+        overflow-y: hidden;       /* 세로 잡음 차단 */
         -webkit-overflow-scrolling: touch;
         scroll-snap-type: x proximity;
         scrollbar-width: thin;
         scrollbar-color: var(--color-muted) transparent;
         /* 가로 스와이프 격리: 메뉴 끝에서 더 스와이프해도 페이지에 영향 없음 */
         overscroll-behavior-x: contain;
-        /* 메뉴 안에서 가로 팬만 인식, 세로 스와이프는 페이지 스크롤로 위임.
-           이렇게 하면 사용자가 메뉴를 좌우로 스와이프해도 본문이 움직이지 않음. */
-        touch-action: pan-x;
+        /* pan-x 단독은 Samsung Internet 에서 터치 흡수 사례. pan-x pan-y 로
+           모두 허용 후 overflow-x:auto 가 가로 팬만 실제 스크롤. */
+        touch-action: pan-x pan-y;
+        /* 자식 li 폭 합이 viewport 보다 작으면 가로 스크롤 발동 안 함.
+           min-width: 100% + width: max-content 로 항상 스크롤 가능 영역 보장. */
+        min-width: 100%;
+        width: max-content;
+        max-width: none;
     }
     .sidebar-menu::-webkit-scrollbar { height: 3px; }
     .sidebar-menu::-webkit-scrollbar-thumb {
@@ -2537,25 +2555,33 @@ body.modal-open { overflow: hidden; }
     .sidebar-menu > li.has-sub {
         flex-direction: row;
         align-items: center;
-        gap: 8px;
+        gap: 6px;
         padding: 10px 14px;       /* 일반 li 와 동일 */
+        flex-shrink: 0;
+        max-width: 78vw;          /* 한 항목이 viewport 거의 다 먹지 않도록 */
     }
     .sidebar-menu > li.has-sub .menu-row {
         padding: 0;
+        min-width: 0;
+        flex-shrink: 1;
     }
     .sidebar-menu > li.has-sub .menu-toggle {
         margin: 0;
         width: auto;
-        padding: 2px 8px;
+        padding: 2px 6px;
         font-size: 10px;
         flex-shrink: 0;
+        white-space: nowrap;
     }
-    /* submenu 를 가로 메뉴 바 아래에 별도 row 로 (overlay) */
+    /* submenu 를 가로 메뉴 바 아래에 별도 row 로 (overlay).
+       positioning context = .sidebar-menu (relative). top: 100% 로 메뉴 바
+       바로 아래. width: 100vw 로 viewport 전체 폭 확보. */
     .sidebar-menu > li.has-sub .submenu {
         position: absolute;
         left: 0;
-        right: 0;
         top: 100%;
+        width: 100vw;
+        max-width: 100vw;
         display: flex;
         flex-direction: row;
         overflow-x: auto;
@@ -2569,6 +2595,8 @@ body.modal-open { overflow: hidden; }
         z-index: 3;
         scroll-snap-type: x proximity;
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+        touch-action: pan-x;
+        overscroll-behavior-x: contain;
     }
     .sidebar-menu > li.has-sub .submenu[hidden] { display: none; }
     .sidebar-menu > li.has-sub .submenu > li {
@@ -2661,6 +2689,12 @@ body.modal-open { overflow: hidden; }
         padding: 0;
         text-align: left;
     }
+    /* 데스크탑 .top30-table .num { text-align: right } 가 모바일 카드 안 셀에
+       침투하지 못하게 차단. specificity (0,2,1) > 데스크탑 (0,2,0). */
+    .top30-table td.num {
+        text-align: left;
+        white-space: normal;
+    }
     .top30-table .col-rk {
         grid-area: rk;
         font-size: 18px;
@@ -2691,17 +2725,26 @@ body.modal-open { overflow: hidden; }
         grid-area: price;
         font-size: 16px;
         font-weight: 700;
+        min-height: 22px;
     }
     .top30-table .col-price strong { font-size: 16px; }
-    .top30-table .col-change { grid-area: change; font-size: 13px; }
-    .top30-table .col-signal { grid-area: signal; }
-    .top30-table .col-tech { grid-area: tech; }
+    .top30-table .col-change {
+        grid-area: change;
+        font-size: 13px;
+        min-height: 18px;
+    }
+    /* 빈 값 fallback — :empty 는 자식이 단 하나라도 있으면 발동 안 함. */
+    .top30-table .col-price:empty::before,
+    .top30-table .col-change:empty::before { content: "—"; color: var(--color-muted); }
+    .top30-table .col-signal { grid-area: signal; min-height: 22px; }
+    .top30-table .col-tech { grid-area: tech; min-height: 22px; }
     .top30-table .col-forecast {
         grid-area: forecast;
         background: #fafbff;
         border-radius: 6px;
         padding: 6px 8px !important;
         margin-top: 2px;
+        min-height: 26px;
     }
     /* 수급 컬럼은 모바일에서 숨김 (기존 nth-child 룰을 클래스 기반으로 명확히) */
     .top30-table .col-foreign,
