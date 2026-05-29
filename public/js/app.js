@@ -653,20 +653,20 @@ function renderTop30(main) {
                         const today = flow && flow.days && flow.days[0];
                         return `
                             <tr data-live-code="${s.code}">
-                                <td class="rk ${rankCls}">${i + 1}</td>
-                                <td>
+                                <td class="rk col-rk ${rankCls}">${i + 1}</td>
+                                <td class="col-name">
                                     <div class="name" onclick="goSearch('${s.code}')">${escapeHtml(s.name)} ${industryBadgeHTML(s.code)}</div>
                                     <div class="meta"><span class="code">${s.code}</span> · 뉴스 ${s.news_count || 0}건 · 점수 ${s.total_score || 0}</div>
                                 </td>
-                                <td>${signalBadgeHTML(s.code, {compact: true})}</td>
-                                <td>${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
-                                <td>${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
-                                <td class="num" data-live-price><strong>${formatPrice(s.price)}</strong>원</td>
-                                <td class="num ${ch.cls}" data-live-change>${ch.text}</td>
-                                <td class="num ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
-                                <td class="num ${today ? netCls(today.organ_net) : 'muted'}">${today ? formatSignedQty(today.organ_net) : '—'}</td>
-                                <td class="num ${today ? netCls(today.individual_net) : 'muted'}">${today ? formatSignedQty(today.individual_net) : '—'}</td>
-                                <td class="fav-col">${favIconHTML(s.code)}</td>
+                                <td class="col-signal">${signalBadgeHTML(s.code, {compact: true})}</td>
+                                <td class="col-tech">${techBadgeHTML(s.code, {compact: true})}${techMiniHTML(s.code) ? '<div class="cell-tech">' + techMiniHTML(s.code) + '</div>' : ''}</td>
+                                <td class="col-forecast">${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
+                                <td class="num col-price" data-live-price><strong>${formatPrice(s.price)}</strong>원</td>
+                                <td class="num col-change ${ch.cls}" data-live-change>${ch.text}</td>
+                                <td class="num col-foreign ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
+                                <td class="num col-organ ${today ? netCls(today.organ_net) : 'muted'}">${today ? formatSignedQty(today.organ_net) : '—'}</td>
+                                <td class="num col-individual ${today ? netCls(today.individual_net) : 'muted'}">${today ? formatSignedQty(today.individual_net) : '—'}</td>
+                                <td class="fav-col col-fav">${favIconHTML(s.code)}</td>
                             </tr>
                         `;
                     }).join("")}

@@ -1643,6 +1643,8 @@ body.modal-open { overflow: hidden; }
 @media (max-width: 700px) {
     /* 외국인까지 숨김 — 수급 전체 숨김. 현재가/전일대비는 유지. */
     .top30-table th:nth-child(8), .top30-table td:nth-child(8) { display: none; }
+    /* (참고) 모바일 768px 카드 레이아웃에서는 카드 안에 meta 정보를 보여줘야 하므로
+       아래 .meta 숨김은 모바일 카드 룰에서 별도로 override 함. */
     .top30-table .meta { display: none; }
 }
 
@@ -2615,10 +2617,97 @@ body.modal-open { overflow: hidden; }
     .view h2 { font-size: 18px; }
     .view .subtitle { font-size: 12px; }
 
-    /* ===== TOP 30 표 - 가로 스크롤 + 작은 폰트 ===== */
-    .top30-card { overflow-x: auto; }
-    .top30-table { font-size: 12px; min-width: 620px; }
-    .top30-table th, .top30-table td { padding: 6px 8px; }
+    /* ===== TOP 50 표 → 모바일 카드 레이아웃 (세로 종목 카드) =====
+       옛 가로 스크롤(min-width 620px)은 viewport 보다 넓어 페이지 fit-to-screen
+       으로 압축되는 zoom out 증상의 원인이었음. 표를 grid 카드로 재배치 한다.
+       th 는 숨기고 tr 자체를 카드로, td 는 grid-area 로 배치. */
+    .top30-card {
+        padding: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        overflow: visible;
+    }
+    .top30-table {
+        display: block;
+        min-width: 0;
+        font-size: 13px;
+    }
+    .top30-table thead { display: none; }
+    .top30-table tbody { display: block; }
+    .top30-table tr {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) 32px;
+        grid-template-areas:
+            "rk   name     fav"
+            "rk   price    price"
+            "rk   change   change"
+            "rk   signal   tech"
+            "rk   forecast forecast";
+        column-gap: 10px;
+        row-gap: 4px;
+        padding: 12px 14px;
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        margin-bottom: 10px;
+        box-shadow: var(--shadow-card);
+    }
+    .top30-table tbody tr:hover { background: var(--color-card); }
+    .top30-table tbody tr:last-child td { border-bottom: none; }  /* 기존 룰 override */
+    .top30-table td {
+        display: block;
+        border: none !important;
+        padding: 0;
+        text-align: left;
+    }
+    .top30-table .col-rk {
+        grid-area: rk;
+        font-size: 18px;
+        font-weight: 800;
+        text-align: center;
+        color: var(--color-muted);
+        align-self: start;
+        padding-top: 2px;
+    }
+    .top30-table .col-rk.top1 { color: #d4af37; font-size: 20px; }
+    .top30-table .col-rk.top2 { color: #a8a8a8; font-size: 20px; }
+    .top30-table .col-rk.top3 { color: #cd7f32; font-size: 20px; }
+    .top30-table .col-name { grid-area: name; min-width: 0; }
+    .top30-table .col-name .name { font-size: 15px; font-weight: 600; }
+    .top30-table .col-name .meta {
+        display: block;
+        font-size: 10px;
+        margin-top: 2px;
+        color: var(--color-muted);
+    }
+    .top30-table .col-fav {
+        grid-area: fav;
+        text-align: center;
+        align-self: start;
+        padding-top: 2px;
+    }
+    .top30-table .col-price {
+        grid-area: price;
+        font-size: 16px;
+        font-weight: 700;
+    }
+    .top30-table .col-price strong { font-size: 16px; }
+    .top30-table .col-change { grid-area: change; font-size: 13px; }
+    .top30-table .col-signal { grid-area: signal; }
+    .top30-table .col-tech { grid-area: tech; }
+    .top30-table .col-forecast {
+        grid-area: forecast;
+        background: #fafbff;
+        border-radius: 6px;
+        padding: 6px 8px !important;
+        margin-top: 2px;
+    }
+    /* 수급 컬럼은 모바일에서 숨김 (기존 nth-child 룰을 클래스 기반으로 명확히) */
+    .top30-table .col-foreign,
+    .top30-table .col-organ,
+    .top30-table .col-individual { display: none; }
+    .top30-card .flow-note { margin: 4px 4px 0; font-size: 11px; }
 
     /* ===== 수급 상위 표 - 가로 스크롤 ===== */
     .flow-rank-table { font-size: 12px; min-width: 720px; }
