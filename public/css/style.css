@@ -2469,15 +2469,35 @@ body.modal-open { overflow: hidden; }
     /* ===== 레이아웃 ===== */
     .layout { grid-template-columns: 1fr; min-height: auto; }
 
-    /* ===== 사이드바: 가로 스크롤 메뉴 + 업데이트 박스는 메뉴 아래 한 줄 ===== */
+    /* ===== 사이드바: 본문과 명확히 구분되는 가로 스크롤 메뉴 바 ===== */
     .sidebar {
-        position: static;
+        position: relative;       /* has-sub submenu absolute 기준 */
         border-right: none;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 2px solid var(--color-border);
         padding: 0;
+        background: #fff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+        z-index: 2;               /* 본문 위에 그림자 보이게 */
+        /* 데스크탑에서 적용된 max-height/overflow-y 무력화 (모바일은 가로 메뉴) */
+        max-height: none;
+        overflow-y: visible;
     }
-    .sidebar-menu { display: flex; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .sidebar-menu li {
+    .sidebar-menu {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x proximity;
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-muted) transparent;
+    }
+    .sidebar-menu::-webkit-scrollbar { height: 3px; }
+    .sidebar-menu::-webkit-scrollbar-thumb {
+        background: var(--color-muted);
+        border-radius: 2px;
+    }
+    .sidebar-menu > li {
+        flex-shrink: 0;
+        scroll-snap-align: start;
         border-left: none;
         border-bottom: 3px solid transparent;
         white-space: nowrap;
@@ -2485,6 +2505,70 @@ body.modal-open { overflow: hidden; }
         font-size: 13px;
     }
     .sidebar-menu li.active { border-left-color: transparent; border-bottom-color: var(--color-primary); }
+
+    /* ===== 모바일: 매수 참고 has-sub 의 일별 날짜 submenu 를 chip 가로 row 로 ===== */
+    .sidebar-menu > li.has-sub {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;       /* 일반 li 와 동일 */
+    }
+    .sidebar-menu > li.has-sub .menu-row {
+        padding: 0;
+    }
+    .sidebar-menu > li.has-sub .menu-toggle {
+        margin: 0;
+        width: auto;
+        padding: 2px 8px;
+        font-size: 10px;
+        flex-shrink: 0;
+    }
+    /* submenu 를 가로 메뉴 바 아래에 별도 row 로 (overlay) */
+    .sidebar-menu > li.has-sub .submenu {
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 100%;
+        display: flex;
+        flex-direction: row;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        background: #fafbff;
+        border-top: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border);
+        padding: 8px 12px;
+        margin: 0;
+        gap: 6px;
+        z-index: 3;
+        scroll-snap-type: x proximity;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+    }
+    .sidebar-menu > li.has-sub .submenu[hidden] { display: none; }
+    .sidebar-menu > li.has-sub .submenu > li {
+        flex-shrink: 0;
+        flex-direction: row;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: #fff;
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        font-size: 12px;
+        scroll-snap-align: start;
+    }
+    .sidebar-menu > li.has-sub .submenu > li.active {
+        background: var(--color-primary);
+        color: #fff;
+        border-color: var(--color-primary);
+    }
+    .sidebar-menu > li.has-sub .submenu > li.active .sub-count {
+        color: #fff;
+        opacity: 0.85;
+    }
+    /* submenu 펼친 상태일 때 본문이 chip 줄 아래로 자연히 밀리도록 sidebar 자체에 여유 */
+    .sidebar:has(.has-sub .submenu:not([hidden])) {
+        margin-bottom: 44px;
+    }
     .sidebar-update {
         margin: 8px 12px;
         padding: 8px 12px;
