@@ -639,9 +639,10 @@ function renderTop30(main) {
                         <th>1·2주 통계 전망</th>
                         <th class="num">현재가</th>
                         <th class="num">전일 대비</th>
-                        <th class="num">외국인</th>
-                        <th class="num">기관</th>
-                        <th class="num">개인</th>
+                        <th class="col-trend-h">5일 추이</th>
+                        <th class="num col-foreign-h">외국인</th>
+                        <th class="num col-organ-h">기관</th>
+                        <th class="num col-individual-h">개인</th>
                         <th>★</th>
                     </tr>
                 </thead>
@@ -651,6 +652,12 @@ function renderTop30(main) {
                         const rankCls = i === 0 ? "top1" : i === 1 ? "top2" : i === 2 ? "top3" : "";
                         const flow = state.data && state.data.flow && state.data.flow.by_code && state.data.flow.by_code[s.code];
                         const today = flow && flow.days && flow.days[0];
+                        // 5일 trend: 매수 참고 카드와 동일한 flow.days 재사용 (추가 fetch 없음).
+                        // 매수 참고는 chartHTML(폭 260, 라벨 있음), TOP 50 카드는 좁아서
+                        // sparklineHTML(폭 110×34, 라벨 없음 + 툴팁 title) 사용.
+                        const sparkSvg = (flow && flow.days && flow.days.length >= 2)
+                            ? sparklineHTML(flow.days.slice(0, 5), {width: 110, height: 34})
+                            : '<span class="muted">—</span>';
                         return `
                             <tr data-live-code="${s.code}">
                                 <td class="rk col-rk ${rankCls}">${i + 1}</td>
@@ -663,6 +670,7 @@ function renderTop30(main) {
                                 <td class="col-forecast">${forecastMiniHTML(s.code) || '<span class="signal-mini signal-na compact">—</span>'}</td>
                                 <td class="num col-price" data-live-price><strong>${formatPrice(s.price) || '—'}</strong>${s.price ? '원' : ''}</td>
                                 <td class="num col-change ${ch.cls}" data-live-change>${ch.text || '—'}</td>
+                                <td class="col-trend">${sparkSvg}</td>
                                 <td class="num col-foreign ${today ? netCls(today.foreign_net) : 'muted'}">${today ? formatSignedQty(today.foreign_net) : '—'}</td>
                                 <td class="num col-organ ${today ? netCls(today.organ_net) : 'muted'}">${today ? formatSignedQty(today.organ_net) : '—'}</td>
                                 <td class="num col-individual ${today ? netCls(today.individual_net) : 'muted'}">${today ? formatSignedQty(today.individual_net) : '—'}</td>
@@ -3294,6 +3302,21 @@ function infoIconHTML(kind) {
 }
 
 // ============ 초기화 ============
+
+/**
+ * 모바일 sticky 헤더 실제 높이를 측정해 CSS 변수 --header-h 에 주입.
+ * 사이드바가 그 만큼 아래로 내려가 헤더와 겹치지 않게 함.
+ * 브랜드/검색바 줄바꿈, 글꼴 변화, 회전, viewport 리사이즈에 자동 대응.
+ */
+function syncHeaderHeight() {
+    const tb = document.querySelector(".topbar");
+    if (!tb) return;
+    const h = tb.offsetHeight;
+    if (h > 0) {
+        document.documentElement.style.setProperty("--header-h", h + "px");
+    }
+}
+
 async function main() {
     maybeShowDisclaimerModal();
     document.querySelector(".sidebar-menu").addEventListener("click", (e) => {
@@ -3305,6 +3328,16 @@ async function main() {
     });
     window.addEventListener("hashchange", render);
     document.getElementById("fav-count").textContent = state.favorites.length;
+
+    // 헤더 높이 동기화 (모바일 sticky 사이드바 top offset 용)
+    syncHeaderHeight();
+    window.addEventListener("load", syncHeaderHeight);
+    window.addEventListener("resize", syncHeaderHeight);
+    window.addEventListener("orientationchange", syncHeaderHeight);
+    const tbEl = document.querySelector(".topbar");
+    if (tbEl && typeof ResizeObserver !== "undefined") {
+        try { new ResizeObserver(syncHeaderHeight).observe(tbEl); } catch (e) { /* 무시 */ }
+    }
 
     await loadData();
     initSearch();
