@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-13 02:08:24",
+  "generated_at": "2026-08-13 03:04:25",
   "generated_date": "2026-08-13",
-  "last_updated": "2026-08-13T02:08:24+0900",
+  "last_updated": "2026-08-13T03:04:25+0900",
   "top_stocks": [
     {
       "name": "삼성전자",
@@ -10,9 +10,9 @@
       "change": 16000,
       "popularity_rank": 1,
       "rank_score": 30,
-      "news_count": 33,
-      "news_score": 495,
-      "total_score": 525,
+      "news_count": 35,
+      "news_score": 525,
+      "total_score": 555,
       "source": "popular",
       "final_rank": 1,
       "prev_close": 239500,
@@ -26,9 +26,9 @@
       "change": 79000,
       "popularity_rank": 2,
       "rank_score": 29,
-      "news_count": 29,
-      "news_score": 435,
-      "total_score": 464,
+      "news_count": 31,
+      "news_score": 465,
+      "total_score": 494,
       "source": "popular",
       "final_rank": 2,
       "prev_close": 1425000,
@@ -52,22 +52,6 @@
       "as_of": "2026-08-12"
     },
     {
-      "name": "현대차",
-      "code": "005380",
-      "price": 409500,
-      "change": 6500,
-      "popularity_rank": 7,
-      "rank_score": 24,
-      "news_count": 6,
-      "news_score": 90,
-      "total_score": 114,
-      "source": "popular",
-      "final_rank": 4,
-      "prev_close": 403000,
-      "change_pct": 1.61,
-      "as_of": "2026-08-12"
-    },
-    {
       "name": "알테오젠",
       "code": "196170",
       "price": 317500,
@@ -78,9 +62,25 @@
       "news_score": 90,
       "total_score": 110,
       "source": "popular",
-      "final_rank": 5,
+      "final_rank": 4,
       "prev_close": 327500,
       "change_pct": -3.05,
+      "as_of": "2026-08-12"
+    },
+    {
+      "name": "현대차",
+      "code": "005380",
+      "price": 409500,
+      "change": 6500,
+      "popularity_rank": 7,
+      "rank_score": 24,
+      "news_count": 5,
+      "news_score": 75,
+      "total_score": 99,
+      "source": "popular",
+      "final_rank": 5,
+      "prev_close": 403000,
+      "change_pct": 1.61,
       "as_of": "2026-08-12"
     },
     {
@@ -148,22 +148,6 @@
       "as_of": "2026-08-12"
     },
     {
-      "name": "금호건설",
-      "code": "002990",
-      "price": 14930,
-      "change": 3440,
-      "popularity_rank": 21,
-      "rank_score": 10,
-      "news_count": 5,
-      "news_score": 75,
-      "total_score": 85,
-      "source": "popular",
-      "final_rank": 10,
-      "prev_close": 11490,
-      "change_pct": 29.94,
-      "as_of": "2026-08-12"
-    },
-    {
       "name": "주성엔지니어링",
       "code": "036930",
       "price": 174000,
@@ -174,9 +158,25 @@
       "news_score": 60,
       "total_score": 78,
       "source": "popular",
-      "final_rank": 11,
+      "final_rank": 10,
       "prev_close": 162400,
       "change_pct": 7.14,
+      "as_of": "2026-08-12"
+    },
+    {
+      "name": "금호건설",
+      "code": "002990",
+      "price": 14930,
+      "change": 3440,
+      "popularity_rank": 21,
+      "rank_score": 10,
+      "news_count": 4,
+      "news_score": 60,
+      "total_score": 70,
+      "source": "popular",
+      "final_rank": 11,
+      "prev_close": 11490,
+      "change_pct": 29.94,
       "as_of": "2026-08-12"
     },
     {
@@ -1016,6 +1016,67 @@
   },
   "news": [
     {
+      "title": "'삼전닉스' 6% 뛴 뒤 美마이크론도 6%↑…오늘 또 달릴까",
+      "link": "https://www.greened.kr/news/articleView.html?idxno=347543",
+      "summary": "다만 국내 증시는 전날 이미 코스피가 3.68%, 삼성전자와 SK하이닉스가 각각 6.68%, 5.54% 올랐다. 13일 장의 핵심은 미국 반도체주의 상승을 따라 시초가가 얼마나 높게 형성되느냐보다 전날 코스피에서 2조8000억원 넘게...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Thu, 13 Aug 2026 02:17:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [
+        {
+          "code": "005930",
+          "name": "삼성전자"
+        },
+        {
+          "code": "000660",
+          "name": "SK하이닉스"
+        }
+      ],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "상승"
+        ],
+        "neg": []
+      }
+    },
+    {
+      "title": "국내 증권사, 주식시장 활황에 사상 최대 실적 기록",
+      "link": "https://www.tokenpost.kr/news/market/389523",
+      "summary": "반도체주 강세에 힘입어 코스피가 한때 9,000선을 넘어서면서 거래가 급증했고, 그 결과 브로커리지(주식... 당시 코스피가 연일 고점을 새로 쓰면서 개인투자자의 시장 참여가 크게 늘었고, 예금에 머물던 자금이...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Thu, 13 Aug 2026 02:10:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "강세"
+        ],
+        "neg": []
+      }
+    },
+    {
+      "title": "부실기업 퇴출 본격화… 30개 종목에 ‘1차 경고장’",
+      "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002708&cp=nv",
+      "summary": "앞서 금융당국은 상폐 요건으로 동전주를 신설하고, 시가총액 기준도 코스피·코스닥 각각 300억·200억원... 코스피에서는 대영포장·형지엘리트·일신석재·SUN&L·한국전자홀딩스·태원물산·대원화성·남성·온타이드...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Thu, 13 Aug 2026 02:07:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 0,
+      "sentiment_hits": {
+        "pos": [],
+        "neg": []
+      }
+    },
+    {
       "title": "코스닥, 부실기업 정리 가속화... 시장 체질개선 기대감 고조",
       "link": "https://www.tokenpost.kr/news/market/389522",
       "summary": "거래소는 이날 장 마감 기준으로 최근 30거래일 동안 주가 또는 시가총액 기준을 충족하지 못한 36개 종목을 관리종목으로 지정했는데, 이 가운데 코스피는 9개사, 코스닥은 27개사였다. 이번 조치는 실질적으로 시장...",
@@ -1323,9 +1384,9 @@
       }
     },
     {
-      "title": "울산 상장사 늘었는데 비중은 더 줄어",
-      "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064501",
-      "summary": "12일 기업데이터연구소 CEO스코어는 유가증권시장(코스피)과 코스닥시장 상장사의 본점 소재지를 조사한 결과를 발표했다. 지난 2016년 말 1898곳이던 상장사 수는 2026년 7월 말 기준 2554곳으로 34.5% 증가했다. 이...",
+      "title": "상장사도 수도권 쏠림···강원 0.9% 불과",
+      "link": "https://www.kwnews.co.kr/article/20260812501423",
+      "summary": "12일 기업데이터연구소 CEO스코어가 2016년 말과 지난달 말을 기준으로 국내 코스피·코스닥 상장사의 본점 소재지를 조사한 결과 수도권(서울·경기·인천) 소재 기업은 2016년 1,325곳에서 지난달 말 1,827곳으로 10년 새...",
       "related_stocks": [],
       "source": "네이버 뉴스",
       "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
@@ -1341,9 +1402,9 @@
       }
     },
     {
-      "title": "상장사도 수도권 쏠림···강원 0.9% 불과",
-      "link": "https://www.kwnews.co.kr/article/20260812501423",
-      "summary": "12일 기업데이터연구소 CEO스코어가 2016년 말과 지난달 말을 기준으로 국내 코스피·코스닥 상장사의 본점 소재지를 조사한 결과 수도권(서울·경기·인천) 소재 기업은 2016년 1,325곳에서 지난달 말 1,827곳으로 10년 새...",
+      "title": "울산 상장사 늘었는데 비중은 더 줄어",
+      "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064501",
+      "summary": "12일 기업데이터연구소 CEO스코어는 유가증권시장(코스피)과 코스닥시장 상장사의 본점 소재지를 조사한 결과를 발표했다. 지난 2016년 말 1898곳이던 상장사 수는 2026년 7월 말 기준 2554곳으로 34.5% 증가했다. 이...",
       "related_stocks": [],
       "source": "네이버 뉴스",
       "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
@@ -2285,6 +2346,24 @@
       }
     },
     {
+      "title": "[증시 오늘] 코스피가 3.7% 상승",
+      "link": "https://www.bigtanews.co.kr/article/view/big202608120024",
+      "summary": "폭등하면서 코스피가 3.7% 올랐다. 매수세가 몰리면서 장중 매수 사이드카가 발동되기도 했다. 코스닥은 외국인과 기관의 매도로 소폭 상승하는데 그쳤다. 12일 한국거래소에 따르면 코스피는 전 거래일...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Wed, 12 Aug 2026 19:40:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "상승"
+        ],
+        "neg": []
+      }
+    },
+    {
       "title": "화장품 ODM株 급등…코스맥스·한국콜마·코스메카 강세",
       "link": "https://www.thebk.co.kr/news/articleView.html?idxno=311070",
       "summary": "12일 코스피는 전 거래일 대비 233.61포인트(3.68%) 오른 6579.04에 마감하며 3거래일 연속 상승했다. 코스닥은 1.01포인트(0.12%) 상승한 858.91로 거래를 마치며 역시 3거래일째 오름세를 이어갔다. 코스피는 전날 중동...",
@@ -2306,24 +2385,6 @@
           "급등",
           "강세",
           "오름세"
-        ],
-        "neg": []
-      }
-    },
-    {
-      "title": "[증시 오늘] 코스피가 3.7% 상승",
-      "link": "https://www.bigtanews.co.kr/article/view/big202608120024",
-      "summary": "폭등하면서 코스피가 3.7% 올랐다. 매수세가 몰리면서 장중 매수 사이드카가 발동되기도 했다. 코스닥은 외국인과 기관의 매도로 소폭 상승하는데 그쳤다. 12일 한국거래소에 따르면 코스피는 전 거래일...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Wed, 12 Aug 2026 19:40:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 1,
-      "sentiment_hits": {
-        "pos": [
-          "상승"
         ],
         "neg": []
       }
@@ -2890,52 +2951,21 @@
       }
     },
     {
-      "title": "동전주 22곳 '관리종목' 지정 위기…90일 생존경쟁 돌입",
-      "link": "http://www.bizwnews.com/news/articleView.html?idxno=143206",
-      "summary": "한국거래소에 따르면 코스피에서는 형지엘리트, 일신석재, 온타이드 등 4곳이 대상에 올랐다.... 코스피에서는 대교와 상상인증권이 관리종목 지정 시점을 앞두고 주가를 1000원 이상으로 끌어올리며 위기를 넘겼다....",
+      "title": "미래에셋자산운용, 'TIGER 코스닥액티브 ETF' 8월 수익률 23.6% 기록",
+      "link": "http://www.bizwnews.com/news/articleView.html?idxno=143132",
+      "summary": "미래에셋자산운용 'TIGER 코스닥액티브 ETF'가 높은 수익률을 보이고 있다. 사진=미래에셋자산운용  미래에셋자산운용은 'TIGER 코스닥액티브' 상장지수펀드(ETF)가 코스닥 시장이 반등한 8월 들어 시장 대비 초과성과를...",
       "related_stocks": [],
       "source": "네이버 뉴스",
-      "pubDate": "Wed, 12 Aug 2026 18:46:00 +0900",
-      "matched_keyword": "코스피",
+      "pubDate": "Thu, 13 Aug 2026 02:26:00 +0900",
+      "matched_keyword": "코스닥",
       "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": -1,
+      "sentiment": "positive",
+      "sentiment_score": 2,
       "sentiment_hits": {
-        "pos": [],
-        "neg": [
-          "위기"
-        ]
-      }
-    },
-    {
-      "title": "대한제당 10만주·아남전자 5만주 등… 코스피 47개사, 13일 자사주 매입",
-      "link": "https://www.newstnt.com/news/articleView.html?idxno=713765",
-      "summary": "코스피(유가증권시장) 상장사 47개사가 오는 13일 주가 안정 및 주주가치 제고 등을 목적으로... 한국거래소 공시에 따르면 8월 13일 자기주식 매수 호가를 신청한 코스피 기업은 총 47개사다. 회사가...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Wed, 12 Aug 2026 18:44:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 0,
-      "sentiment_hits": {
-        "pos": [],
-        "neg": []
-      }
-    },
-    {
-      "title": "외인·기관 쌍끌이 매수에 힘받은 코스피… 6570선 탈환",
-      "link": "https://www.ggilbo.com/news/articleView.html?idxno=1175189",
-      "summary": "사진= 코스피 국내 증시가 미국발(發) 주요 경제지표 발표와 중동의 지정학적 긴장감 속에서도 동반... 12일 한국거래소에 따르면 코스피 지수는 전 거래일 대비 233.51포인트(3.68%) 오른 6579.04로 거래를 마쳤다....",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Wed, 12 Aug 2026 18:40:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 0,
-      "sentiment_hits": {
-        "pos": [],
+        "pos": [
+          "반등",
+          "수익"
+        ],
         "neg": []
       }
     },
@@ -2974,24 +3004,6 @@
           "상장폐지"
         ]
       }
-    },
-    {
-      "title": "‘중기장관 출신’ 총리, 중소기업 애로사항 청취",
-      "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002693&cp=nv",
-      "summary": "중소기업계가 한성숙 국무총리를 만나 강화된 코스닥 상장폐지 기준을 보완해야 한다는 의견을 제시했다.... 김기문 중기중앙회장은 최근 강화된 코스닥 상장폐지 기준의 보완 필요성을 강조하며 “시장 변동성으로...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Thu, 13 Aug 2026 00:43:00 +0900",
-      "matched_keyword": "코스닥",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": -1,
-      "sentiment_hits": {
-        "pos": [],
-        "neg": [
-          "상장폐지"
-        ]
-      }
     }
   ],
   "news_by_keyword": [
@@ -3002,12 +3014,12 @@
         {
           "code": "005930",
           "name": "삼성전자",
-          "count": 13
+          "count": 14
         },
         {
           "code": "000660",
           "name": "SK하이닉스",
-          "count": 10
+          "count": 11
         },
         {
           "code": "002990",
@@ -3051,6 +3063,36 @@
         }
       ],
       "news": [
+        {
+          "title": "'삼전닉스' 6% 뛴 뒤 美마이크론도 6%↑…오늘 또 달릴까",
+          "link": "https://www.greened.kr/news/articleView.html?idxno=347543",
+          "summary": "다만 국내 증시는 전날 이미 코스피가 3.68%, 삼성전자와 SK하이닉스가 각각 6.68%, 5.54% 올랐다. 13일 장의 핵심은 미국 반도체주의 상승을 따라 시초가가 얼마나 높게 형성되느냐보다 전날 코스피에서 2조8000억원 넘게...",
+          "pubDate": "Thu, 13 Aug 2026 02:17:00 +0900",
+          "matched_stocks": [
+            {
+              "code": "005930",
+              "name": "삼성전자"
+            },
+            {
+              "code": "000660",
+              "name": "SK하이닉스"
+            }
+          ]
+        },
+        {
+          "title": "국내 증권사, 주식시장 활황에 사상 최대 실적 기록",
+          "link": "https://www.tokenpost.kr/news/market/389523",
+          "summary": "반도체주 강세에 힘입어 코스피가 한때 9,000선을 넘어서면서 거래가 급증했고, 그 결과 브로커리지(주식... 당시 코스피가 연일 고점을 새로 쓰면서 개인투자자의 시장 참여가 크게 늘었고, 예금에 머물던 자금이...",
+          "pubDate": "Thu, 13 Aug 2026 02:10:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "부실기업 퇴출 본격화… 30개 종목에 ‘1차 경고장’",
+          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002708&cp=nv",
+          "summary": "앞서 금융당국은 상폐 요건으로 동전주를 신설하고, 시가총액 기준도 코스피·코스닥 각각 300억·200억원... 코스피에서는 대영포장·형지엘리트·일신석재·SUN&L·한국전자홀딩스·태원물산·대원화성·남성·온타이드...",
+          "pubDate": "Thu, 13 Aug 2026 02:07:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "코스닥, 부실기업 정리 가속화... 시장 체질개선 기대감 고조",
           "link": "https://www.tokenpost.kr/news/market/389522",
@@ -3180,13 +3222,6 @@
           ]
         },
         {
-          "title": "울산 상장사 늘었는데 비중은 더 줄어",
-          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064501",
-          "summary": "12일 기업데이터연구소 CEO스코어는 유가증권시장(코스피)과 코스닥시장 상장사의 본점 소재지를 조사한 결과를 발표했다. 지난 2016년 말 1898곳이던 상장사 수는 2026년 7월 말 기준 2554곳으로 34.5% 증가했다. 이...",
-          "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
-          "matched_stocks": []
-        },
-        {
           "title": "상장사도 수도권 쏠림···강원 0.9% 불과",
           "link": "https://www.kwnews.co.kr/article/20260812501423",
           "summary": "12일 기업데이터연구소 CEO스코어가 2016년 말과 지난달 말을 기준으로 국내 코스피·코스닥 상장사의 본점 소재지를 조사한 결과 수도권(서울·경기·인천) 소재 기업은 2016년 1,325곳에서 지난달 말 1,827곳으로 10년 새...",
@@ -3194,29 +3229,10 @@
           "matched_stocks": []
         },
         {
-          "title": "대원전선, 장중 10%대 강세…전력망 투자 기대 속 거래량 급증",
-          "link": "https://www.cbci.co.kr/news/articleView.html?idxno=597743",
-          "summary": "실제로 12일 아시아 증시에서는 국내 코스피가 강한 상승세를 보였지만, 중동 전쟁과 원유 공급 차질 우려는 여전히 시장의 주요 변수로 남아 있다. 대원전선의 향후 주가 흐름에서는 단기 거래량 증가가 실제...",
-          "pubDate": "Thu, 13 Aug 2026 00:00:00 +0900",
-          "matched_stocks": [
-            {
-              "code": "006340",
-              "name": "대원전선"
-            }
-          ]
-        },
-        {
-          "title": "[업앤다운]보험 업종 희비 갈려…미래에셋생명↑·에이플러스에셋↓",
-          "link": "https://www.nspna.com/news/?mode=view&newsid=824104",
-          "summary": "한화손보, 올 2분기 순이익 45.6% ↑…‘어닝 서프라이즈’급 반등 8월 12일 코스피(+3.68%)와 코스닥(+0.12%)이 모두 상승한 가운데 보험 업종은 희비가 갈렸다. 이날 상승 마감한 대표 종목은 미래에셋생명이다....",
-          "pubDate": "Wed, 12 Aug 2026 23:42:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "코스피, 외인 기관 순매수세에 3% 상승...6500선 마감",
-          "link": "https://www.betanews.net/article/view/beta202608120064",
-          "summary": "ⓒ 연합뉴스 12일 코스피가 반도체를 비롯한 화장품 등 종목들의 동반 상승세에 3% 넘게 올라 6500선으로 마감했다. 이날 코스피는 전장보다 233.51포인트(3.68%) 상승한 6,579.04로 장을 마쳤다. 코스피시장에서...",
-          "pubDate": "Wed, 12 Aug 2026 23:34:00 +0900",
+          "title": "울산 상장사 늘었는데 비중은 더 줄어",
+          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064501",
+          "summary": "12일 기업데이터연구소 CEO스코어는 유가증권시장(코스피)과 코스닥시장 상장사의 본점 소재지를 조사한 결과를 발표했다. 지난 2016년 말 1898곳이던 상장사 수는 2026년 7월 말 기준 2554곳으로 34.5% 증가했다. 이...",
+          "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
           "matched_stocks": []
         }
       ]
@@ -3247,6 +3263,13 @@
         }
       ],
       "news": [
+        {
+          "title": "미래에셋자산운용, 'TIGER 코스닥액티브 ETF' 8월 수익률 23.6% 기록",
+          "link": "http://www.bizwnews.com/news/articleView.html?idxno=143132",
+          "summary": "미래에셋자산운용 'TIGER 코스닥액티브 ETF'가 높은 수익률을 보이고 있다. 사진=미래에셋자산운용  미래에셋자산운용은 'TIGER 코스닥액티브' 상장지수펀드(ETF)가 코스닥 시장이 반등한 8월 들어 시장 대비 초과성과를...",
+          "pubDate": "Thu, 13 Aug 2026 02:26:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "코스닥 라이징스타, 18개 혁신 기업 발굴…성장 지원 강화",
           "link": "https://www.tokenpost.kr/news/market/389520",
@@ -3394,13 +3417,6 @@
           "summary": "규제샌드박스 개선과 디지털자산 관련 제도 마련, 인공지능 개발을 위한 데이터 규제 정비, 코스닥 진입·퇴출 규제 개선, 지방산단 입주업종 규제 완화, 메가프로젝트 중소기업 참여 확대 등이 주요 과제로 제시됐다....",
           "pubDate": "Wed, 12 Aug 2026 21:16:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "中企업계 “동전주 상장폐지, 옥석 가릴 대책부터 마련돼야”",
-          "link": "https://www.ekn.kr/web/view.php?key=20260812026112096",
-          "summary": "중소기업계가 지난달부터 시행된 코스닥 상장폐지 요건 강화와 관련해 기업실적이 아닌 시장의 변동성... 특히 이날 토론회에서는 코스닥시장 진입 및 퇴출 관련 규제 완화, 코스닥 신규상장기업 대상 보호예수 관행 개선...",
-          "pubDate": "Wed, 12 Aug 2026 21:14:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3425,6 +3441,20 @@
         }
       ],
       "news": [
+        {
+          "title": "[미국 특징주] 브링커 인터내셔널 12% 상승...'칠리스 효과'로 신고점",
+          "link": "https://www.newspim.com/news/view/20260813000016",
+          "summary": "캐주얼 다이닝 체인 브링커 인터내셔널(종목코드: EAT) 주가가 12일(현지시간) 뉴욕증시에서 급등했다. 이날 장중 주가는 248.60달러까지 치솟으며 전일 종가 221.38달러 대비 최대 12.30% 상승, 52주 최고가이자 사상...",
+          "pubDate": "Thu, 13 Aug 2026 02:40:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "유럽증시, 美 연준 금리 인상 우려 완화에도 중동 정세 불확실성에 소폭...",
+          "link": "https://www.newspim.com/news/view/20260813000014",
+          "summary": "장일현 특파원 = 12일(현지 시각) 유럽 주요국의 증시가 일제히 소폭 하락했다. 미국의 소비자물가... 독일 프랑크푸르트 증시의 DAX 지수는 60.35포인트(0.23%) 떨어진 2만6331.07로, 영국 런던 증시의 FTSE 100 지수는 11....",
+          "pubDate": "Thu, 13 Aug 2026 02:19:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "[미국 특징주] 아스트로닉스 23% 급등...사상 최대 분기 매출에 52주 신...",
           "link": "https://www.newspim.com/news/view/20260813000013",
@@ -3533,16 +3563,16 @@
           "matched_stocks": []
         },
         {
-          "title": "반도체 변동성 피로감에…유럽 증시가 뜬다",
-          "link": "https://www.joongang.co.kr/article/25452885",
-          "summary": "인공지능(AI) 랠리에서 소외됐던 유럽 증시가 다시 떠올랐다. 반도체 쏠림에 대한 피로가 커진 가운데, 그동안 기술주 비중이 작다는 이유로 외면받았던 유럽 증시가 다양한 업종과 실적을 갖춘 투자처로...",
+          "title": "미래에셋 2분기 순익 1.9조…KB금융 턱밑 추격",
+          "link": "https://www.joongang.co.kr/article/25452889",
+          "summary": "증시 활황에 따른 거래 증가가 실적 개선을 이끌었다. 미래에셋증권은 지난 1분기 증권업계 최초로 분기 순이익 1조원대를 달성한 데 이어 2분기에도 1조원을 넘었다. 2분기 순이익 기준으로는 KB금융(1조9922억원)...",
           "pubDate": "Thu, 13 Aug 2026 00:01:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "미래에셋 2분기 순익 1.9조…KB금융 턱밑 추격",
-          "link": "https://www.joongang.co.kr/article/25452889",
-          "summary": "증시 활황에 따른 거래 증가가 실적 개선을 이끌었다. 미래에셋증권은 지난 1분기 증권업계 최초로 분기 순이익 1조원대를 달성한 데 이어 2분기에도 1조원을 넘었다. 2분기 순이익 기준으로는 KB금융(1조9922억원)...",
+          "title": "반도체 변동성 피로감에…유럽 증시가 뜬다",
+          "link": "https://www.joongang.co.kr/article/25452885",
+          "summary": "인공지능(AI) 랠리에서 소외됐던 유럽 증시가 다시 떠올랐다. 반도체 쏠림에 대한 피로가 커진 가운데, 그동안 기술주 비중이 작다는 이유로 외면받았던 유럽 증시가 다양한 업종과 실적을 갖춘 투자처로...",
           "pubDate": "Thu, 13 Aug 2026 00:01:00 +0900",
           "matched_stocks": []
         },
@@ -3573,20 +3603,6 @@
           "summary": "뉴욕 증시 3대 지수는 이란 전쟁 와중에도 7월 소비자 물가 지수, CPI가 예상치에 부합하게 나오자 동반... 유럽 증시는 혼조세를 나타냈습니다. 유로존 11개국 50개의 우량주로 구성된 유로 스톡스 50지수는 전장보다...",
           "pubDate": "Wed, 12 Aug 2026 23:51:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "[뉴욕증시]CPI 둔화세에 S&P500·나스닥 ↑",
-          "link": "https://view.asiae.co.kr/article/2026081223315765182",
-          "summary": "뉴욕증시의 3대 지수는 혼조세를 보이고 있다. 다우존스30산업평균지수(다우지수)는 5만3750선에서... 이날 증시는 7월 CPI 상승률이 둔화 소식을 소화하며 S&P500지수와 나스닥지수의 투자심리가 확대되는...",
-          "pubDate": "Wed, 12 Aug 2026 23:31:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "美 물가 둔화·AI주 강세에 뉴욕증시 상승세…S&P500 최고치 근접",
-          "link": "https://www.newsis.com/view/NISX20260812_0003746930",
-          "summary": "뉴욕증시가 상승세를 보이고 있다. 미 연방준비제도(Fed·연준)의 9월 금리 인상 가능성도 낮아지면서 투자심리를 뒷받침했다. 12일(현지 시간) AP통신에 따르면 뉴욕증시는 이날 일제히 상승 출발했다. S&P500지수는 0.6...",
-          "pubDate": "Wed, 12 Aug 2026 23:31:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3606,6 +3622,13 @@
         }
       ],
       "news": [
+        {
+          "title": "바이낸스 토큰화 주식, 2개월 만에 시장 27% 장악...\"자오창펑 신뢰 전략...",
+          "link": "http://coinreaders.com/252512",
+          "summary": "바이낸스(Binance)가 bStocks 출시 두 달 만에 글로벌 토큰화 주식 시장의 27%를 차지했다. 자오창펑(Changpeng Zhao)은 단기 수익보다 이용자를 오래 붙잡는 전략을 성장 배경으로 꼽았다. 8월 12일(현지시간) 암호화폐...",
+          "pubDate": "Thu, 13 Aug 2026 02:42:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "이란, 미 의회에 트럼프 대통령 일가 조사 촉구",
           "link": "https://www.tokenpost.kr/news/breaking/389512",
@@ -3677,16 +3700,16 @@
           "matched_stocks": []
         },
         {
-          "title": "정부, ETF·ETN 투자 규제 강화… 모의거래 의무화",
-          "link": "https://www.tokenpost.kr/news/economy/389291",
-          "summary": "금융당국은 최근 주식시장 변동성이 다소 진정되는 모습은 있지만 불안 요인이 여전히 남아 있다고 보고 있다. 이 같은 흐름은 앞으로도 고위험 상장지수상품에 대한 규제가 투자자 보호 중심으로 더 촘촘해지는 방향으로...",
+          "title": "1966 BTC, 메타플래닛 등 2곳 거래소서 인출",
+          "link": "https://www.tokenpost.kr/news/market/389292",
+          "summary": "메타플래닛의 비트코인 보유 확대와 주식시장 평가는 서로 다른 흐름을 보였다. 크립토뉴스(crypto.news)는 6월 26일 회사가 4만177 BTC를 보유한 상황에서도 주가가 52주 신저가 부근까지 밀렸다고 보도했다....",
           "pubDate": "Wed, 12 Aug 2026 20:50:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "1966 BTC, 메타플래닛 등 2곳 거래소서 인출",
-          "link": "https://www.tokenpost.kr/news/market/389292",
-          "summary": "메타플래닛의 비트코인 보유 확대와 주식시장 평가는 서로 다른 흐름을 보였다. 크립토뉴스(crypto.news)는 6월 26일 회사가 4만177 BTC를 보유한 상황에서도 주가가 52주 신저가 부근까지 밀렸다고 보도했다....",
+          "title": "정부, ETF·ETN 투자 규제 강화… 모의거래 의무화",
+          "link": "https://www.tokenpost.kr/news/economy/389291",
+          "summary": "금융당국은 최근 주식시장 변동성이 다소 진정되는 모습은 있지만 불안 요인이 여전히 남아 있다고 보고 있다. 이 같은 흐름은 앞으로도 고위험 상장지수상품에 대한 규제가 투자자 보호 중심으로 더 촘촘해지는 방향으로...",
           "pubDate": "Wed, 12 Aug 2026 20:50:00 +0900",
           "matched_stocks": []
         },
@@ -3738,13 +3761,6 @@
           "summary": "[원승연/당시 금융감독원 부원장 (2018년 4월 9일)] \"회사의 경고 메시지 및 매도 금지 요청에도 불구하고 착오 입고된 주식을 주식 시장에 매도하는 등 심각한 도덕적 해이가 발생했습니다.\" 주가는 전날보다 최대 11.68...",
           "pubDate": "Wed, 12 Aug 2026 20:10:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "메가프로젝트 이어 SEED…李대통령, 지역서 산업으로 어젠다 확장하나",
-          "link": "https://www.dailian.co.kr/news/view/1677749/?sc=Naver",
-          "summary": "한 여권 관계자는 \"부동산과 주식 시장에 대한 실망감이 지지율 하락의 핵심 원인으로 꼽히는 상황에서, 정부가 이 악재를 정면 돌파하기보다 새로운 성장 서사로 국면 자체를 전환하려는 것으로 보인다\"고 말했다. 그는...",
-          "pubDate": "Wed, 12 Aug 2026 20:00:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3752,6 +3768,16 @@
       "keyword": "실적",
       "news_count": 20,
       "top_stocks": [
+        {
+          "code": "005930",
+          "name": "삼성전자",
+          "count": 1
+        },
+        {
+          "code": "000660",
+          "name": "SK하이닉스",
+          "count": 1
+        },
         {
           "code": "161890",
           "name": "한국콜마",
@@ -3764,6 +3790,57 @@
         }
       ],
       "news": [
+        {
+          "title": "BofA, 美 AI·에너지 인프라에 2500억달러 금융지원",
+          "link": "https://www.g-enews.com/view.php?ud=2026081222430399129a1f309431_1",
+          "summary": "BofA는 미국 건국 250주년이 시작된 올해 1월 1일부터 내년 7월 4일까지 18개월 동안 이뤄지는 적격 금융활동을 프로그램 실적으로 합산하기로 했다. 대출과 투자, 자본시장 거래, 은행·자문 서비스 등이 모두 포함된다....",
+          "pubDate": "Thu, 13 Aug 2026 03:00:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "[美특징주]시스코시스템즈, 4Q 실적 발표 앞두고 AI 인프라 수요 기대…...",
+          "link": "https://www.edaily.co.kr/news/newspath.asp?newsid=01305446645546992",
+          "summary": "네트워크 장비업체 시스코시스템즈(CSCO)가 실적 발표를 앞두고 인공지능(AI) 인프라 수요에 따른 실적 성장 기대가 부각되며 주가가 오름세를 보이고 있다. 12일(현지시간) 오후1시28분 시스코시스템즈 주가는...",
+          "pubDate": "Thu, 13 Aug 2026 02:50:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "롯데홈·CJ온스타일·GS샵, 2분기 실적 반등…하반기 '패션·고마진' 승...",
+          "link": "https://www.pointdaily.co.kr/news/articleView.html?idxno=315300",
+          "summary": "롯데홈쇼핑, CJ온스타일, GS샵 등 국내 홈쇼핑 업계가 올해 2분기 호실적을 거뒀다. 각 사가 지난 몇 년간... 사진=챗GPT  롯데홈쇼핑, CJ온스타일, GS샵 등 국내 홈쇼핑 업계가 올해 2분기 호실적을 거뒀다. 각 사가 지난 몇...",
+          "pubDate": "Thu, 13 Aug 2026 02:30:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "샤오미 SU7 울트라, 뉘르부르크링 7분04초 뒤엔 로터스 엔지니어링 있었...",
+          "link": "https://www.wikitree.co.kr/articles/1152101",
+          "summary": "샤오미는 이 성과를 자사 실적 발표에서도 언급한 바 있다. 이 프로토타입 개발에는 영국의 레이싱 엔지니어링 회사 프로드라이브(Prodrive)가 참여했다. 프로드라이브는 세계랠리챔피언십(WRC)과 르망 24시 등에 오래...",
+          "pubDate": "Thu, 13 Aug 2026 02:12:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "삼전닉스, 역대급 주주환원 보따리로 ‘피크아웃’ 우려 넘을까",
+          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002711&cp=nv",
+          "summary": "역대급 실적에도 ‘피크아웃(고점 통과)’ 우려에 발목이 잡혔던 삼성전자와 SK하이닉스가 대규모... 삼성전자는 지난 2분기 실적발표를 하며 “이사회와 경영진이 특별배당을 포함한 구체적인 실행 방안과 차기...",
+          "pubDate": "Thu, 13 Aug 2026 02:10:00 +0900",
+          "matched_stocks": [
+            {
+              "code": "005930",
+              "name": "삼성전자"
+            },
+            {
+              "code": "000660",
+              "name": "SK하이닉스"
+            }
+          ]
+        },
+        {
+          "title": "“수출만이 살길”… 불닭·초코파이 K푸드 기업 2분기 실적 ‘맑음’",
+          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002709&cp=nv",
+          "summary": "식품업계의 2분기 실적이 ‘해외 수출’ 성과에 따라 극명한 온도차를 보이고 있다. 원부자재 가격 상승... 호실적을 거둘 전망이다. 12일 유통업계에 따르면 해외에서 ‘롯데 초코파이’를 성공시킨 롯데웰푸드는...",
+          "pubDate": "Thu, 13 Aug 2026 02:07:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "[기업 리포트] 글로벌 공급난 뚫은 터키항공…7월 여객 950만명 '질주'",
           "link": "http://www.bizwnews.com/news/articleView.html?idxno=143155",
@@ -3861,48 +3938,6 @@
           "summary": "실적이 좋다고 안주하지 말고 멈춤 없는 변화에 나서라는 주문이었다. 그 결과 2006년 도요타의 세계 판매량은 792만대로 1995년의 1.7배로 늘었다. 현재 도요타는 해마다 1000만대 이상을 판매하는 세계 1위 자동차 회사다....",
           "pubDate": "Thu, 13 Aug 2026 00:39:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "[미국 특징주] 웬디스, 넬슨 펠츠의 인수 추진 보도에 주가 15%↑",
-          "link": "https://www.newspim.com/news/view/20260813000005",
-          "summary": "웬디스는 실적 부진에 시달려 왔다. 주가는 지난 1년간 24% 떨어졌다. 11일 종가 기준 시가총액은 14억 달러(약 1조 9700억 원), 부채를 포함한 기업가치는 37억 달러다. 웬디스 세트 메뉴 [사진=블룸버그]",
-          "pubDate": "Thu, 13 Aug 2026 00:39:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "韓電, 2분기 영업이익 47% 급감",
-          "link": "https://www.chosun.com/economy/industry-company/2026/08/13/BRGLLN236ZGVXHGYST6OHJYYJM/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
-          "summary": "실적 악화의 주범은 연료비다. 한전 발전 자회사들이 상반기 연료를 사들이는 데 쓴 비용은 10조1429억원으로 1년 전보다 8.8%(약 8200억원) 늘었다. 한전은 전쟁이 본격화한 지난 3월 LNG(액화천연가스) 수급 불안에...",
-          "pubDate": "Thu, 13 Aug 2026 00:33:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "美 대중제재속 中 저가공세도 한풀 꺾여… 다시 볕 드는 K태양광",
-          "link": "https://www.donga.com/news/Economy/article/all/20260812/134467794/2",
-          "summary": "국내 주요 태양광 기업들의 실적이 개선되고 있다. 미국의 대(對)중국 제재가 강해지고, 중국 내부에서도... ● 뚜렷한 실적 개선 보인 태양광 3사 12일 업계에 따르면 올 2분기(4∼6월) 국내 주요 태양광 기업의 매출이...",
-          "pubDate": "Thu, 13 Aug 2026 00:32:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "\"월 10만 달러로 글 먼저 보기\"...트럼프 미디어, 이해충돌 논란 확산",
-          "link": "http://coinreaders.com/252496",
-          "summary": "트럼프 미디어 임시 최고경영자 케빈 맥건(Kevin McGurn)은 회사의 첫 실적 발표에서 트루스 API 이용료를 공개했다. 맥건은 서비스가 아직 “초기 단계”라고 설명했다. 회사는 인공지능 기업들과도 협상을...",
-          "pubDate": "Thu, 13 Aug 2026 00:32:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "“남들 따라해선 경쟁력 없어… 아무도 가지 않은 길 개척해야”",
-          "link": "https://www.donga.com/news/Economy/article/all/20260812/134467931/2",
-          "summary": "탄탄한 기술력은 실적 성장으로 이어지고 있다. 한국카본은 지난해 연결 기준 매출 9088억 원, 영업이익 1309억 원을 냈다. 전년 대비 매출은 22.5%, 영업이익은 188.1% 증가했다. ● 항공·우주로 미래 성장축 확대 한국카본은...",
-          "pubDate": "Thu, 13 Aug 2026 00:31:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "AI 관련 매출 22~92% 급증… ‘AI 공장주’로 거듭나는 통신3사",
-          "link": "https://www.donga.com/news/Economy/article/all/20260812/134467939/2",
-          "summary": "● 통신 매출 제자리인데… AIDC는 두 자릿수 성장 12일 SK텔레콤·KT·LG유플러스의 2분기(4∼6월) 실적 발표에 따르면 각 사의 전체 매출은 소폭 상승하거나 감소한 데 비해 AIDC 등 AI 관련 매출은 크게 늘었다....",
-          "pubDate": "Thu, 13 Aug 2026 00:31:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3929,14 +3964,44 @@
           "code": "028300",
           "name": "HLB",
           "count": 1
-        },
-        {
-          "code": "002990",
-          "name": "금호건설",
-          "count": 1
         }
       ],
       "news": [
+        {
+          "title": "시중은행 대출 사기, 금융사고 490억 원 규모로 '불씨'",
+          "link": "https://www.tokenpost.kr/news/economy/389528",
+          "summary": "12일 공시에 따르면 KB국민은행·신한은행·우리은행·IBK기업은행은 모두 외부인에 의한 사기 형태의 금융사고가 발생했다고 밝혔다. 네 곳의 사고 금액을 합치면 490억원 규모다. 이번 공시는 단순한 개별 사고 보고를...",
+          "pubDate": "Thu, 13 Aug 2026 02:30:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "[오피셜] 韓 최악의 공식발표 터졌다, 오현규 왜 영입했나...베식타시, ...",
+          "link": "https://www.sportschosun.com/football/2026-08-13/202608130100075060004672",
+          "summary": "베식사티는 13일(한국시각) 공식 홈페이지를 통해 '우리는 프로 축구 선수 블라호비치의 이적을 위해 협상을 시작했음을 공시 플랫폼(KAP)에 알렸다. 베식타스 축구 투자 산업 무역 주식회사가 KAP에 전달한 공식 발표...",
+          "pubDate": "Thu, 13 Aug 2026 02:30:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "LA 노숙자 지원단체 대표, 80만 달러 휴가수당 받고 투명성 논란",
+          "link": "https://www.radiokorea.com/news/article.php?uid=501449",
+          "summary": "LA 타임스의 보도에 따르면 가정폭력 피해자 보호시설과 노숙자 지원 프로그램을 운영하는 1736 패밀리 크라이시스 센터의 국세청(IRS) 공시 자료를 분석한 결과, 대표 캐럴 애덜코프가 최근 2년 동안 총 160만 달러를 받은...",
+          "pubDate": "Thu, 13 Aug 2026 02:30:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "1년 만에 또 팔린 레이커스...125억 달러에 매각",
+          "link": "https://www.mk.co.kr/article/12125902",
+          "summary": "검찰은 이들이 보험사가 보유한 사모 신용 자산이 월터가 지배하는 다른 벤처 기업들을 지원하는 데 사용되었음에도 이를 공시하지 않았는지 여부를 들여다보고 있는 것으로 전해졌다. ESPN은 월터가 레이커스의...",
+          "pubDate": "Thu, 13 Aug 2026 02:25:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "[데스크칼럼] 세제 정상화? 결국 증세였다",
+          "link": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=476810",
+          "summary": "공시가격과 시가도 다르고, 공제와 특례는 또 별개의 방정식이다. 세무 전문가에게 물어야 자기 세금이... 정부안은 종부세 1세대 1주택 기본공제를 거주자는 공시가격 14억원, 비거주자는 9억원으로 달리 적용한다....",
+          "pubDate": "Thu, 13 Aug 2026 02:16:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "미국 SEC, 가상화폐 발행 규제 완화 검토",
           "link": "https://www.khgames.co.kr/news/articleView.html?idxno=307267",
@@ -4029,52 +4094,17 @@
           "matched_stocks": []
         },
         {
+          "title": "동원산업, 2분기 매출 2조5,720억원·영업이익 13% 증가",
+          "link": "https://www.tokenpost.kr/news/economy/389415",
+          "summary": "동원산업은 12일 공시를 통해 연결 기준 올해 2분기 영업이익이 1천515억원으로 지난해 같은 기간보다 13.3% 늘었다고 밝혔다. 같은 기간 매출은 2조5천720억원으로 9% 증가했고, 순이익은 1천46억원으로 18.8% 늘었다. 이번...",
+          "pubDate": "Wed, 12 Aug 2026 22:40:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "'이렇게 황당한 일이 있나' LG, 결별 통보 웰스와 다시 '동거'해야, 왜?",
           "link": "http://www.maniareport.com/view.php?ud=20260812222856748391b55a0d56_19",
           "summary": "구단은 공식 발표까지 준비했고, 웰스의 웨이버 공시 절차도 함께 진행할 진행할 계획이었다. 그런데 발표 직전 상황이 급변했다. KBO가 관련 규정을 다시 검토한 뒤 오카다의 이적은 불가능하다는 결론을 내렸다. 당초...",
           "pubDate": "Wed, 12 Aug 2026 22:33:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "메리츠금융지주, 금융 위기 속에서도 순이익 1조4천716억 돌파하며 역대...",
-          "link": "https://www.tokenpost.kr/news/economy/389404",
-          "summary": "12일 공시에 따르면 메리츠금융지주의 상반기 매출액은 35조5천774억원으로 1년 전보다 102.4% 증가했고, 영업이익은 1조8천224억원으로 9.0% 늘었다. 총자산은 지난해 말보다 9.7% 증가한 148조5천480억원으로 집계됐다....",
-          "pubDate": "Wed, 12 Aug 2026 22:30:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "위메이드, 영업손실 210억원…전년比 적자 폭 감소",
-          "link": "https://weekly.hankooki.com/news/articleView.html?idxno=7178713",
-          "summary": "12일 공시했다. 사진=위메이드  위메이드가 올 2분기 매출은 약 1083억원, 영업손실은 약 210억원, 당기순이익은 약 35억원으로 집계됐다고 12일 공시했다. 매출은 전분기 대비 약 29%, 전년 동기 대비 약 7% 감소했다. 게임...",
-          "pubDate": "Wed, 12 Aug 2026 22:22:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "피델리티, 이더 ETF 보유분 최대 100% 스테이킹 추진",
-          "link": "https://www.tokenpost.kr/news/market/389398",
-          "summary": "피델리티 이더리움 펀드(Fidelity Ethereum Fund·FETH)는 미국 증권거래위원회(SEC)에 제출한 S-3 등록신고서에 스테이킹 관련 공시를 추가했다. 이 신고서는 기존 S-1 등록신고서를 갱신·대체하기 위한 예비 투자설명서다....",
-          "pubDate": "Wed, 12 Aug 2026 22:22:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "국민·신한·우리·기업은행, 총 490억원 규모 금융사고…\"외부인 사기\"",
-          "link": "https://daily.hankooki.com/news/articleView.html?idxno=1395399",
-          "summary": "12일 국민은행은 공시를 통해 외부인에 의한 사기로 35억7790만원 규모의 금융사고가 발행했다고 밝혔다.... 같은날 신한·우리·IBK기업은행도 앞서 공시한 외부인에 의한 사기로 발생한 금융사고에 대해 금액을...",
-          "pubDate": "Wed, 12 Aug 2026 22:20:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "‘경영 효율화’ NHN, 2분 매출 7579억·영업이익 579억…역대 분기 최대...",
-          "link": "http://www.osen.co.kr/article/G1112856135",
-          "summary": "NHN은 연결 기준 2026년 2분기 매출 7,579억 원, 영업이익 579억 원을 기록했다고 11일 공시했다. 이는 전년 동기 대비 매출은 25.3%, 영업이익은 164.1% 증가한 수치로, 분기 기준 사상 최대 실적이다. 과거 한게임만...",
-          "pubDate": "Wed, 12 Aug 2026 22:16:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "은행권 덮친 ‘대출사기’ KB도 35억원 뜯겼다",
-          "link": "https://www.khan.co.kr/article/202608122215005",
-          "summary": "KB국민·신한·우리·IBK기업은행은 12일 오후 일제히 ‘외부인에 의한 사기’로 금융사고가 발생했다고 공시했다. 사고는 2023년부터 지난해 사이에 일어났고, 피해 금액은 총 490억원에 달했다. 국민은행은 신규 공시였고...",
-          "pubDate": "Wed, 12 Aug 2026 22:15:00 +0900",
           "matched_stocks": []
         }
       ]
@@ -4096,10 +4126,17 @@
         {
           "code": "005380",
           "name": "현대차",
-          "count": 2
+          "count": 1
         }
       ],
       "news": [
+        {
+          "title": "7대 시드 프로젝트...SMR·양자·바이오 담대한 도전",
+          "link": "https://www.ytn.co.kr/_ln/0105_202608130232234683",
+          "summary": "정부가 반도체 산업에서 얻은 기회를 활용해 미래를 선점하기 위한, 미래 성장동력 7대 SEED(시드) 프로젝트를 추진합니다. 소형모듈원자로와 양자, AI, 바이오 등 7개 첨단기술에 대한 담대한 투자인데, 이성규 기자가...",
+          "pubDate": "Thu, 13 Aug 2026 02:32:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "구글, AI 연구·제품 한손에…제미나이 속도전",
           "link": "https://www.g-enews.com/view.php?ud=2026081217444460549a1f309431_1",
@@ -4122,16 +4159,16 @@
           "matched_stocks": []
         },
         {
-          "title": "AI시대 다음 먹거리 ‘7대 씨앗 기술’ 선정",
-          "link": "https://www.chosun.com/politics/politics_general/2026/08/13/ZTRKLVV4XRAMZEQWBYRY24XDGI/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
-          "summary": "李 “핵융합·양자 등 집중 육성” 이재명 대통령은 12일 “반도체 산업이 만들어 준 절호의 기회를 활용해 인공지능(AI) 시대, 그 다음 먹거리를 미리 준비해야 한다”며 소형 모듈 원자로(SMR)와 핵융합...",
+          "title": "청년 취업자 19만명 줄어… 45개월 연속 감소",
+          "link": "https://www.chosun.com/economy/economy_general/2026/08/13/ILJYE52V5RD4NM7AT67COI4PFM/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
+          "summary": "실업률 상승폭은 5년 반 만에 최대 반도체 산업 호황에도 불구하고 지난달 고용률(15세 이상 인구 대비... 반도체 호황에도 대규모 설비 투자 중심 산업이라는 특성 탓에 고용 유발 효과가 낮다는 점과 인공지능...",
           "pubDate": "Thu, 13 Aug 2026 00:54:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "청년 취업자 19만명 줄어… 45개월 연속 감소",
-          "link": "https://www.chosun.com/economy/economy_general/2026/08/13/ILJYE52V5RD4NM7AT67COI4PFM/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
-          "summary": "실업률 상승폭은 5년 반 만에 최대 반도체 산업 호황에도 불구하고 지난달 고용률(15세 이상 인구 대비... 반도체 호황에도 대규모 설비 투자 중심 산업이라는 특성 탓에 고용 유발 효과가 낮다는 점과 인공지능...",
+          "title": "AI시대 다음 먹거리 ‘7대 씨앗 기술’ 선정",
+          "link": "https://www.chosun.com/politics/politics_general/2026/08/13/ZTRKLVV4XRAMZEQWBYRY24XDGI/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
+          "summary": "李 “핵융합·양자 등 집중 육성” 이재명 대통령은 12일 “반도체 산업이 만들어 준 절호의 기회를 활용해 인공지능(AI) 시대, 그 다음 먹거리를 미리 준비해야 한다”며 소형 모듈 원자로(SMR)와 핵융합...",
           "pubDate": "Thu, 13 Aug 2026 00:54:00 +0900",
           "matched_stocks": []
         },
@@ -4157,6 +4194,13 @@
           "matched_stocks": []
         },
         {
+          "title": "“엔비디아, ‘1조 매개변수’ 오픈소스 AI 개발중”",
+          "link": "https://www.donga.com/news/Economy/article/all/20260812/134467789/2",
+          "summary": "글로벌 인공지능(AI) 반도체 시장의 선두 기업인 엔비디아가 오픈소스 모델 개발과 대규모 자금 조달을 앞세워 반도체 수요처를 넓히고 있다. 11일(현지 시간) 미국 디인포메이션에 따르면 엔비디아가 개발 중인...",
+          "pubDate": "Thu, 13 Aug 2026 00:32:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "“하드웨어 엔지니어, 의사·변호사만큼 행복”",
           "link": "https://www.chosun.com/economy/tech_it/2026/08/13/FCYIILV2TBE5HK7CP5JVEZWBJI/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
           "summary": "직장인 행복도 조사에서 반도체 설계 등을 담당하는 하드웨어 엔지니어가 의사, 변호사 못지않은 높은... 반도체 업계에서는 SK하이닉스가 행복도 상위 3%에 오른 반면 삼성전자는 상위 60%에 그쳤다. 플랫폼...",
@@ -4171,13 +4215,6 @@
               "name": "SK하이닉스"
             }
           ]
-        },
-        {
-          "title": "“엔비디아, ‘1조 매개변수’ 오픈소스 AI 개발중”",
-          "link": "https://www.donga.com/news/Economy/article/all/20260812/134467789/2",
-          "summary": "글로벌 인공지능(AI) 반도체 시장의 선두 기업인 엔비디아가 오픈소스 모델 개발과 대규모 자금 조달을 앞세워 반도체 수요처를 넓히고 있다. 11일(현지 시간) 미국 디인포메이션에 따르면 엔비디아가 개발 중인...",
-          "pubDate": "Thu, 13 Aug 2026 00:32:00 +0900",
-          "matched_stocks": []
         },
         {
           "title": "AI 대전환 통해 K제조업 체력 강화해야[기고/김영오]",
@@ -4201,16 +4238,16 @@
           "matched_stocks": []
         },
         {
-          "title": "[사설] 2029년 완공한다는 호남 팹, 전력·용수 인프라 계획부터",
-          "link": "https://www.joongang.co.kr/article/25452926",
-          "summary": "이재명 대통령이 ‘전격전’을 강조하고 하루 뒤인 지난 11일, 정부가 2029년까지 호남 반도체 팹 1차... 하지만 전력과 용수 등 반도체 인프라를 갖추는 건 팹 건설보다 훨씬 힘들다. 반도체 팹은 3년 안팎이면 지을 수...",
+          "title": "\"취업 접고 공시생\"…청년 취업자 45개월째↓",
+          "link": "https://news.sbs.co.kr/news/endPage.do?news_id=N1008702762&plink=ORI&cooper=NAVER",
+          "summary": "하지만 AI 도입 등으로 인한 고용 없는 성장, 반도체 위주의 편중된 성장으로 자칫 청년 고용 한파가 길어질 수 있다는 우려가 큽니다. (영상취재 : 이재영, 영상편집 : 최진화, VJ : 정한욱)",
           "pubDate": "Thu, 13 Aug 2026 00:26:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "\"취업 접고 공시생\"…청년 취업자 45개월째↓",
-          "link": "https://news.sbs.co.kr/news/endPage.do?news_id=N1008702762&plink=ORI&cooper=NAVER",
-          "summary": "하지만 AI 도입 등으로 인한 고용 없는 성장, 반도체 위주의 편중된 성장으로 자칫 청년 고용 한파가 길어질 수 있다는 우려가 큽니다. (영상취재 : 이재영, 영상편집 : 최진화, VJ : 정한욱)",
+          "title": "[사설] 2029년 완공한다는 호남 팹, 전력·용수 인프라 계획부터",
+          "link": "https://www.joongang.co.kr/article/25452926",
+          "summary": "이재명 대통령이 ‘전격전’을 강조하고 하루 뒤인 지난 11일, 정부가 2029년까지 호남 반도체 팹 1차... 하지만 전력과 용수 등 반도체 인프라를 갖추는 건 팹 건설보다 훨씬 힘들다. 반도체 팹은 3년 안팎이면 지을 수...",
           "pubDate": "Thu, 13 Aug 2026 00:26:00 +0900",
           "matched_stocks": []
         },
@@ -4241,18 +4278,6 @@
           "summary": "중국 반도체 기업을 기초 대상으로 삼지만 거래와 손익 정산은 크립토 파생상품 시장에서 이뤄진다. 계약 보유자에게는 주식 소유권과 배당, 의결권, 기업공개 배정권이 주어지지 않는다. 특정 주식 가격을 참조해...",
           "pubDate": "Thu, 13 Aug 2026 00:20:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "한화, 지역 AI·우주항공 인재 양성… 국립대 3곳과 맞손",
-          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002680&cp=nv",
-          "summary": "정부는 대한민국 대도약 3대 메가 프로젝트 중 하나로 영남권을 반도체·전자·우주 등 제조 기반 위에 피지컬 AI가 융합되는 첨단산업 선도거점으로 육성한다는 비전을 제시한 바 있다. 한화를 비롯해 삼성, SK, 현대차, LG...",
-          "pubDate": "Thu, 13 Aug 2026 00:18:00 +0900",
-          "matched_stocks": [
-            {
-              "code": "005380",
-              "name": "현대차"
-            }
-          ]
         }
       ]
     },
@@ -4736,16 +4761,16 @@
           "matched_stocks": []
         },
         {
-          "title": "환자 이송~치료 '원스톱 완결' …AI 기반 대구형 응급의료 구축",
-          "link": "https://www.idaegu.co.kr/news/articleView.html?idxno=556623",
-          "summary": "이와 함께 'AI바이오메디시티대구협의회' 산하 필수의료위원회 6개 소분과를 활용해 진료과별 수용체계 개선 방안을 마련하고 정부의 5극3특 기반 초광역 협력 정책 방향에 맞춰 응급환자 이송·전원 체계 개선, 의료자원...",
+          "title": "SMR·양자 등 '미래 먹거리' 씨앗 심는다",
+          "link": "https://www.idaegu.co.kr/news/articleView.html?idxno=556624",
+          "summary": "연합뉴스정부가 소형모듈원자로(SMR)와 핵융합, 재생에너지, 양자, 우주·항공, 첨단바이오, 첨단 소재... 첨단바이오가 선정됐다. 핵심광물과 소재·부품·장비 공급망도 별도 과제로 추진한다. 이 대통령은 이날...",
           "pubDate": "Wed, 12 Aug 2026 21:54:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "식약처, K-바이오 규제혁신으로 최우수 정책상",
-          "link": "https://www.kdpress.co.kr/news/articleView.html?idxno=207747",
-          "summary": "K-바이오·헬스 규제 지원체계 구축' 정책으로 최우수 정책상을 수상했다. 이번 정책은 의료제품 허가·심사 기간 단축과 바이오의약품 위탁개발생산(CDMO) 규제지원, 디지털의료제품 규제체계 구축을 핵심으로 한다....",
+          "title": "환자 이송~치료 '원스톱 완결' …AI 기반 대구형 응급의료 구축",
+          "link": "https://www.idaegu.co.kr/news/articleView.html?idxno=556623",
+          "summary": "이와 함께 'AI바이오메디시티대구협의회' 산하 필수의료위원회 6개 소분과를 활용해 진료과별 수용체계 개선 방안을 마련하고 정부의 5극3특 기반 초광역 협력 정책 방향에 맞춰 응급환자 이송·전원 체계 개선, 의료자원...",
           "pubDate": "Wed, 12 Aug 2026 21:54:00 +0900",
           "matched_stocks": []
         },
@@ -4813,16 +4838,16 @@
           "matched_stocks": []
         },
         {
-          "title": "“달에 작은 도시 건설… 지속적 거주가 목표”",
-          "link": "https://www.chosun.com/economy/science/2026/08/13/2PDKHFCSSVBQVMHIEYJDCJFNFQ/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
-          "summary": "1단계로 2029년까지는 무인 착륙선과 로버(탐사 로봇)를 보내 달 남극의 지형과 자원을 조사하고, 이동·전력... NASA는 한국의 강점으로 위성·통신, 로봇과 달 표면 이동 시스템, 과학 연구와 센서 등을 꼽았다. 메랜시는...",
+          "title": "‘아폴로 발자국’ 보호하자면서… 로켓의 달 추락 방치?",
+          "link": "https://www.chosun.com/economy/science/2026/08/13/RAKLRL7RKJANZMRJF6QETS2QHQ/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
+          "summary": "우주 경쟁을 벌이는 국가들과 민간 기업들이 잇따라 달 탐사선을 보내고 있고, 앞으로 수십 개의 착륙선과 탐사 로봇(로버)이 달에서 동시에 활동하는 시대가 오면 우주 물체의 달 충돌이 재난이 될 수 있다는 얘기다....",
           "pubDate": "Thu, 13 Aug 2026 00:37:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "‘아폴로 발자국’ 보호하자면서… 로켓의 달 추락 방치?",
-          "link": "https://www.chosun.com/economy/science/2026/08/13/RAKLRL7RKJANZMRJF6QETS2QHQ/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
-          "summary": "우주 경쟁을 벌이는 국가들과 민간 기업들이 잇따라 달 탐사선을 보내고 있고, 앞으로 수십 개의 착륙선과 탐사 로봇(로버)이 달에서 동시에 활동하는 시대가 오면 우주 물체의 달 충돌이 재난이 될 수 있다는 얘기다....",
+          "title": "“달에 작은 도시 건설… 지속적 거주가 목표”",
+          "link": "https://www.chosun.com/economy/science/2026/08/13/2PDKHFCSSVBQVMHIEYJDCJFNFQ/?utm_source=naver&utm_medium=referral&utm_campaign=naver-news",
+          "summary": "1단계로 2029년까지는 무인 착륙선과 로버(탐사 로봇)를 보내 달 남극의 지형과 자원을 조사하고, 이동·전력... NASA는 한국의 강점으로 위성·통신, 로봇과 달 표면 이동 시스템, 과학 연구와 센서 등을 꼽았다. 메랜시는...",
           "pubDate": "Thu, 13 Aug 2026 00:37:00 +0900",
           "matched_stocks": []
         },
@@ -4841,16 +4866,16 @@
           "matched_stocks": []
         },
         {
-          "title": "[프론티어 도전하는 울산기업들]차량 경량화 핵심 '플라스틱 백패널'로...",
-          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064502",
-          "summary": "▲ 신화SMG 지그 도장 품질 검증 로봇. 최근 전동화 전환 등으로 차량 경량화 중요성이 높아지면서 철판을... 신화SMG는 도장 로봇을 도입해 공정을 자동화하고, 사람이 작업할 때 발생하는 편차나 피로 불량을 크게...",
+          "title": "울산테크노파크 '제조 AX' 본격화…국비 50억원 확보",
+          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064498",
+          "summary": "조선 분야에서는 로봇 용접, 자동차 분야에서는 차체 및 전동화 부품의 실증을 각각 진행한다. 먼저 조선... 총 18억9000만원을 투입해 수작업에 의존해 온 블록 용접을 레일 용접 로봇 기반으로 자율화한다. AI가 최적...",
           "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "울산테크노파크 '제조 AX' 본격화…국비 50억원 확보",
-          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064498",
-          "summary": "조선 분야에서는 로봇 용접, 자동차 분야에서는 차체 및 전동화 부품의 실증을 각각 진행한다. 먼저 조선... 총 18억9000만원을 투입해 수작업에 의존해 온 블록 용접을 레일 용접 로봇 기반으로 자율화한다. AI가 최적...",
+          "title": "[프론티어 도전하는 울산기업들]차량 경량화 핵심 '플라스틱 백패널'로...",
+          "link": "https://www.ksilbo.co.kr/news/articleView.html?idxno=1064502",
+          "summary": "▲ 신화SMG 지그 도장 품질 검증 로봇. 최근 전동화 전환 등으로 차량 경량화 중요성이 높아지면서 철판을... 신화SMG는 도장 로봇을 도입해 공정을 자동화하고, 사람이 작업할 때 발생하는 편차나 피로 불량을 크게...",
           "pubDate": "Thu, 13 Aug 2026 00:02:00 +0900",
           "matched_stocks": []
         },
@@ -4897,16 +4922,16 @@
           "matched_stocks": []
         },
         {
-          "title": "KAIST 연구진과 석 달간 기술 고도화…로봇 창업팀 10곳 찾는다",
-          "link": "https://www.venturesquare.net/1105579/",
-          "summary": "로봇 기술을 보유한 예비창업자와 초기기업이 KAIST 연구진과 석 달간 기술 완성도와 사업화 가능성을... 데이터·로봇 AI까지…피지컬 AI 팀 우대 모집은 ‘Fresh Track’과 ‘Deep Track’으로 나뉜다. Fresh Track은 로봇...",
+          "title": "'드라마 거장' 안판석 감독, '연애박사' 남기고 별세…추모 물결[종합]",
+          "link": "http://www.celuvmedia.com/article.php?aid=1786541703525666006",
+          "summary": "이 작품은 고등학교 때 수영선수였지만 병으로 한 쪽 다리를 잃은 박사과정생 민재와, 진로를 잃고 방황하다 새로운 길에 들어선 석사과정생 유진이 로봇 연구실에서 만나면서 벌어지는 이야기를 그린 로맨스물로, 배우...",
           "pubDate": "Wed, 12 Aug 2026 23:12:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "'드라마 거장' 안판석 감독, '연애박사' 남기고 별세…추모 물결[종합]",
-          "link": "http://www.celuvmedia.com/article.php?aid=1786541703525666006",
-          "summary": "이 작품은 고등학교 때 수영선수였지만 병으로 한 쪽 다리를 잃은 박사과정생 민재와, 진로를 잃고 방황하다 새로운 길에 들어선 석사과정생 유진이 로봇 연구실에서 만나면서 벌어지는 이야기를 그린 로맨스물로, 배우...",
+          "title": "KAIST 연구진과 석 달간 기술 고도화…로봇 창업팀 10곳 찾는다",
+          "link": "https://www.venturesquare.net/1105579/",
+          "summary": "로봇 기술을 보유한 예비창업자와 초기기업이 KAIST 연구진과 석 달간 기술 완성도와 사업화 가능성을... 데이터·로봇 AI까지…피지컬 AI 팀 우대 모집은 ‘Fresh Track’과 ‘Deep Track’으로 나뉜다. Fresh Track은 로봇...",
           "pubDate": "Wed, 12 Aug 2026 23:12:00 +0900",
           "matched_stocks": []
         },
@@ -5089,10 +5114,10 @@
     {
       "code": "005930",
       "name": "삼성전자",
-      "news_count": 33,
+      "news_count": 35,
       "sentiment_pos": 17,
       "sentiment_neg": 1,
-      "sentiment_neu": 15,
+      "sentiment_neu": 17,
       "sentiment_score_sum": 42,
       "price": 255500,
       "prev_close": 239500,
@@ -5105,6 +5130,15 @@
       "as_of": "2026-08-12",
       "news": [
         {
+          "title": "'삼전닉스' 6% 뛴 뒤 美마이크론도 6%↑…오늘 또 달릴까",
+          "link": "https://www.greened.kr/news/articleView.html?idxno=347543",
+          "summary": "다만 국내 증시는 전날 이미 코스피가 3.68%, 삼성전자와 SK하이닉스가 각각 6.68%, 5.54% 올랐다. 13일 장의 핵심은 미국 반도체주의 상승을 따라 시초가가 얼마나 높게 형성되느냐보다 전날 코스피에서 2조8000억원 넘게...",
+          "pubDate": "Thu, 13 Aug 2026 02:17:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 1
+        },
+        {
           "title": "상승세에 '순환매' 기대감…'동전주' 퇴출 시동",
           "link": "https://news.sbs.co.kr/news/endPage.do?news_id=N1008702761&plink=ORI&cooper=NAVER",
           "summary": "코스피가 반도체뿐 아니라 다른 업종도 골고루 상승하면서 큰 폭으로 올랐습니다. 이런 가운데 증시에서... <기자> 코스피의 3.6% 상승을 이끈 것은 반도체 투톱만이 아니었습니다. 삼성전자가 6.6%, SK하이닉스가 5.5...",
@@ -5139,25 +5173,16 @@
           "matched_keyword": "코스피",
           "sentiment": "positive",
           "sentiment_score": 2
-        },
-        {
-          "title": "[AI MY 뉴스] 뉴욕 반도체주 프리뷰...美 CPI 안도에 반도체주 강세",
-          "link": "https://www.newspim.com/news/view/20260812001309",
-          "summary": "한국 증시에서는 삼성전자와 SK하이닉스가 강세를 나타내면서 코스피가 큰 폭으로 상승했다. ◆ 인텔은 200억달러 증자 부담…장비주는 투자 확대 기대 인텔(INTC)도 이날 개장 전 거래에서는 반도체주 전반의 상승...",
-          "pubDate": "Wed, 12 Aug 2026 22:18:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "positive",
-          "sentiment_score": 3
         }
       ]
     },
     {
       "code": "000660",
       "name": "SK하이닉스",
-      "news_count": 29,
+      "news_count": 31,
       "sentiment_pos": 14,
       "sentiment_neg": 0,
-      "sentiment_neu": 15,
+      "sentiment_neu": 17,
       "sentiment_score_sum": 38,
       "price": 1504000,
       "prev_close": 1425000,
@@ -5170,6 +5195,15 @@
       "as_of": "2026-08-12",
       "news": [
         {
+          "title": "'삼전닉스' 6% 뛴 뒤 美마이크론도 6%↑…오늘 또 달릴까",
+          "link": "https://www.greened.kr/news/articleView.html?idxno=347543",
+          "summary": "다만 국내 증시는 전날 이미 코스피가 3.68%, 삼성전자와 SK하이닉스가 각각 6.68%, 5.54% 올랐다. 13일 장의 핵심은 미국 반도체주의 상승을 따라 시초가가 얼마나 높게 형성되느냐보다 전날 코스피에서 2조8000억원 넘게...",
+          "pubDate": "Thu, 13 Aug 2026 02:17:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 1
+        },
+        {
           "title": "상승세에 '순환매' 기대감…'동전주' 퇴출 시동",
           "link": "https://news.sbs.co.kr/news/endPage.do?news_id=N1008702761&plink=ORI&cooper=NAVER",
           "summary": "코스피가 반도체뿐 아니라 다른 업종도 골고루 상승하면서 큰 폭으로 올랐습니다. 이런 가운데 증시에서... <기자> 코스피의 3.6% 상승을 이끈 것은 반도체 투톱만이 아니었습니다. 삼성전자가 6.6%, SK하이닉스가 5.5...",
@@ -5204,15 +5238,6 @@
           "matched_keyword": "코스피",
           "sentiment": "positive",
           "sentiment_score": 2
-        },
-        {
-          "title": "[AI MY 뉴스] 뉴욕 반도체주 프리뷰...美 CPI 안도에 반도체주 강세",
-          "link": "https://www.newspim.com/news/view/20260812001309",
-          "summary": "한국 증시에서는 삼성전자와 SK하이닉스가 강세를 나타내면서 코스피가 큰 폭으로 상승했다. ◆ 인텔은 200억달러 증자 부담…장비주는 투자 확대 기대 인텔(INTC)도 이날 개장 전 거래에서는 반도체주 전반의 상승...",
-          "pubDate": "Wed, 12 Aug 2026 22:18:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "positive",
-          "sentiment_score": 3
         }
       ]
     },
@@ -5412,71 +5437,6 @@
       ]
     },
     {
-      "code": "005380",
-      "name": "현대차",
-      "news_count": 6,
-      "sentiment_pos": 0,
-      "sentiment_neg": 0,
-      "sentiment_neu": 6,
-      "sentiment_score_sum": 1,
-      "price": 409500,
-      "prev_close": 403000,
-      "change": 6500,
-      "change_pct": 1.61,
-      "foreign_net": 90750,
-      "organ_net": -52331,
-      "individual_net": -38910,
-      "foreign_hold_ratio": "25.03%",
-      "as_of": "2026-08-12",
-      "news": [
-        {
-          "title": "한화, 지역 AI·우주항공 인재 양성… 국립대 3곳과 맞손",
-          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002680&cp=nv",
-          "summary": "정부는 대한민국 대도약 3대 메가 프로젝트 중 하나로 영남권을 반도체·전자·우주 등 제조 기반 위에 피지컬 AI가 융합되는 첨단산업 선도거점으로 육성한다는 비전을 제시한 바 있다. 한화를 비롯해 삼성, SK, 현대차, LG...",
-          "pubDate": "Thu, 13 Aug 2026 00:18:00 +0900",
-          "matched_keyword": "반도체",
-          "sentiment": "neutral",
-          "sentiment_score": 1
-        },
-        {
-          "title": "안성시, 중부권 광역급행철도 조기 추진 촉구…12만 시민 서명 전달",
-          "link": "https://www.gukjenews.com/news/articleView.html?idxno=3663258",
-          "summary": "남상은 안성시 부시장은 \"안성은 반도체 소부장 산업단지와 현대차 미래모빌리티 캠퍼스 조성 등 첨단산업... 요청한다며, 반도체 국가전략의 중심에 선 안성이 위상에 걸맞은 교통망을 갖출 때까지...",
-          "pubDate": "Wed, 12 Aug 2026 22:44:00 +0900",
-          "matched_keyword": "반도체",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "현대차그룹, 국립소방병원 지원",
-          "link": "https://www.ulsanpress.net/news/articleView.html?idxno=580940",
-          "summary": "현대자동차그룹이 국내 최초 소방관 전문 의료기관인 국립소방병원에 구급차와 의료용 착용로봇 등 차량... 이번에 전달한 장비는 현대차 ST1 기반 구급차 2대와 의료용 착용로봇을 포함한 재활로봇 3기, 심폐재활...",
-          "pubDate": "Wed, 12 Aug 2026 21:42:00 +0900",
-          "matched_keyword": "로봇",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "문서 넘어 생산현장으로…K제조업, AI 전환 경쟁 '본격화'",
-          "link": "https://news.tvchosun.com/site/data/html_dir/2026/08/12/2026081290250.html",
-          "summary": "이제는 생산 현장에서 설비와 로봇을 진두지휘하는 단계에 와 있습니다. 'AI 자율 공장'인데, 현대차에 이어서 삼성전자와 SK하이닉스도 추진하고 있습니다. 황민지 기자입니다. [리포트] 정비사가 차량 증상을...",
-          "pubDate": "Wed, 12 Aug 2026 21:39:00 +0900",
-          "matched_keyword": "로봇",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "\"현대차, 부품사 노동자 고용 보장하라\"",
-          "link": "http://www.ujeil.com/news/articleView.html?idxno=390324",
-          "summary": "울산지부는 \"로봇이 들어온다는 이유로 사람이 거리로 밀려나서는 안된다\"며 \"산업AX를 반대하는 게 아니라 과정에서 부품사 노동자의 고용을 지키고, 불공정한 원가절감과 단가인하를 막고, 노동자가 배제되지 않는...",
-          "pubDate": "Wed, 12 Aug 2026 20:36:00 +0900",
-          "matched_keyword": "로봇",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        }
-      ]
-    },
-    {
       "code": "196170",
       "name": "알테오젠",
       "news_count": 6,
@@ -5538,71 +5498,6 @@
           "matched_keyword": "2차전지",
           "sentiment": "positive",
           "sentiment_score": 2
-        }
-      ]
-    },
-    {
-      "code": "002990",
-      "name": "금호건설",
-      "news_count": 5,
-      "sentiment_pos": 0,
-      "sentiment_neg": 0,
-      "sentiment_neu": 5,
-      "sentiment_score_sum": 1,
-      "price": 14930,
-      "prev_close": 11490,
-      "change": 3440,
-      "change_pct": 29.94,
-      "foreign_net": 195608,
-      "organ_net": 57791,
-      "individual_net": -237555,
-      "foreign_hold_ratio": "2.94%",
-      "as_of": "2026-08-12",
-      "news": [
-        {
-          "title": "[상한가 종목] 금호건설-금호전기 이어 엠에스로보틱스-남화토건 등 마...",
-          "link": "http://www.econonews.co.kr/news/articleView.html?idxno=442724",
-          "summary": "12일 코스피 시장에서 금호건설은 29.94%(3440원) 높은 1만4930원에 장을 마감했다. 이외에 코스피 시장에서 금호전기, 금호건설우로 나왔다. 코스닥 시장에서는 엠엑스로보틱스, 남화토건, 오가닉티코스메틱...",
-          "pubDate": "Wed, 12 Aug 2026 21:30:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "[오늘의 특징주] 호남 반도체 투자 훈풍 지속…금호건설·남화토건 등 상...",
-          "link": "https://www.ppss.kr/news/articleView.html?idxno=305230",
-          "summary": "같은 시각 코스피 시장의 금호전기, 금호건설우와 코스닥의 엠엑스로보틱스, 남화토건, 오가닉티코스메틱, 엣지파운드리, 샤페론, 한탑, 골드앤에스, 코이즈도 일제히 가격제한폭까지 치솟으며 무더기 상한가를...",
-          "pubDate": "Wed, 12 Aug 2026 21:19:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "[주식마감] '호남 반도체' 소식에 금호건설·금호전기 연속 상한가... 엠...",
-          "link": "https://www.ggilbo.com/news/articleView.html?idxno=1175169",
-          "summary": "이날 코스피에는 금호건설, 금호전기, 금호건설우가 상한가에 이름을 올렸다. 금호건설은 전 거래일... 사진=연합뉴스 한편 이날 코스피 시장 거래 상위종목 30위는 KODEX 200선물인버스2X, KODEX 인버스, TIGER...",
-          "pubDate": "Wed, 12 Aug 2026 19:40:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "금호건설, 투자경고종목 지정예고",
-          "link": "https://www.topstarnews.net/news/articleView.html?idxno=16161966",
-          "summary": "회사는 최근 5거래일 중 2026년 08월 12일의 종가가 5일 전일의 종가보다 45% 이상 상승한 데 따라 2026년 08월 13일자로 투자주의종목 지정예고에 해당한다고 공시했다. 한국거래소 공시에 따르면 금호건설은 2026년 08월...",
-          "pubDate": "Wed, 12 Aug 2026 20:44:00 +0900",
-          "matched_keyword": "공시",
-          "sentiment": "neutral",
-          "sentiment_score": 1
-        },
-        {
-          "title": "[주식마감] '3대 메가프로젝트' 소식에 금호건설·금호전기 상한가... 남...",
-          "link": "https://www.ggilbo.com/news/articleView.html?idxno=1174863",
-          "summary": "청와대는 지난 10일 이재명 대통령 주재로 열린 '메가프로젝트 민관합동 2차 점검 회의'에서 3대... 이후 2003년 카본계 소형 이차전지인 '칩셀카본' 개발을 시작으로 제조사업에 진출했으며, 현재는 리튬계 소형...",
-          "pubDate": "Tue, 11 Aug 2026 19:40:00 +0900",
-          "matched_keyword": "2차전지",
-          "sentiment": "neutral",
-          "sentiment_score": 0
         }
       ]
     },
@@ -5672,6 +5567,71 @@
       ]
     },
     {
+      "code": "005380",
+      "name": "현대차",
+      "news_count": 5,
+      "sentiment_pos": 0,
+      "sentiment_neg": 0,
+      "sentiment_neu": 5,
+      "sentiment_score_sum": 1,
+      "price": 409500,
+      "prev_close": 403000,
+      "change": 6500,
+      "change_pct": 1.61,
+      "foreign_net": 90750,
+      "organ_net": -52331,
+      "individual_net": -38910,
+      "foreign_hold_ratio": "25.03%",
+      "as_of": "2026-08-12",
+      "news": [
+        {
+          "title": "한화, 지역 AI·우주항공 인재 양성… 국립대 3곳과 맞손",
+          "link": "https://www.kmib.co.kr/article/view.asp?arcid=9000002680&cp=nv",
+          "summary": "정부는 대한민국 대도약 3대 메가 프로젝트 중 하나로 영남권을 반도체·전자·우주 등 제조 기반 위에 피지컬 AI가 융합되는 첨단산업 선도거점으로 육성한다는 비전을 제시한 바 있다. 한화를 비롯해 삼성, SK, 현대차, LG...",
+          "pubDate": "Thu, 13 Aug 2026 00:18:00 +0900",
+          "matched_keyword": "반도체",
+          "sentiment": "neutral",
+          "sentiment_score": 1
+        },
+        {
+          "title": "현대차그룹, 국립소방병원 지원",
+          "link": "https://www.ulsanpress.net/news/articleView.html?idxno=580940",
+          "summary": "현대자동차그룹이 국내 최초 소방관 전문 의료기관인 국립소방병원에 구급차와 의료용 착용로봇 등 차량... 이번에 전달한 장비는 현대차 ST1 기반 구급차 2대와 의료용 착용로봇을 포함한 재활로봇 3기, 심폐재활...",
+          "pubDate": "Wed, 12 Aug 2026 21:42:00 +0900",
+          "matched_keyword": "로봇",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "문서 넘어 생산현장으로…K제조업, AI 전환 경쟁 '본격화'",
+          "link": "https://news.tvchosun.com/site/data/html_dir/2026/08/12/2026081290250.html",
+          "summary": "이제는 생산 현장에서 설비와 로봇을 진두지휘하는 단계에 와 있습니다. 'AI 자율 공장'인데, 현대차에 이어서 삼성전자와 SK하이닉스도 추진하고 있습니다. 황민지 기자입니다. [리포트] 정비사가 차량 증상을...",
+          "pubDate": "Wed, 12 Aug 2026 21:39:00 +0900",
+          "matched_keyword": "로봇",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "\"현대차, 부품사 노동자 고용 보장하라\"",
+          "link": "http://www.ujeil.com/news/articleView.html?idxno=390324",
+          "summary": "울산지부는 \"로봇이 들어온다는 이유로 사람이 거리로 밀려나서는 안된다\"며 \"산업AX를 반대하는 게 아니라 과정에서 부품사 노동자의 고용을 지키고, 불공정한 원가절감과 단가인하를 막고, 노동자가 배제되지 않는...",
+          "pubDate": "Wed, 12 Aug 2026 20:36:00 +0900",
+          "matched_keyword": "로봇",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "정의선의 'IT기업 선언' 8년 뒤...현대차 직원 10명 중 8명 AI 쓴다",
+          "link": "https://www.ohmynews.com/NWS_Web/View/at_pg.aspx?CNTN_CD=A0003258734&CMPT_CD=P0010&utm_source=naver&utm_medium=newsearch&utm_campaign=naver_news",
+          "summary": "지금까지 AI가 사무실과 공장의 업무를 바꿨다면 앞으로는 자동차와 로봇, 스마트 팩토리처럼 현실 세계에서 움직이는 기계와 AI를 결합하겠다는 것이다. 보스턴다이내믹스를 보유하고 있고 자동차 생산공장이라는...",
+          "pubDate": "Wed, 12 Aug 2026 20:16:00 +0900",
+          "matched_keyword": "로봇",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        }
+      ]
+    },
+    {
       "code": "006400",
       "name": "삼성SDI",
       "news_count": 5,
@@ -5733,6 +5693,62 @@
           "matched_keyword": "2차전지",
           "sentiment": "negative",
           "sentiment_score": -2
+        }
+      ]
+    },
+    {
+      "code": "002990",
+      "name": "금호건설",
+      "news_count": 4,
+      "sentiment_pos": 0,
+      "sentiment_neg": 0,
+      "sentiment_neu": 4,
+      "sentiment_score_sum": 0,
+      "price": 14930,
+      "prev_close": 11490,
+      "change": 3440,
+      "change_pct": 29.94,
+      "foreign_net": 195608,
+      "organ_net": 57791,
+      "individual_net": -237555,
+      "foreign_hold_ratio": "2.94%",
+      "as_of": "2026-08-12",
+      "news": [
+        {
+          "title": "[상한가 종목] 금호건설-금호전기 이어 엠에스로보틱스-남화토건 등 마...",
+          "link": "http://www.econonews.co.kr/news/articleView.html?idxno=442724",
+          "summary": "12일 코스피 시장에서 금호건설은 29.94%(3440원) 높은 1만4930원에 장을 마감했다. 이외에 코스피 시장에서 금호전기, 금호건설우로 나왔다. 코스닥 시장에서는 엠엑스로보틱스, 남화토건, 오가닉티코스메틱...",
+          "pubDate": "Wed, 12 Aug 2026 21:30:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "[오늘의 특징주] 호남 반도체 투자 훈풍 지속…금호건설·남화토건 등 상...",
+          "link": "https://www.ppss.kr/news/articleView.html?idxno=305230",
+          "summary": "같은 시각 코스피 시장의 금호전기, 금호건설우와 코스닥의 엠엑스로보틱스, 남화토건, 오가닉티코스메틱, 엣지파운드리, 샤페론, 한탑, 골드앤에스, 코이즈도 일제히 가격제한폭까지 치솟으며 무더기 상한가를...",
+          "pubDate": "Wed, 12 Aug 2026 21:19:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "[주식마감] '호남 반도체' 소식에 금호건설·금호전기 연속 상한가... 엠...",
+          "link": "https://www.ggilbo.com/news/articleView.html?idxno=1175169",
+          "summary": "이날 코스피에는 금호건설, 금호전기, 금호건설우가 상한가에 이름을 올렸다. 금호건설은 전 거래일... 사진=연합뉴스 한편 이날 코스피 시장 거래 상위종목 30위는 KODEX 200선물인버스2X, KODEX 인버스, TIGER...",
+          "pubDate": "Wed, 12 Aug 2026 19:40:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "[주식마감] '3대 메가프로젝트' 소식에 금호건설·금호전기 상한가... 남...",
+          "link": "https://www.ggilbo.com/news/articleView.html?idxno=1174863",
+          "summary": "청와대는 지난 10일 이재명 대통령 주재로 열린 '메가프로젝트 민관합동 2차 점검 회의'에서 3대... 이후 2003년 카본계 소형 이차전지인 '칩셀카본' 개발을 시작으로 제조사업에 진출했으며, 현재는 리튬계 소형...",
+          "pubDate": "Tue, 11 Aug 2026 19:40:00 +0900",
+          "matched_keyword": "2차전지",
+          "sentiment": "neutral",
+          "sentiment_score": 0
         }
       ]
     },
@@ -8423,7 +8439,7 @@
   },
   "summary": {
     "total_stocks": 30,
-    "total_news": 778,
+    "total_news": 775,
     "known_stocks": 54
   }
 }
