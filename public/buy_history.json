@@ -1,5 +1,654 @@
 {
   "by_date": {
+    "2026-08-21": {
+      "snapshot_at": "2026-08-21 00:42",
+      "kospi": 6852.58,
+      "kosdaq": 840.89,
+      "stocks": [
+        {
+          "code": "000660",
+          "name": "SK하이닉스",
+          "price": 1691000,
+          "signal": "강한 매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 1754806,
+              "lower": 1234655,
+              "upper": 2452679,
+              "ret_pct": 3.8,
+              "lower_pct": -27.0,
+              "upper_pct": 45.0
+            },
+            "twoWeek": {
+              "expected": 1821019,
+              "lower": 1107612,
+              "upper": 2923867,
+              "ret_pct": 7.7,
+              "lower_pct": -34.5,
+              "upper_pct": 72.9
+            },
+            "dailyMeanPct": 0.7,
+            "dailySdPct": 8.2,
+            "sampleSize": 59,
+            "baseMeanPct": -0.3,
+            "baseSdPct": 8.2,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": 0.007407603238641779,
+            "sigma_daily": 0.08150814735447703
+          }
+        },
+        {
+          "code": "251340",
+          "name": "KODEX 코스닥150선물인버스",
+          "price": 2335,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 2362,
+              "lower": 1902,
+              "upper": 2883,
+              "ret_pct": 1.2,
+              "lower_pct": -18.5,
+              "upper_pct": 23.5
+            },
+            "twoWeek": {
+              "expected": 2390,
+              "lower": 1759,
+              "upper": 3167,
+              "ret_pct": 2.4,
+              "lower_pct": -24.7,
+              "upper_pct": 35.6
+            },
+            "dailyMeanPct": 0.2,
+            "dailySdPct": 4.9,
+            "sampleSize": 59,
+            "baseMeanPct": 0.3,
+            "baseSdPct": 4.9,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": 0.002311500530735997,
+            "sigma_daily": 0.049063346019828855
+          }
+        },
+        {
+          "code": "058730",
+          "name": "다스코",
+          "price": 3560,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 3508,
+              "lower": 2369,
+              "upper": 5782,
+              "ret_pct": -1.5,
+              "lower_pct": -33.4,
+              "upper_pct": 62.4
+            },
+            "twoWeek": {
+              "expected": 3456,
+              "lower": 1984,
+              "upper": 7008,
+              "ret_pct": -2.9,
+              "lower_pct": -44.3,
+              "upper_pct": 96.8
+            },
+            "dailyMeanPct": -0.3,
+            "dailySdPct": 9.6,
+            "sampleSize": 59,
+            "baseMeanPct": 0.3,
+            "baseSdPct": 9.6,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.0029581925450702685,
+            "sigma_daily": 0.09605958078452471
+          }
+        },
+        {
+          "code": "252420",
+          "name": "RISE 200선물인버스2X",
+          "price": 82,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 78,
+              "lower": 50,
+              "upper": 121,
+              "ret_pct": -4.9,
+              "lower_pct": -39.3,
+              "upper_pct": 47.7
+            },
+            "twoWeek": {
+              "expected": 73,
+              "lower": 39,
+              "upper": 138,
+              "ret_pct": -11.0,
+              "lower_pct": -52.2,
+              "upper_pct": 68.0
+            },
+            "dailyMeanPct": -1.1,
+            "dailySdPct": 11.3,
+            "sampleSize": 59,
+            "baseMeanPct": -0.3,
+            "baseSdPct": 11.3,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.011121484717057603,
+            "sigma_daily": 0.11263778035375119
+          }
+        },
+        {
+          "code": "007110",
+          "name": "일신석재",
+          "price": 630,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 596,
+              "lower": 481,
+              "upper": 731,
+              "ret_pct": -5.4,
+              "lower_pct": -23.6,
+              "upper_pct": 16.0
+            },
+            "twoWeek": {
+              "expected": 563,
+              "lower": 417,
+              "upper": 752,
+              "ret_pct": -10.6,
+              "lower_pct": -33.9,
+              "upper_pct": 19.4
+            },
+            "dailyMeanPct": -1.1,
+            "dailySdPct": 5.2,
+            "sampleSize": 59,
+            "baseMeanPct": -1.2,
+            "baseSdPct": 5.2,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 1.59× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": -0.01121350537859359,
+            "sigma_daily": 0.05175552688256864
+          }
+        },
+        {
+          "code": "253230",
+          "name": "KIWOOM 200선물인버스2X",
+          "price": 78,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 73,
+              "lower": 49,
+              "upper": 113,
+              "ret_pct": -6.4,
+              "lower_pct": -37.0,
+              "upper_pct": 44.9
+            },
+            "twoWeek": {
+              "expected": 69,
+              "lower": 39,
+              "upper": 127,
+              "ret_pct": -11.5,
+              "lower_pct": -49.8,
+              "upper_pct": 63.1
+            },
+            "dailyMeanPct": -1.2,
+            "dailySdPct": 10.8,
+            "sampleSize": 59,
+            "baseMeanPct": -0.4,
+            "baseSdPct": 10.8,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.01197151345001441,
+            "sigma_daily": 0.10771014270825151
+          }
+        },
+        {
+          "code": "015260",
+          "name": "에이엔피",
+          "price": 274,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 257,
+              "lower": 173,
+              "upper": 439,
+              "ret_pct": -6.2,
+              "lower_pct": -37.0,
+              "upper_pct": 60.1
+            },
+            "twoWeek": {
+              "expected": 241,
+              "lower": 137,
+              "upper": 514,
+              "ret_pct": -12.0,
+              "lower_pct": -49.8,
+              "upper_pct": 87.5
+            },
+            "dailyMeanPct": -1.3,
+            "dailySdPct": 10.3,
+            "sampleSize": 59,
+            "baseMeanPct": -1.4,
+            "baseSdPct": 10.3,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 1.80× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": -0.012662498154397578,
+            "sigma_daily": 0.10338997032833992
+          }
+        },
+        {
+          "code": "700036",
+          "name": "하나 인버스 2X 반도체 ETN",
+          "price": 2500,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 2295,
+              "lower": 1279,
+              "upper": 4050,
+              "ret_pct": -8.2,
+              "lower_pct": -48.9,
+              "upper_pct": 62.0
+            },
+            "twoWeek": {
+              "expected": 2107,
+              "lower": 921,
+              "upper": 4704,
+              "ret_pct": -15.7,
+              "lower_pct": -63.2,
+              "upper_pct": 88.2
+            },
+            "dailyMeanPct": -1.7,
+            "dailySdPct": 15.0,
+            "sampleSize": 59,
+            "baseMeanPct": -0.7,
+            "baseSdPct": 15.0,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 1.70× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": -0.0170923155075993,
+            "sigma_daily": 0.14991903583786093
+          }
+        },
+        {
+          "code": "298380",
+          "name": "에이비엘바이오",
+          "price": 82500,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 79400,
+              "lower": 62685,
+              "upper": 102817,
+              "ret_pct": -3.8,
+              "lower_pct": -24.0,
+              "upper_pct": 24.6
+            },
+            "twoWeek": {
+              "expected": 76416,
+              "lower": 54703,
+              "upper": 110134,
+              "ret_pct": -7.4,
+              "lower_pct": -33.7,
+              "upper_pct": 33.5
+            },
+            "dailyMeanPct": -0.8,
+            "dailySdPct": 5.8,
+            "sampleSize": 59,
+            "baseMeanPct": -0.6,
+            "baseSdPct": 5.8,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.007661005658361097,
+            "sigma_daily": 0.05838894491017739
+          }
+        },
+        {
+          "code": "141080",
+          "name": "리가켐바이오",
+          "price": 108300,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 103747,
+              "lower": 80676,
+              "upper": 137804,
+              "ret_pct": -4.2,
+              "lower_pct": -25.5,
+              "upper_pct": 27.2
+            },
+            "twoWeek": {
+              "expected": 99386,
+              "lower": 69638,
+              "upper": 148483,
+              "ret_pct": -8.2,
+              "lower_pct": -35.7,
+              "upper_pct": 37.1
+            },
+            "dailyMeanPct": -0.9,
+            "dailySdPct": 6.3,
+            "sampleSize": 59,
+            "baseMeanPct": -0.6,
+            "baseSdPct": 6.3,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.008589574363241956,
+            "sigma_daily": 0.0629441326078039
+          }
+        },
+        {
+          "code": "080220",
+          "name": "제주반도체",
+          "price": 76500,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 71053,
+              "lower": 49294,
+              "upper": 106284,
+              "ret_pct": -7.1,
+              "lower_pct": -35.6,
+              "upper_pct": 38.9
+            },
+            "twoWeek": {
+              "expected": 65993,
+              "lower": 39350,
+              "upper": 116634,
+              "ret_pct": -13.7,
+              "lower_pct": -48.6,
+              "upper_pct": 52.5
+            },
+            "dailyMeanPct": -1.5,
+            "dailySdPct": 9.0,
+            "sampleSize": 59,
+            "baseMeanPct": -0.7,
+            "baseSdPct": 9.0,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.014774055271844572,
+            "sigma_daily": 0.09019537884883207
+          }
+        },
+        {
+          "code": "530134",
+          "name": "삼성 블룸버그 인버스2X WTI원유선물 ETN B",
+          "price": 2530,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 2445,
+              "lower": 1835,
+              "upper": 3254,
+              "ret_pct": -3.4,
+              "lower_pct": -27.5,
+              "upper_pct": 28.6
+            },
+            "twoWeek": {
+              "expected": 2362,
+              "lower": 1575,
+              "upper": 3539,
+              "ret_pct": -6.6,
+              "lower_pct": -37.8,
+              "upper_pct": 39.9
+            },
+            "dailyMeanPct": -0.7,
+            "dailySdPct": 6.7,
+            "sampleSize": 59,
+            "baseMeanPct": -0.3,
+            "baseSdPct": 6.7,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.0068673840397485255,
+            "sigma_daily": 0.06738039177068647
+          }
+        },
+        {
+          "code": "003680",
+          "name": "한성기업",
+          "price": 5500,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 5197,
+              "lower": 3681,
+              "upper": 8460,
+              "ret_pct": -5.5,
+              "lower_pct": -33.1,
+              "upper_pct": 53.8
+            },
+            "twoWeek": {
+              "expected": 4911,
+              "lower": 3016,
+              "upper": 9782,
+              "ret_pct": -10.7,
+              "lower_pct": -45.2,
+              "upper_pct": 77.9
+            },
+            "dailyMeanPct": -1.1,
+            "dailySdPct": 9.0,
+            "sampleSize": 59,
+            "baseMeanPct": 0.2,
+            "baseSdPct": 9.0,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 3.98× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": -0.011322662869262791,
+            "sigma_daily": 0.0895762540744201
+          }
+        },
+        {
+          "code": "465770",
+          "name": "STX그린로지스",
+          "price": 3470,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 3728,
+              "lower": 2318,
+              "upper": 6458,
+              "ret_pct": 7.4,
+              "lower_pct": -33.2,
+              "upper_pct": 86.1
+            },
+            "twoWeek": {
+              "expected": 4005,
+              "lower": 2046,
+              "upper": 8711,
+              "ret_pct": 15.4,
+              "lower_pct": -41.1,
+              "upper_pct": 151.0
+            },
+            "dailyMeanPct": 1.4,
+            "dailySdPct": 11.7,
+            "sampleSize": 59,
+            "baseMeanPct": 0.1,
+            "baseSdPct": 11.7,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 1.83× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": 0.014350564083718364,
+            "sigma_daily": 0.11745796954629915
+          }
+        },
+        {
+          "code": "226950",
+          "name": "올릭스",
+          "price": 109400,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 105553,
+              "lower": 74692,
+              "upper": 145900,
+              "ret_pct": -3.5,
+              "lower_pct": -31.7,
+              "upper_pct": 33.4
+            },
+            "twoWeek": {
+              "expected": 101842,
+              "lower": 62448,
+              "upper": 160969,
+              "ret_pct": -6.9,
+              "lower_pct": -42.9,
+              "upper_pct": 47.1
+            },
+            "dailyMeanPct": -0.7,
+            "dailySdPct": 7.8,
+            "sampleSize": 59,
+            "baseMeanPct": -0.7,
+            "baseSdPct": 7.8,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.007159264418719464,
+            "sigma_daily": 0.07812097510312586
+          }
+        },
+        {
+          "code": "071050",
+          "name": "한국금융지주",
+          "price": 186800,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 178824,
+              "lower": 145864,
+              "upper": 219933,
+              "ret_pct": -4.3,
+              "lower_pct": -21.9,
+              "upper_pct": 17.7
+            },
+            "twoWeek": {
+              "expected": 171189,
+              "lower": 128336,
+              "upper": 229384,
+              "ret_pct": -8.4,
+              "lower_pct": -31.3,
+              "upper_pct": 22.8
+            },
+            "dailyMeanPct": -0.9,
+            "dailySdPct": 4.9,
+            "sampleSize": 59,
+            "baseMeanPct": -0.5,
+            "baseSdPct": 4.9,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.008726865027886168,
+            "sigma_daily": 0.048812053358080545
+          }
+        },
+        {
+          "code": "064400",
+          "name": "LG씨엔에스",
+          "price": 73800,
+          "signal": "약한 매수세",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 72018,
+              "lower": 56200,
+              "upper": 103348,
+              "ret_pct": -2.4,
+              "lower_pct": -23.8,
+              "upper_pct": 40.0
+            },
+            "twoWeek": {
+              "expected": 70278,
+              "lower": 49489,
+              "upper": 117128,
+              "ret_pct": -4.8,
+              "lower_pct": -32.9,
+              "upper_pct": 58.7
+            },
+            "dailyMeanPct": -0.5,
+            "dailySdPct": 6.8,
+            "sampleSize": 59,
+            "baseMeanPct": -0.2,
+            "baseSdPct": 6.8,
+            "grade": "caution",
+            "warnings": [
+              "변동성 변화 0.55× (전반기 → 후반기)"
+            ],
+            "reasons": [],
+            "mu_daily": -0.004889289076937198,
+            "sigma_daily": 0.06804645077189046
+          }
+        },
+        {
+          "code": "102970",
+          "name": "KODEX 증권",
+          "price": 18645,
+          "signal": "매수 우위",
+          "tech": "매수 신호",
+          "forecast": {
+            "oneWeek": {
+              "expected": 18022,
+              "lower": 14987,
+              "upper": 21727,
+              "ret_pct": -3.3,
+              "lower_pct": -19.6,
+              "upper_pct": 16.5
+            },
+            "twoWeek": {
+              "expected": 17420,
+              "lower": 13420,
+              "upper": 22692,
+              "ret_pct": -6.6,
+              "lower_pct": -28.0,
+              "upper_pct": 21.7
+            },
+            "dailyMeanPct": -0.7,
+            "dailySdPct": 4.4,
+            "sampleSize": 59,
+            "baseMeanPct": -0.7,
+            "baseSdPct": 4.4,
+            "grade": "stable",
+            "warnings": [],
+            "reasons": [],
+            "mu_daily": -0.006796582941753613,
+            "sigma_daily": 0.04406387590135666
+          }
+        }
+      ]
+    },
     "2026-08-20": {
       "snapshot_at": "2026-08-20 00:41",
       "kospi": 6471.17,
@@ -139653,523 +140302,6 @@
             "reasons": [],
             "mu_daily": -0.019416664415177493,
             "sigma_daily": 0.08130033989881363
-          }
-        },
-        {
-          "code": "003280",
-          "name": "흥아해운",
-          "price": 2510,
-          "signal": "약한 매수세",
-          "tech": "매수 신호 강함",
-          "forecast": {
-            "oneWeek": {
-              "expected": 2459,
-              "lower": 1731,
-              "upper": 4015,
-              "ret_pct": -2.0,
-              "lower_pct": -31.0,
-              "upper_pct": 60.0
-            },
-            "twoWeek": {
-              "expected": 2410,
-              "lower": 1466,
-              "upper": 4820,
-              "ret_pct": -4.0,
-              "lower_pct": -41.6,
-              "upper_pct": 92.0
-            },
-            "dailyMeanPct": -0.4,
-            "dailySdPct": 9.3,
-            "sampleSize": 59,
-            "baseMeanPct": 0.5,
-            "baseSdPct": 9.3,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.27× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.004080326572115115,
-            "sigma_daily": 0.093153383242759
-          }
-        },
-        {
-          "code": "001510",
-          "name": "SK증권",
-          "price": 3850,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 3879,
-              "lower": 2382,
-              "upper": 6361,
-              "ret_pct": 0.8,
-              "lower_pct": -38.1,
-              "upper_pct": 65.2
-            },
-            "twoWeek": {
-              "expected": 3908,
-              "lower": 1961,
-              "upper": 7867,
-              "ret_pct": 1.5,
-              "lower_pct": -49.1,
-              "upper_pct": 104.3
-            },
-            "dailyMeanPct": 0.1,
-            "dailySdPct": 14.4,
-            "sampleSize": 59,
-            "baseMeanPct": 1.3,
-            "baseSdPct": 14.4,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 1.82× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": 0.0014969015494735484,
-            "sigma_daily": 0.14439950502253715
-          }
-        },
-        {
-          "code": "008350",
-          "name": "남선알미늄",
-          "price": 1710,
-          "signal": "강한 매수 우위",
-          "tech": "매수 신호 강함",
-          "forecast": {
-            "oneWeek": {
-              "expected": 1699,
-              "lower": 1279,
-              "upper": 2544,
-              "ret_pct": -0.6,
-              "lower_pct": -25.2,
-              "upper_pct": 48.8
-            },
-            "twoWeek": {
-              "expected": 1689,
-              "lower": 1130,
-              "upper": 2989,
-              "ret_pct": -1.2,
-              "lower_pct": -33.9,
-              "upper_pct": 74.8
-            },
-            "dailyMeanPct": -0.1,
-            "dailySdPct": 7.6,
-            "sampleSize": 59,
-            "baseMeanPct": 0.6,
-            "baseSdPct": 7.6,
-            "grade": "stable",
-            "warnings": [],
-            "reasons": [],
-            "mu_daily": -0.0012595570893199491,
-            "sigma_daily": 0.07560454768284335
-          }
-        },
-        {
-          "code": "462900",
-          "name": "KoAct 바이오헬스케어액티브",
-          "price": 19070,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 18731,
-              "lower": 15684,
-              "upper": 22334,
-              "ret_pct": -1.8,
-              "lower_pct": -17.8,
-              "upper_pct": 17.1
-            },
-            "twoWeek": {
-              "expected": 18398,
-              "lower": 14314,
-              "upper": 23596,
-              "ret_pct": -3.5,
-              "lower_pct": -24.9,
-              "upper_pct": 23.7
-            },
-            "dailyMeanPct": -0.4,
-            "dailySdPct": 4.3,
-            "sampleSize": 59,
-            "baseMeanPct": -0.4,
-            "baseSdPct": 4.3,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.59× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.003585103683421663,
-            "sigma_daily": 0.04255189941463154
-          }
-        },
-        {
-          "code": "123310",
-          "name": "TIGER 인버스",
-          "price": 1197,
-          "signal": "약한 매수세",
-          "tech": "매수 신호 강함",
-          "forecast": {
-            "oneWeek": {
-              "expected": 1145,
-              "lower": 948,
-              "upper": 1369,
-              "ret_pct": -4.3,
-              "lower_pct": -20.8,
-              "upper_pct": 14.4
-            },
-            "twoWeek": {
-              "expected": 1096,
-              "lower": 839,
-              "upper": 1410,
-              "ret_pct": -8.4,
-              "lower_pct": -29.9,
-              "upper_pct": 17.8
-            },
-            "dailyMeanPct": -0.9,
-            "dailySdPct": 4.1,
-            "sampleSize": 59,
-            "baseMeanPct": -0.7,
-            "baseSdPct": 4.1,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.58× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.00882471942512276,
-            "sigma_daily": 0.041487185193097915
-          }
-        },
-        {
-          "code": "000250",
-          "name": "삼천당제약",
-          "price": 372000,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 357524,
-              "lower": 237952,
-              "upper": 549935,
-              "ret_pct": -3.9,
-              "lower_pct": -36.0,
-              "upper_pct": 47.8
-            },
-            "twoWeek": {
-              "expected": 343612,
-              "lower": 193202,
-              "upper": 631734,
-              "ret_pct": -7.6,
-              "lower_pct": -48.1,
-              "upper_pct": 69.8
-            },
-            "dailyMeanPct": -0.8,
-            "dailySdPct": 9.3,
-            "sampleSize": 59,
-            "baseMeanPct": -0.8,
-            "baseSdPct": 9.3,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.41× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.007938003561000115,
-            "sigma_daily": 0.09340932253625672
-          }
-        },
-        {
-          "code": "298380",
-          "name": "에이비엘바이오",
-          "price": 120200,
-          "signal": "강한 매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 117870,
-              "lower": 87756,
-              "upper": 149549,
-              "ret_pct": -1.9,
-              "lower_pct": -27.0,
-              "upper_pct": 24.4
-            },
-            "twoWeek": {
-              "expected": 115585,
-              "lower": 76157,
-              "upper": 161847,
-              "ret_pct": -3.8,
-              "lower_pct": -36.6,
-              "upper_pct": 34.6
-            },
-            "dailyMeanPct": -0.4,
-            "dailySdPct": 5.8,
-            "sampleSize": 59,
-            "baseMeanPct": -0.8,
-            "baseSdPct": 5.8,
-            "grade": "stable",
-            "warnings": [],
-            "reasons": [],
-            "mu_daily": -0.003914897248728335,
-            "sigma_daily": 0.05783263555662216
-          }
-        }
-      ]
-    },
-    "2026-05-23": {
-      "snapshot_at": "2026-05-23 00:02",
-      "kospi": 7847.71,
-      "kosdaq": 1161.13,
-      "stocks": [
-        {
-          "code": "064400",
-          "name": "LG씨엔에스",
-          "price": 83200,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 82511,
-              "lower": 66713,
-              "upper": 102647,
-              "ret_pct": -0.8,
-              "lower_pct": -19.8,
-              "upper_pct": 23.4
-            },
-            "twoWeek": {
-              "expected": 81828,
-              "lower": 60585,
-              "upper": 111434,
-              "ret_pct": -1.6,
-              "lower_pct": -27.2,
-              "upper_pct": 33.9
-            },
-            "dailyMeanPct": -0.2,
-            "dailySdPct": 4.9,
-            "sampleSize": 59,
-            "baseMeanPct": 0.3,
-            "baseSdPct": 4.9,
-            "grade": "stable",
-            "warnings": [],
-            "reasons": [],
-            "mu_daily": -0.001663012014614724,
-            "sigma_daily": 0.04927105254139366
-          }
-        },
-        {
-          "code": "347850",
-          "name": "디앤디파마텍",
-          "price": 69700,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 69210,
-              "lower": 54385,
-              "upper": 92628,
-              "ret_pct": -0.7,
-              "lower_pct": -22.0,
-              "upper_pct": 32.9
-            },
-            "twoWeek": {
-              "expected": 68723,
-              "lower": 48870,
-              "upper": 103778,
-              "ret_pct": -1.4,
-              "lower_pct": -29.9,
-              "upper_pct": 48.9
-            },
-            "dailyMeanPct": -0.1,
-            "dailySdPct": 5.9,
-            "sampleSize": 59,
-            "baseMeanPct": -0.4,
-            "baseSdPct": 5.9,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.59× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.0014117274438159772,
-            "sigma_daily": 0.05904123413414913
-          }
-        },
-        {
-          "code": "373220",
-          "name": "LG에너지솔루션",
-          "price": 398500,
-          "signal": "약한 매수세",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 390006,
-              "lower": 330964,
-              "upper": 466916,
-              "ret_pct": -2.1,
-              "lower_pct": -16.9,
-              "upper_pct": 17.2
-            },
-            "twoWeek": {
-              "expected": 381694,
-              "lower": 302618,
-              "upper": 492334,
-              "ret_pct": -4.2,
-              "lower_pct": -24.1,
-              "upper_pct": 23.5
-            },
-            "dailyMeanPct": -0.4,
-            "dailySdPct": 3.9,
-            "sampleSize": 59,
-            "baseMeanPct": -0.1,
-            "baseSdPct": 3.9,
-            "grade": "stable",
-            "warnings": [],
-            "reasons": [],
-            "mu_daily": -0.00430892684859203,
-            "sigma_daily": 0.03883555370708629
-          }
-        },
-        {
-          "code": "252670",
-          "name": "KODEX 200선물인버스2X",
-          "price": 102,
-          "signal": "약한 매수세",
-          "tech": "매수 신호 강함",
-          "forecast": {
-            "oneWeek": {
-              "expected": 92,
-              "lower": 62,
-              "upper": 132,
-              "ret_pct": -9.8,
-              "lower_pct": -39.3,
-              "upper_pct": 29.3
-            },
-            "twoWeek": {
-              "expected": 83,
-              "lower": 47,
-              "upper": 138,
-              "ret_pct": -18.6,
-              "lower_pct": -53.6,
-              "upper_pct": 35.1
-            },
-            "dailyMeanPct": -2.1,
-            "dailySdPct": 8.5,
-            "sampleSize": 59,
-            "baseMeanPct": -1.6,
-            "baseSdPct": 8.5,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.61× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.021087431837716147,
-            "sigma_daily": 0.08522905303355964
-          }
-        },
-        {
-          "code": "114800",
-          "name": "KODEX 인버스",
-          "price": 1067,
-          "signal": "매수 우위",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 1020,
-              "lower": 844,
-              "upper": 1219,
-              "ret_pct": -4.4,
-              "lower_pct": -20.9,
-              "upper_pct": 14.2
-            },
-            "twoWeek": {
-              "expected": 975,
-              "lower": 746,
-              "upper": 1254,
-              "ret_pct": -8.6,
-              "lower_pct": -30.1,
-              "upper_pct": 17.5
-            },
-            "dailyMeanPct": -0.9,
-            "dailySdPct": 4.2,
-            "sampleSize": 59,
-            "baseMeanPct": -0.7,
-            "baseSdPct": 4.2,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.60× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.009056372880952866,
-            "sigma_daily": 0.04179651503449134
-          }
-        },
-        {
-          "code": "252710",
-          "name": "TIGER 200선물인버스2X",
-          "price": 110,
-          "signal": "매수 우위",
-          "tech": "매수 신호 강함",
-          "forecast": {
-            "oneWeek": {
-              "expected": 100,
-              "lower": 70,
-              "upper": 141,
-              "ret_pct": -9.1,
-              "lower_pct": -36.8,
-              "upper_pct": 28.3
-            },
-            "twoWeek": {
-              "expected": 91,
-              "lower": 54,
-              "upper": 148,
-              "ret_pct": -17.3,
-              "lower_pct": -50.6,
-              "upper_pct": 34.3
-            },
-            "dailyMeanPct": -1.9,
-            "dailySdPct": 8.1,
-            "sampleSize": 59,
-            "baseMeanPct": -1.5,
-            "baseSdPct": 8.1,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.56× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.019416664415177493,
-            "sigma_daily": 0.08130033989881363
-          }
-        },
-        {
-          "code": "530036",
-          "name": "삼성 인버스 2X WTI원유 선물 ETN",
-          "price": 16,
-          "signal": "약한 매수세",
-          "tech": "매수 신호",
-          "forecast": {
-            "oneWeek": {
-              "expected": 15,
-              "lower": 11,
-              "upper": 20,
-              "ret_pct": -6.2,
-              "lower_pct": -34.0,
-              "upper_pct": 23.8
-            },
-            "twoWeek": {
-              "expected": 14,
-              "lower": 9,
-              "upper": 21,
-              "ret_pct": -12.5,
-              "lower_pct": -46.7,
-              "upper_pct": 29.6
-            },
-            "dailyMeanPct": -1.5,
-            "dailySdPct": 7.4,
-            "sampleSize": 59,
-            "baseMeanPct": -2.4,
-            "baseSdPct": 7.4,
-            "grade": "caution",
-            "warnings": [
-              "변동성 변화 0.49× (전반기 → 후반기)"
-            ],
-            "reasons": [],
-            "mu_daily": -0.014560435112271938,
-            "sigma_daily": 0.07375544268472026
           }
         },
         {
