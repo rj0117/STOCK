@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-08-23 01:56:25",
+  "generated_at": "2026-08-23 02:29:41",
   "generated_date": "2026-08-23",
-  "last_updated": "2026-08-23T01:56:25+0900",
+  "last_updated": "2026-08-23T02:29:41+0900",
   "top_stocks": [
     {
       "name": "삼성전자",
@@ -132,22 +132,6 @@
       "as_of": "2026-08-21"
     },
     {
-      "name": "카카오",
-      "code": "035720",
-      "price": 35800,
-      "change": -2900,
-      "popularity_rank": 5,
-      "rank_score": 26,
-      "news_count": 4,
-      "news_score": 60,
-      "total_score": 86,
-      "source": "popular",
-      "final_rank": 9,
-      "prev_close": 38700,
-      "change_pct": -7.49,
-      "as_of": "2026-08-21"
-    },
-    {
       "name": "한미반도체",
       "code": "042700",
       "price": 213500,
@@ -158,7 +142,7 @@
       "news_score": 75,
       "total_score": 83,
       "source": "popular",
-      "final_rank": 10,
+      "final_rank": 9,
       "prev_close": 225500,
       "change_pct": -5.32,
       "as_of": "2026-08-21"
@@ -174,7 +158,7 @@
       "news_score": 60,
       "total_score": 79,
       "source": "popular",
-      "final_rank": 11,
+      "final_rank": 10,
       "prev_close": 191200,
       "change_pct": 8.26,
       "as_of": "2026-08-21"
@@ -190,9 +174,25 @@
       "news_score": 60,
       "total_score": 72,
       "source": "popular",
-      "final_rank": 12,
+      "final_rank": 11,
       "prev_close": 39900,
       "change_pct": -3.13,
+      "as_of": "2026-08-21"
+    },
+    {
+      "name": "카카오",
+      "code": "035720",
+      "price": 35800,
+      "change": -2900,
+      "popularity_rank": 5,
+      "rank_score": 26,
+      "news_count": 3,
+      "news_score": 45,
+      "total_score": 71,
+      "source": "popular",
+      "final_rank": 12,
+      "prev_close": 38700,
+      "change_pct": -7.49,
       "as_of": "2026-08-21"
     },
     {
@@ -1016,6 +1016,24 @@
   },
   "news": [
     {
+      "title": "김종국, 수익률 400% 공개…주식 모른다더니 '대박'",
+      "link": "https://www.xportsnews.com/article/2184900",
+      "summary": "이날 방송에서 오건영은 “거시경제적 관점에서 봤을 때 옛날과 많이 달라진 게 팩트”라면서 “환율, 금리, 코스피 모두 과거에 비해 훨씬 변동성이 커진 세상이다. 이를 뉴노멀 시대라고 부르는데, 새로운 룰에...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sun, 23 Aug 2026 02:25:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "수익"
+        ],
+        "neg": []
+      }
+    },
+    {
       "title": "[NZSI INDEX] 2026년 8월 20일 기준금리 틈에서 커진 은행 이익…대출금...",
       "link": "https://www.the-today.com/news/articleView.html?idxno=88760",
       "summary": "코스피는 전 거래일보다 381.41포인트(+5.89%) 오른6,852.58포인트로 마감했고 코스닥은 16.43포인트(+1.99%) 상승한 840.89포인트를 기록했다. 코스피는 장중 6,904.55포인트까지 오르며 매수 사이드카가 발동됐다. 거래대금은...",
@@ -1031,6 +1049,26 @@
           "상승"
         ],
         "neg": []
+      }
+    },
+    {
+      "title": "[NZSI INDEX] 2026년 8월 19일 바이오엔테크(+21.96%), mRNA 항암제 기대감...",
+      "link": "https://www.the-today.com/news/articleView.html?idxno=88759",
+      "summary": "코스피는 전 거래일보다 398.66포인트(-5.80%) 내린 6,471.17포인트로 마감했고 코스닥은 9.74포인트(-1.17%) 하락한 824.46포인트를 기록했다. 코스피는 장중 6,400.81포인트까지 밀리면서 매도 사이드카가 발동됐다....",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sun, 23 Aug 2026 01:06:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 0,
+      "sentiment_hits": {
+        "pos": [
+          "기대감"
+        ],
+        "neg": [
+          "하락"
+        ]
       }
     },
     {
@@ -1051,26 +1089,6 @@
         "neg": [
           "하락",
           "급락"
-        ]
-      }
-    },
-    {
-      "title": "[NZSI INDEX] 2026년 8월 19일 바이오엔테크(+21.96%), mRNA 항암제 기대감...",
-      "link": "https://www.the-today.com/news/articleView.html?idxno=88759",
-      "summary": "코스피는 전 거래일보다 398.66포인트(-5.80%) 내린 6,471.17포인트로 마감했고 코스닥은 9.74포인트(-1.17%) 하락한 824.46포인트를 기록했다. 코스피는 장중 6,400.81포인트까지 밀리면서 매도 사이드카가 발동됐다....",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sun, 23 Aug 2026 01:06:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 0,
-      "sentiment_hits": {
-        "pos": [
-          "기대감"
-        ],
-        "neg": [
-          "하락"
         ]
       }
     },
@@ -1123,6 +1141,22 @@
       }
     },
     {
+      "title": "오락가락 코스피에 증권가, 엔비디아 실적·연준 잭슨홀 미팅 주목",
+      "link": "https://www.theguru.co.kr/news/article.html?no=106113",
+      "summary": "국내 코스피 지수가 다시 오락가락 행보를 보인 가운데 증권가는 오는 27일 예정된 엔비디아 실적 발표와 미국 연방준비제도(Fed·연준)의 잭슨홀 미팅에 주목하고 있다. 23일 증권업계에 따르면, 코스피 지수는 이번주...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sun, 23 Aug 2026 00:02:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 0,
+      "sentiment_hits": {
+        "pos": [],
+        "neg": []
+      }
+    },
+    {
       "title": "[이번주 증시]SK하이닉스·삼성전자 58조 거래",
       "link": "http://www.kjdaily.com/article.php?aid=1787410879684957227",
       "summary": "시장별로는 코스피 종목이 거래대금 상위권 대부분을 차지했다. 상위 50종목 가운데 코스피 종목의 거래대금은 약 89조6천578억원으로 전체의 약 91.8%에 달했다. 코스닥 종목의 거래대금은 약 4조7천131억원...",
@@ -1140,22 +1174,6 @@
           "name": "SK하이닉스"
         }
       ],
-      "sentiment": "neutral",
-      "sentiment_score": 0,
-      "sentiment_hits": {
-        "pos": [],
-        "neg": []
-      }
-    },
-    {
-      "title": "오락가락 코스피에 증권가, 엔비디아 실적·연준 잭슨홀 미팅 주목",
-      "link": "https://www.theguru.co.kr/news/article.html?no=106113",
-      "summary": "국내 코스피 지수가 다시 오락가락 행보를 보인 가운데 증권가는 오는 27일 예정된 엔비디아 실적 발표와 미국 연방준비제도(Fed·연준)의 잭슨홀 미팅에 주목하고 있다. 23일 증권업계에 따르면, 코스피 지수는 이번주...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sun, 23 Aug 2026 00:02:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
       "sentiment": "neutral",
       "sentiment_score": 0,
       "sentiment_hits": {
@@ -1592,25 +1610,6 @@
       }
     },
     {
-      "title": "8월 3주차 삼성증권 주가 8만원대서 9만원대로 회복세",
-      "link": "https://www.joongangenews.com/news/articleView.html?idxno=541907",
-      "summary": "현재 삼성증권의 시가총액은 약 8조 2,156억 원으로 코스피 시장에서 81위를 기록하고 있다. PER은 6.79배로 동일업종 PER 6.70배와 비슷한 수준을 보였다. 배당수익률은 4.35%이며, 외국인 소진율은 26.49%를...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 13:30:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "positive",
-      "sentiment_score": 2,
-      "sentiment_hits": {
-        "pos": [
-          "회복",
-          "수익"
-        ],
-        "neg": []
-      }
-    },
-    {
       "title": "8월 3주차 효성중공업 주가 변동성 확대",
       "link": "https://www.joongangenews.com/news/articleView.html?idxno=541906",
       "summary": "효성중공업은 코스피 시장에서 시가총액 25조 3,721억원으로 30위를 차지하고 있다. 현재 주가수익비율(PER)은 43.37배로, 동일 업종의 평균 PER 49.91배보다 낮은 수치를 기록했다. 외국인 보유 주식 수는 2,541...",
@@ -1624,6 +1623,25 @@
       "sentiment_hits": {
         "pos": [
           "확대",
+          "수익"
+        ],
+        "neg": []
+      }
+    },
+    {
+      "title": "8월 3주차 삼성증권 주가 8만원대서 9만원대로 회복세",
+      "link": "https://www.joongangenews.com/news/articleView.html?idxno=541907",
+      "summary": "현재 삼성증권의 시가총액은 약 8조 2,156억 원으로 코스피 시장에서 81위를 기록하고 있다. PER은 6.79배로 동일업종 PER 6.70배와 비슷한 수준을 보였다. 배당수익률은 4.35%이며, 외국인 소진율은 26.49%를...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 13:30:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "positive",
+      "sentiment_score": 2,
+      "sentiment_hits": {
+        "pos": [
+          "회복",
           "수익"
         ],
         "neg": []
@@ -2068,6 +2086,24 @@
       }
     },
     {
+      "title": "네이버 주가 최근 5거래일 변동성 속 22만원 마감",
+      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170204",
+      "summary": "네이버의 현재 시가총액은 34조 8,490억원으로 코스피 시장에서 22위를 기록하고 있다. 주가수익비율 PER은 17.23배로 동일 업종 PER인 22.48배보다 낮은 수준이었다. 외국인 소진율은 35.33%를 기록했다.",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 11:36:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "수익"
+        ],
+        "neg": []
+      }
+    },
+    {
       "title": "최근 5거래일 삼성SDI 주가 하락세 뚜렷",
       "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170205",
       "summary": "삼성SDI는 코스피 시가총액 20위를 기록하고 있으며, 시가총액은 38조 5,199억 원에 달했다. 외국인 투자자들의 보유 주식수는 21,233,128주로, 외국인소진율은 26.35%를 기록했다. 이날 거래량은 285,743주...",
@@ -2103,24 +2139,6 @@
       "sentiment_score": 0,
       "sentiment_hits": {
         "pos": [],
-        "neg": []
-      }
-    },
-    {
-      "title": "네이버 주가 최근 5거래일 변동성 속 22만원 마감",
-      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170204",
-      "summary": "네이버의 현재 시가총액은 34조 8,490억원으로 코스피 시장에서 22위를 기록하고 있다. 주가수익비율 PER은 17.23배로 동일 업종 PER인 22.48배보다 낮은 수준이었다. 외국인 소진율은 35.33%를 기록했다.",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 11:36:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 1,
-      "sentiment_hits": {
-        "pos": [
-          "수익"
-        ],
         "neg": []
       }
     },
@@ -2176,24 +2194,6 @@
       }
     },
     {
-      "title": "8월 3주차 SK이터닉스 주가 6만원대 고점 형성 후 하락",
-      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170194",
-      "summary": "2,685,502주, 거래대금은 1,388억 6천 2백만 원을 기록하여 활발한 거래가 이루어졌음에도 불구하고 하락세를 막지 못했다. 현재 SK이터닉스는 코스피 시가총액 순위 231위를 기록하고 있으며, PER은 233.18배이다.",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 11:28:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": -1,
-      "sentiment_hits": {
-        "pos": [],
-        "neg": [
-          "하락"
-        ]
-      }
-    },
-    {
       "title": "한화오션 최근 5거래일 주가 하방 압력 지속",
       "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170193",
       "summary": "한화오션은 코스피 시장에서 시가총액 25조 8,000억 원으로 28위에 위치했으며, 외국인 소진율은 10.25%를 보였다. 동일업종 PER이 17.11배인 반면, 한화오션의 PER은 12.44배를 기록했다.",
@@ -2212,6 +2212,24 @@
       "sentiment_hits": {
         "pos": [],
         "neg": []
+      }
+    },
+    {
+      "title": "8월 3주차 SK이터닉스 주가 6만원대 고점 형성 후 하락",
+      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170194",
+      "summary": "2,685,502주, 거래대금은 1,388억 6천 2백만 원을 기록하여 활발한 거래가 이루어졌음에도 불구하고 하락세를 막지 못했다. 현재 SK이터닉스는 코스피 시가총액 순위 231위를 기록하고 있으며, PER은 233.18배이다.",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 11:28:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": -1,
+      "sentiment_hits": {
+        "pos": [],
+        "neg": [
+          "하락"
+        ]
       }
     },
     {
@@ -2288,6 +2306,27 @@
       }
     },
     {
+      "title": "엔화 강세가 다시 흔드나…'엔캐리 청산' 금융시장 새 변수 부상",
+      "link": "https://news.mtn.co.kr/news-detail/2026082211133364062",
+      "summary": "당시 코스피는 8.8%, 코스닥은 11.3% 급락하며 외환시장 충격이 국내 증시로 빠르게 전이됐다.다만 금융연은 당장 대규모 청산이 현실화할 가능성은 제한적으로 봤다. 일본은행이 신중한 속도로 금리를 인상할 것으로 예상돼...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 11:20:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": -1,
+      "sentiment_hits": {
+        "pos": [
+          "강세"
+        ],
+        "neg": [
+          "급락",
+          "충격"
+        ]
+      }
+    },
+    {
       "title": "두산에너빌리티 주가 최근 5거래일 하락 지속",
       "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170185",
       "summary": "이후 72,500원까지 하락하는 큰 변동폭을 보인 끝에 73,300원에 최종 마감했다. 이로써 두산에너빌리티는 5거래일 연속 하락세를 이어갔으며, 현재 코스피 시가총액 순위 16위를 유지하고 있다.",
@@ -2334,24 +2373,26 @@
       }
     },
     {
-      "title": "엔화 강세가 다시 흔드나…'엔캐리 청산' 금융시장 새 변수 부상",
-      "link": "https://news.mtn.co.kr/news-detail/2026082211133364062",
-      "summary": "당시 코스피는 8.8%, 코스닥은 11.3% 급락하며 외환시장 충격이 국내 증시로 빠르게 전이됐다.다만 금융연은 당장 대규모 청산이 현실화할 가능성은 제한적으로 봤다. 일본은행이 신중한 속도로 금리를 인상할 것으로 예상돼...",
+      "title": "현대차 최근 5거래일 주가 변동성 확대",
+      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170184",
+      "summary": "8월 21일 현재 현대차의 시가총액은 84조 9,745억원으로 코스피 시장에서 6위를 기록하고 있다. PER은 13.52배로 동일업종 PER 8.68배보다 높은 수치를 보였다. 외국인 투자자들의 소진율은 24.94%를 나타냈다.",
       "related_stocks": [],
       "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 11:20:00 +0900",
+      "pubDate": "Sat, 22 Aug 2026 11:18:00 +0900",
       "matched_keyword": "코스피",
-      "matched_stocks": [],
+      "matched_stocks": [
+        {
+          "code": "005380",
+          "name": "현대차"
+        }
+      ],
       "sentiment": "neutral",
-      "sentiment_score": -1,
+      "sentiment_score": 1,
       "sentiment_hits": {
         "pos": [
-          "강세"
+          "확대"
         ],
-        "neg": [
-          "급락",
-          "충격"
-        ]
+        "neg": []
       }
     },
     {
@@ -2378,24 +2419,24 @@
       }
     },
     {
-      "title": "현대차 최근 5거래일 주가 변동성 확대",
-      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170184",
-      "summary": "8월 21일 현재 현대차의 시가총액은 84조 9,745억원으로 코스피 시장에서 6위를 기록하고 있다. PER은 13.52배로 동일업종 PER 8.68배보다 높은 수치를 보였다. 외국인 투자자들의 소진율은 24.94%를 나타냈다.",
+      "title": "최근 5거래일 SK하이닉스 주가 롤러코스터 이틀째 반등",
+      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170181",
+      "summary": "SK하이닉스는 코스피 시가총액 2위를 유지했으며, 현재 PER은 7.71배로 동일 업종 평균 PER 17.60배보다 현저히 낮은 수준을 기록했다. 외국인 투자자의 보유 주식수는 372,915,458주로 전체 상장 주식수의 51.05...",
       "related_stocks": [],
       "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 11:18:00 +0900",
+      "pubDate": "Sat, 22 Aug 2026 11:16:00 +0900",
       "matched_keyword": "코스피",
       "matched_stocks": [
         {
-          "code": "005380",
-          "name": "현대차"
+          "code": "000660",
+          "name": "SK하이닉스"
         }
       ],
       "sentiment": "neutral",
       "sentiment_score": 1,
       "sentiment_hits": {
         "pos": [
-          "확대"
+          "반등"
         ],
         "neg": []
       }
@@ -2421,29 +2462,6 @@
           "상승",
           "확대",
           "수익"
-        ],
-        "neg": []
-      }
-    },
-    {
-      "title": "최근 5거래일 SK하이닉스 주가 롤러코스터 이틀째 반등",
-      "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170181",
-      "summary": "SK하이닉스는 코스피 시가총액 2위를 유지했으며, 현재 PER은 7.71배로 동일 업종 평균 PER 17.60배보다 현저히 낮은 수준을 기록했다. 외국인 투자자의 보유 주식수는 372,915,458주로 전체 상장 주식수의 51.05...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 11:16:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [
-        {
-          "code": "000660",
-          "name": "SK하이닉스"
-        }
-      ],
-      "sentiment": "neutral",
-      "sentiment_score": 1,
-      "sentiment_hits": {
-        "pos": [
-          "반등"
         ],
         "neg": []
       }
@@ -2669,6 +2687,28 @@
       }
     },
     {
+      "title": "금융硏 \"美·日 외환개입에 엔캐리 청산 우려…변동성 확대 대비\"",
+      "link": "https://biz.sbs.co.kr/article_hub/20000330164?division=NAVER",
+      "summary": "실제로 지난 2024년 8월 미국 고용지표 부진과 일본은행의 금리 인상이 맞물리면서 엔캐리 트레이드 포지션이 급격히 청산됐고, 코스피와 코스닥은 각각 8.8%, 11.3% 급락했습니다. 금융연구원은 다만 미국과 일본의 금리...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 10:13:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "negative",
+      "sentiment_score": -2,
+      "sentiment_hits": {
+        "pos": [
+          "확대"
+        ],
+        "neg": [
+          "급락",
+          "부진",
+          "우려"
+        ]
+      }
+    },
+    {
       "title": "40조 'SK하닉' 110조 예고 '삼전'… 주주환원 랠리 시동 [주간 증시해설...",
       "link": "https://www.thescoop.co.kr/news/articleView.html?idxno=311352",
       "summary": "뒀던 코스피지수가 6400선까지 밀렸다가 되살아났다. 국장을 다시 끌어 올린 건 이번에도 '삼전닉스'였다. # SK하이닉스와 삼성전자의 대규모 주주환원 소식이 반등의 불씨를 살렸다. 코스피지수는 21일 6912.95로...",
@@ -2696,28 +2736,6 @@
       }
     },
     {
-      "title": "금융硏 \"美·日 외환개입에 엔캐리 청산 우려…변동성 확대 대비\"",
-      "link": "https://biz.sbs.co.kr/article_hub/20000330164?division=NAVER",
-      "summary": "실제로 지난 2024년 8월 미국 고용지표 부진과 일본은행의 금리 인상이 맞물리면서 엔캐리 트레이드 포지션이 급격히 청산됐고, 코스피와 코스닥은 각각 8.8%, 11.3% 급락했습니다. 금융연구원은 다만 미국과 일본의 금리...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 10:13:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "negative",
-      "sentiment_score": -2,
-      "sentiment_hits": {
-        "pos": [
-          "확대"
-        ],
-        "neg": [
-          "급락",
-          "부진",
-          "우려"
-        ]
-      }
-    },
-    {
       "title": "서학개미, '삼전·하이닉스 ETF' 1주일 새 1천억 샀다",
       "link": "https://www.jnilbo.com/news/articleView.html?idxno=90000058666",
       "summary": "이는 같은 기간 코스피 상승률(10.45%)을 두배 이상 웃도는 수치다. 마이크론, 샌디스크도 지난 10∼20일... 3, 4위에는 'KODEX 코스피'(1205억원)와 'KODEX 200선물인버스2X'(1102억원)이 각각 이름을 올렸다. KODEX...",
@@ -2741,24 +2759,6 @@
       }
     },
     {
-      "title": "새 간판 단 트리니티항공, 외형 커졌지만 수익성 '뒷걸음'…재무개선 숙...",
-      "link": "https://www.mediapen.com/news/view/1118192",
-      "summary": "한국거래소가 집계한 올해 상반기 코스피 12월 결산법인 가운데서도 트리니티항공의 부채비율은 가장 높은 수준이다. 6월 말 코스피 상장사의 평균 부채비율이 100.81%로 지난해 말보다 9.71%포인트 낮아진 것과...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 10:00:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [],
-      "sentiment": "neutral",
-      "sentiment_score": 1,
-      "sentiment_hits": {
-        "pos": [
-          "수익"
-        ],
-        "neg": []
-      }
-    },
-    {
       "title": "[김이코의 시장분석]환율·금리 '복합 변수' 앞에 선 코스피…박스권 돌...",
       "link": "https://www.mediapen.com/news/view/1118184",
       "summary": "[미디어펜=편집국] 코스피가 미국발 장기 국채금리 변동성과 원·달러 환율의 변동성 확대라는 ‘이중고’에... 실제로 원화 약세 압력이 이어지는 국면마다 외국인의 대형주 중심 차익 실현 매물이 출회되며 코스피 상단을...",
@@ -2776,6 +2776,24 @@
         "neg": [
           "약세"
         ]
+      }
+    },
+    {
+      "title": "새 간판 단 트리니티항공, 외형 커졌지만 수익성 '뒷걸음'…재무개선 숙...",
+      "link": "https://www.mediapen.com/news/view/1118192",
+      "summary": "한국거래소가 집계한 올해 상반기 코스피 12월 결산법인 가운데서도 트리니티항공의 부채비율은 가장 높은 수준이다. 6월 말 코스피 상장사의 평균 부채비율이 100.81%로 지난해 말보다 9.71%포인트 낮아진 것과...",
+      "related_stocks": [],
+      "source": "네이버 뉴스",
+      "pubDate": "Sat, 22 Aug 2026 10:00:00 +0900",
+      "matched_keyword": "코스피",
+      "matched_stocks": [],
+      "sentiment": "neutral",
+      "sentiment_score": 1,
+      "sentiment_hits": {
+        "pos": [
+          "수익"
+        ],
+        "neg": []
       }
     },
     {
@@ -3136,37 +3154,6 @@
         ],
         "neg": []
       }
-    },
-    {
-      "title": "서학개미, 삼전닉스 담는 美 반도체 ETF에 1185억원 투자",
-      "link": "https://www.ebn.co.kr/news/articleView.html?idxno=1721266",
-      "summary": "최근 2주간(10∼21일) SK하이닉스는 21.66%, 삼성전자는 21.86% 상승해 같은 기간 코스피 상승률(10.45%)을 두... 3위와 4위에는 'KODEX 코스피'(1205억원)와 'KODEX 200선물인버스2X'(1102억원)가 각각 이름을 올렸다. 두...",
-      "related_stocks": [],
-      "source": "네이버 뉴스",
-      "pubDate": "Sat, 22 Aug 2026 09:08:00 +0900",
-      "matched_keyword": "코스피",
-      "matched_stocks": [
-        {
-          "code": "005930",
-          "name": "삼성전자"
-        },
-        {
-          "code": "000660",
-          "name": "SK하이닉스"
-        },
-        {
-          "code": "069500",
-          "name": "KODEX 200"
-        }
-      ],
-      "sentiment": "neutral",
-      "sentiment_score": 1,
-      "sentiment_hits": {
-        "pos": [
-          "상승"
-        ],
-        "neg": []
-      }
     }
   ],
   "news_by_keyword": [
@@ -3177,17 +3164,17 @@
         {
           "code": "005930",
           "name": "삼성전자",
-          "count": 18
+          "count": 17
         },
         {
           "code": "000660",
           "name": "SK하이닉스",
-          "count": 17
+          "count": 16
         },
         {
           "code": "069500",
           "name": "KODEX 200",
-          "count": 11
+          "count": 10
         },
         {
           "code": "009150",
@@ -3252,6 +3239,13 @@
       ],
       "news": [
         {
+          "title": "김종국, 수익률 400% 공개…주식 모른다더니 '대박'",
+          "link": "https://www.xportsnews.com/article/2184900",
+          "summary": "이날 방송에서 오건영은 “거시경제적 관점에서 봤을 때 옛날과 많이 달라진 게 팩트”라면서 “환율, 금리, 코스피 모두 과거에 비해 훨씬 변동성이 커진 세상이다. 이를 뉴노멀 시대라고 부르는데, 새로운 룰에...",
+          "pubDate": "Sun, 23 Aug 2026 02:25:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "[NZSI INDEX] 2026년 8월 20일 기준금리 틈에서 커진 은행 이익…대출금...",
           "link": "https://www.the-today.com/news/articleView.html?idxno=88760",
           "summary": "코스피는 전 거래일보다 381.41포인트(+5.89%) 오른6,852.58포인트로 마감했고 코스닥은 16.43포인트(+1.99%) 상승한 840.89포인트를 기록했다. 코스피는 장중 6,904.55포인트까지 오르며 매수 사이드카가 발동됐다. 거래대금은...",
@@ -3259,16 +3253,16 @@
           "matched_stocks": []
         },
         {
-          "title": "[NZSI INDEX] 2026년 8월 18일 개인은 상승에, 자본가는 하락에도 베팅한...",
-          "link": "https://www.the-today.com/news/articleView.html?idxno=88758",
-          "summary": "코스피는 전 거래일보다 108.11포인트(-1.55%) 내린 6,869.83포인트로 마감했고 코스닥은 30.45포인트(-3.52%) 급락한 834.20포인트를 기록했다. 거래대금은 코스피 29조9천억 원, 코스닥 7조3천억 원, 상장지수펀드(ETF)...",
+          "title": "[NZSI INDEX] 2026년 8월 19일 바이오엔테크(+21.96%), mRNA 항암제 기대감...",
+          "link": "https://www.the-today.com/news/articleView.html?idxno=88759",
+          "summary": "코스피는 전 거래일보다 398.66포인트(-5.80%) 내린 6,471.17포인트로 마감했고 코스닥은 9.74포인트(-1.17%) 하락한 824.46포인트를 기록했다. 코스피는 장중 6,400.81포인트까지 밀리면서 매도 사이드카가 발동됐다....",
           "pubDate": "Sun, 23 Aug 2026 01:06:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "[NZSI INDEX] 2026년 8월 19일 바이오엔테크(+21.96%), mRNA 항암제 기대감...",
-          "link": "https://www.the-today.com/news/articleView.html?idxno=88759",
-          "summary": "코스피는 전 거래일보다 398.66포인트(-5.80%) 내린 6,471.17포인트로 마감했고 코스닥은 9.74포인트(-1.17%) 하락한 824.46포인트를 기록했다. 코스피는 장중 6,400.81포인트까지 밀리면서 매도 사이드카가 발동됐다....",
+          "title": "[NZSI INDEX] 2026년 8월 18일 개인은 상승에, 자본가는 하락에도 베팅한...",
+          "link": "https://www.the-today.com/news/articleView.html?idxno=88758",
+          "summary": "코스피는 전 거래일보다 108.11포인트(-1.55%) 내린 6,869.83포인트로 마감했고 코스닥은 30.45포인트(-3.52%) 급락한 834.20포인트를 기록했다. 거래대금은 코스피 29조9천억 원, 코스닥 7조3천억 원, 상장지수펀드(ETF)...",
           "pubDate": "Sun, 23 Aug 2026 01:06:00 +0900",
           "matched_stocks": []
         },
@@ -3296,6 +3290,13 @@
           ]
         },
         {
+          "title": "오락가락 코스피에 증권가, 엔비디아 실적·연준 잭슨홀 미팅 주목",
+          "link": "https://www.theguru.co.kr/news/article.html?no=106113",
+          "summary": "국내 코스피 지수가 다시 오락가락 행보를 보인 가운데 증권가는 오는 27일 예정된 엔비디아 실적 발표와 미국 연방준비제도(Fed·연준)의 잭슨홀 미팅에 주목하고 있다. 23일 증권업계에 따르면, 코스피 지수는 이번주...",
+          "pubDate": "Sun, 23 Aug 2026 00:02:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "[이번주 증시]SK하이닉스·삼성전자 58조 거래",
           "link": "http://www.kjdaily.com/article.php?aid=1787410879684957227",
           "summary": "시장별로는 코스피 종목이 거래대금 상위권 대부분을 차지했다. 상위 50종목 가운데 코스피 종목의 거래대금은 약 89조6천578억원으로 전체의 약 91.8%에 달했다. 코스닥 종목의 거래대금은 약 4조7천131억원...",
@@ -3310,13 +3311,6 @@
               "name": "SK하이닉스"
             }
           ]
-        },
-        {
-          "title": "오락가락 코스피에 증권가, 엔비디아 실적·연준 잭슨홀 미팅 주목",
-          "link": "https://www.theguru.co.kr/news/article.html?no=106113",
-          "summary": "국내 코스피 지수가 다시 오락가락 행보를 보인 가운데 증권가는 오는 27일 예정된 엔비디아 실적 발표와 미국 연방준비제도(Fed·연준)의 잭슨홀 미팅에 주목하고 있다. 23일 증권업계에 따르면, 코스피 지수는 이번주...",
-          "pubDate": "Sun, 23 Aug 2026 00:02:00 +0900",
-          "matched_stocks": []
         },
         {
           "title": "[심층분석] \"고금리 파도속 엇갈린 이익 체력\"…대형주의 방어력 vs 성장...",
@@ -3443,13 +3437,6 @@
               "name": "KODEX 200"
             }
           ]
-        },
-        {
-          "title": "[8월 셋째 주 세계경제동향 브리핑] 코스피 6,900선 약보합…코스닥 7%대...",
-          "link": "https://www.kihoilbo.co.kr/news/articleView.html?idxno=3032267",
-          "summary": "그래픽 = 전민지 기자 코스피 지수는 8월 14일 6,977.94포인트에서 8월 21일 6,912.95포인트로 마감해 전주 대비 64.99포인트, 0.93% 하락했다. 코스닥 지수는 864.65포인트에서 801.94포인트로 내려 전주 대비 62....",
-          "pubDate": "Sat, 22 Aug 2026 18:26:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3525,16 +3512,16 @@
       ],
       "news": [
         {
-          "title": "[자금조달 프리뷰] 롯데건설·이랜드월드 공모채…코스닥 2곳 '데뷔'",
-          "link": "https://www.bloter.net/news/articleView.html?idxno=671538",
-          "summary": "기업공개(IPO) 시장에서는 니어스랩과 해치텍이 코스닥에 이름을 올리고, 스카이랩스는 일반청약에... 24일 코스닥 시장에 진출한다. 니어스랩은 공모가를 희망 범위인 3만~4만1200원의 상단인 4만1200원으로...",
+          "title": "코스닥 '프리미엄·스탠다드' 재편…\"시총보다 질적 지표 봐야\"",
+          "link": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5053668",
+          "summary": "개설 30주년을 맞은 코스닥시장이 프리미엄과 스탠다드로 나뉜다. 우량기업을 별도로 묶어 시장 신뢰도를... 22일 KIF(한국금융연구원)가 발표한 '코스닥시장 세그먼트 개편: 일본의 시장구분 재편이 주는 시사점...",
           "pubDate": "Sat, 22 Aug 2026 17:00:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "코스닥 '프리미엄·스탠다드' 재편…\"시총보다 질적 지표 봐야\"",
-          "link": "https://www.shinailbo.co.kr/news/articleView.html?idxno=5053668",
-          "summary": "개설 30주년을 맞은 코스닥시장이 프리미엄과 스탠다드로 나뉜다. 우량기업을 별도로 묶어 시장 신뢰도를... 22일 KIF(한국금융연구원)가 발표한 '코스닥시장 세그먼트 개편: 일본의 시장구분 재편이 주는 시사점...",
+          "title": "[자금조달 프리뷰] 롯데건설·이랜드월드 공모채…코스닥 2곳 '데뷔'",
+          "link": "https://www.bloter.net/news/articleView.html?idxno=671538",
+          "summary": "기업공개(IPO) 시장에서는 니어스랩과 해치텍이 코스닥에 이름을 올리고, 스카이랩스는 일반청약에... 24일 코스닥 시장에 진출한다. 니어스랩은 공모가를 희망 범위인 3만~4만1200원의 상단인 4만1200원으로...",
           "pubDate": "Sat, 22 Aug 2026 17:00:00 +0900",
           "matched_stocks": []
         },
@@ -3709,14 +3696,16 @@
           "code": "005935",
           "name": "삼성전자우",
           "count": 1
-        },
-        {
-          "code": "035720",
-          "name": "카카오",
-          "count": 1
         }
       ],
       "news": [
+        {
+          "title": "피지컬 AI 시대, 한국 제조업의 약한 고리는 로봇이다",
+          "link": "https://www.newsverse.kr/news/articleView.html?idxno=11251",
+          "summary": "중국의 휴머노이드 로봇 기업 유니트리가 상하이 증시에 상장했다. 공모가 대비 장중 주가는 629%까지 치솟았고, 조달 자금은 61억 위안(약 1조 3,000억원), 종가 기준 시가총액은 70조 원 안팎에 이르렀다. 이 상황이 마음에...",
+          "pubDate": "Sun, 23 Aug 2026 01:56:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "[AI 이슈트렌드] 집중호우 피해·민주당 전당대회 주목…증권가는 '대형...",
           "link": "https://www.aitimes.com/news/articleView.html?idxno=214251",
@@ -3741,6 +3730,13 @@
           "matched_stocks": []
         },
         {
+          "title": "[뉴욕증시 전망] 엔비디아 실적·잭슨홀 '빅위크'…월가 랠리 시험대",
+          "link": "https://www.thefairnews.co.kr/news/articleView.html?idxno=85832",
+          "summary": "미국 증시가 국채 금리 상승으로 흔들리는 가운데 엔비디아 실적 발표와 미국 연방준비제도(Fed)의 잭슨홀 심포지엄이 향후 증시 방향을 가를 핵심 변수로 떠올랐다. 인공지능(AI) 투자 열기가 이어질지와 연준의 통화정책...",
+          "pubDate": "Sun, 23 Aug 2026 00:00:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "[증시 프리즘] \"40조원 자사주 소각의 힘\"…반도체 대형주 수급 불씨 살...",
           "link": "https://www.thefairnews.co.kr/news/articleView.html?idxno=85788",
           "summary": "글로벌 국채 금리 상승 악재 속에서도 국내 반도체 대형주들이 보여준 주가 방어력의 중심에는 대규모 자사주 소각에 따른 수급 개선 효과가 자리 잡고 있다. SK하이닉스가 40조원 규모의 자사주 매입 및 전량 소각 방침을...",
@@ -3753,9 +3749,9 @@
           ]
         },
         {
-          "title": "[뉴욕증시 전망] 엔비디아 실적·잭슨홀 '빅위크'…월가 랠리 시험대",
-          "link": "https://www.thefairnews.co.kr/news/articleView.html?idxno=85832",
-          "summary": "미국 증시가 국채 금리 상승으로 흔들리는 가운데 엔비디아 실적 발표와 미국 연방준비제도(Fed)의 잭슨홀 심포지엄이 향후 증시 방향을 가를 핵심 변수로 떠올랐다. 인공지능(AI) 투자 열기가 이어질지와 연준의 통화정책...",
+          "title": "[더페어 돋보기] \"고금리 파도 막아선 자본 배분\"…주주환원이 증명한 ...",
+          "link": "https://www.thefairnews.co.kr/news/articleView.html?idxno=85786",
+          "summary": "글로벌 고금리 기조의 지속으로 위험자산에 대한 투자 심리가 위축되는 가운데 주요 대기업들이 내놓는 대규모 주주환원 정책이 증시를 버티게 하는 핵심 방어기제로 작동하고 있다. 고금리 환경에서는 미래 수익에 대한...",
           "pubDate": "Sun, 23 Aug 2026 00:00:00 +0900",
           "matched_stocks": []
         },
@@ -3763,13 +3759,6 @@
           "title": "외환보유 7070억불 인도, 고유가에 흔들리는 루피화",
           "link": "https://www.junggi.co.kr/news/articleView.html?idxno=37512",
           "summary": "UBS는 인도 증시 투자의견을 '매력적'에서 '중립'으로 낮췄고, 번스타인은 연말 니프티50 목표지수를 28,100에서 26,000으로 낮추며 \"금융위기 수준\"의 위험 가능성까지 경고했다. '방패'는 튼튼해도, 장기전에는 장사 없다...",
-          "pubDate": "Sun, 23 Aug 2026 00:00:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "[더페어 돋보기] \"고금리 파도 막아선 자본 배분\"…주주환원이 증명한 ...",
-          "link": "https://www.thefairnews.co.kr/news/articleView.html?idxno=85786",
-          "summary": "글로벌 고금리 기조의 지속으로 위험자산에 대한 투자 심리가 위축되는 가운데 주요 대기업들이 내놓는 대규모 주주환원 정책이 증시를 버티게 하는 핵심 방어기제로 작동하고 있다. 고금리 환경에서는 미래 수익에 대한...",
           "pubDate": "Sun, 23 Aug 2026 00:00:00 +0900",
           "matched_stocks": []
         },
@@ -3863,13 +3852,6 @@
           "summary": "이르면 10월 증시 입성 인공지능(AI) 챗봇 클로드(Claude) 개발사 앤트로픽이 역대 최대 규모의 기업공개(IPO)... 10월 증시에 입성할 수 있다는 관측이 나온다. 주관사단에는 모건스탠리, 골드만삭스, JP모건에 이어...",
           "pubDate": "Sat, 22 Aug 2026 17:55:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "“몸값 2780조원”…앤트로픽, 스페이스X 넘는 ‘역대급 IPO’ 노린다",
-          "link": "https://economist.co.kr/article/view/ecn202608220013",
-          "summary": "지난 6월 증시에 입성한 일론 머스크의 우주기업 스페이스X는 상장 당시 1조7700억달러의 기업가치를 인정받고 857억달러를 조달했다. 앤트로픽이 목표로 하는 2조달러의 기업가치는 이보다 약 2300억달러 높고, 목표...",
-          "pubDate": "Sat, 22 Aug 2026 17:46:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -3880,12 +3862,12 @@
         {
           "code": "005930",
           "name": "삼성전자",
-          "count": 6
+          "count": 7
         },
         {
           "code": "000660",
           "name": "SK하이닉스",
-          "count": 4
+          "count": 5
         },
         {
           "code": "005380",
@@ -4067,6 +4049,13 @@
       ],
       "news": [
         {
+          "title": "7억100만달러 수익 낸 서클, 결제망 평가 갈렸다",
+          "link": "https://www.tokenpost.kr/news/cryptocurrency/395753",
+          "summary": "서클의 공식 실적은 이 논쟁의 기준점이다. 서클은 2026년 2분기 실적 발표에서 분기 말 유에스디코인 유통량이 733억 달러(약 101조5938억원), 2분기 온체인 거래량이 14조8000억 달러(약 2경512조8000억원)였다고 밝혔다....",
+          "pubDate": "Sun, 23 Aug 2026 02:10:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "에이스로보틱스 왕샤오강 회장 “로봇 두뇌, 2027년 말 챗GPT급 전환점 ...",
           "link": "https://www.wikitree.co.kr/articles/1154182",
           "summary": "다만 중국 상장 규정상 통상 최소 3개 회계연도 운영 실적이 필요해, 설립 시점을 고려하면 상장까지는 시간이 더 필요할 것으로 보인다.모델 훈련에는 엔비디아 AI 칩과 함께 중국 업체 Rhino Tech, Digua Robotics의 칩도...",
@@ -4116,16 +4105,16 @@
           "matched_stocks": []
         },
         {
-          "title": "이수페타시스, 매출·이익 동시에 폭증… AI 서버가 실적 견인",
-          "link": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=479573",
-          "summary": "핵심 사업인 페타시스의 실적도 크게 개선됐다. 페타시스는 2분기 매출 3082억원, 영업이익 549억원을... 고부가 제품 중심의 믹스 개선이 실적 성장의 핵심 동력으로 작용했다는 분석이다. 해외 생산기지인 후난법인의...",
+          "title": "최소 배당에 특별배당까지…KCC, 주주환원 정책 확 바꾼다",
+          "link": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=479542",
+          "summary": "향후 관건은 본업의 실적 개선이다. 배당을 지속적으로 확대하려면 안정적인 현금창출 능력이 뒷받침돼야 한다. KCC가 영업이익률을 높이겠다는 목표를 제시한 것도 이런 이유다. 투자자 입장에서는 배당뿐 아니라...",
           "pubDate": "Sun, 23 Aug 2026 00:10:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "최소 배당에 특별배당까지…KCC, 주주환원 정책 확 바꾼다",
-          "link": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=479542",
-          "summary": "향후 관건은 본업의 실적 개선이다. 배당을 지속적으로 확대하려면 안정적인 현금창출 능력이 뒷받침돼야 한다. KCC가 영업이익률을 높이겠다는 목표를 제시한 것도 이런 이유다. 투자자 입장에서는 배당뿐 아니라...",
+          "title": "이수페타시스, 매출·이익 동시에 폭증… AI 서버가 실적 견인",
+          "link": "https://www.pinpointnews.co.kr/news/articleView.html?idxno=479573",
+          "summary": "핵심 사업인 페타시스의 실적도 크게 개선됐다. 페타시스는 2분기 매출 3082억원, 영업이익 549억원을... 고부가 제품 중심의 믹스 개선이 실적 성장의 핵심 동력으로 작용했다는 분석이다. 해외 생산기지인 후난법인의...",
           "pubDate": "Sun, 23 Aug 2026 00:10:00 +0900",
           "matched_stocks": []
         },
@@ -4184,16 +4173,16 @@
           "matched_stocks": []
         },
         {
-          "title": "[패트롤] 해남군-완도군-진도군",
-          "link": "https://www.ekn.kr/web/view.php?key=20260822024415140",
-          "summary": "이를 위해 향후 민간 중심의 공약이행평가단을 구성해 운영하고, 공약사업의 추진 상황과 이행 실적을 객관적으로 점검하고 평가할 예정이다. 이재각 진도군수는 이날 보고회에서 “공약은 선거 과정에서 군민께 드린...",
+          "title": "AI 매출 1050억달러대, 1150억 추정과 산식 갈렸다",
+          "link": "https://www.tokenpost.kr/news/cryptocurrency/395706",
+          "summary": "블룸버그는 오픈AI가 현재 실적 기준으로 연환산 매출 400억 달러(약 55조4400억원)를 넘는 궤도에 있다고... 비교 대상인 마이크로소프트는 7월 29일 회계연도 2026년 4분기 실적에서 Productivity and Business Processes...",
           "pubDate": "Sat, 22 Aug 2026 23:14:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "AI 매출 1050억달러대, 1150억 추정과 산식 갈렸다",
-          "link": "https://www.tokenpost.kr/news/cryptocurrency/395706",
-          "summary": "블룸버그는 오픈AI가 현재 실적 기준으로 연환산 매출 400억 달러(약 55조4400억원)를 넘는 궤도에 있다고... 비교 대상인 마이크로소프트는 7월 29일 회계연도 2026년 4분기 실적에서 Productivity and Business Processes...",
+          "title": "[패트롤] 해남군-완도군-진도군",
+          "link": "https://www.ekn.kr/web/view.php?key=20260822024415140",
+          "summary": "이를 위해 향후 민간 중심의 공약이행평가단을 구성해 운영하고, 공약사업의 추진 상황과 이행 실적을 객관적으로 점검하고 평가할 예정이다. 이재각 진도군수는 이날 보고회에서 “공약은 선거 과정에서 군민께 드린...",
           "pubDate": "Sat, 22 Aug 2026 23:14:00 +0900",
           "matched_stocks": []
         },
@@ -4202,13 +4191,6 @@
           "link": "https://www.goodkyung.com/news/articleView.html?idxno=290540",
           "summary": "장금상선은 지난해 연결 기준 매출액 3조7249억원, 영업이익 6161억원을 기록하며 전년 대비 15.4%의 실적 성장을 거뒀다. 당기순이익 역시 6637억원으로 47.9% 급증하는 등 사상 최대 수준의 흑자를 기록했다. 대기업 물류...",
           "pubDate": "Sat, 22 Aug 2026 23:04:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "[평택 민선 9기 연속기획⑦·총정리] 최원용 시장의 195개 약속…행정 실...",
-          "link": "http://www.newstown.co.kr/news/articleView.html?idxno=713263",
-          "summary": "모든 민원을 시장이 직접 처리하는 것은 현실적으로 어렵고 행정의 책임성에도 맞지 않는다. 시장이 직접... 평택시는 위원회의 설치 근거와 기능, 구성, 회의실적, 출석률, 주요 결정사항을 점검하고 기능이 중복되거나...",
-          "pubDate": "Sat, 22 Aug 2026 22:24:00 +0900",
           "matched_stocks": []
         }
       ]
@@ -4255,6 +4237,20 @@
       ],
       "news": [
         {
+          "title": "'진천형 ESG 더블업' 지역사회에 뿌리내린다",
+          "link": "http://www.cctimes.kr/news/articleView.html?idxno=922855",
+          "summary": "지난해에는 국제 기준인 GRI 스탠더드를 적용한 ESG 공시보고서를 지방정부 최초로 발간했으며, ESG 사업 달성률은 89.1%를 기록했다. 군내 중소기업 6곳에는 맞춤형 ESG 컨설팅을 지원하는 등 기업으로 정책 영역을...",
+          "pubDate": "Sun, 23 Aug 2026 02:28:00 +0900",
+          "matched_stocks": []
+        },
+        {
+          "title": "남서울대 윤승용 총장, 제11대 총장 연임",
+          "link": "http://www.cctimes.kr/news/articleView.html?idxno=922876",
+          "summary": "현재 외국인 유학생 수는 2169명으로, 2025년 공시자료 기준 전국 36위, 충청권 3위를 기록하고 있다. 윤 총장은 제10대 총장 재임 중 국내 대학 최초로 캠퍼스 기반 은퇴자 마을 사업인 UBRC 사업에 착수했으며, 총사업비...",
+          "pubDate": "Sun, 23 Aug 2026 02:26:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "탈리브 IRA에 이더리움 ETF 보유 보도됐다",
           "link": "https://www.tokenpost.kr/news/policy/395746",
           "summary": "암호화폐 규제 강화 쪽에 서 온 의원의 개인 보유 공시가 미국 의회의 디지털자산 입법 논쟁과... 웹 공개 인덱스만으로는 종목별 세부 보유액을 바로 읽기 어려워, 현재 기사에서 확정할 수 있는 범위는 공시를...",
@@ -4262,16 +4258,16 @@
           "matched_stocks": []
         },
         {
-          "title": "디나우 집단소송, 대표원고 10월 2일 마감",
-          "link": "https://www.tokenpost.kr/news/policy/395737",
-          "summary": "소송의 쟁점은 디나우의 MRC글로벌(MRC Global) 인수 과정에서 나온 공시와 설명이다. 원고 측은 디나우가 MRC글로벌의 새 전사적자원관리시스템(ERP) 문제로 인수 통합에 어려움이 있었는데도 이를 충분히 설명하지...",
+          "title": "유피핀테크 25.3% 급락, 집단소송 조사 이어졌다",
+          "link": "https://www.tokenpost.kr/news/market/395738",
+          "summary": "유피핀테크는 같은 날 미국 증권거래위원회(SEC)에 제출한 6-K 공시에서 일부 자회사가 중국 본토에서... 유피핀테크는 공시에서 2025년 말 기준 중국 본토 개인 고객 자산이 연결 기준 전체 고객 자산의 약 10%였다고...",
           "pubDate": "Sun, 23 Aug 2026 00:48:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "유피핀테크 25.3% 급락, 집단소송 조사 이어졌다",
-          "link": "https://www.tokenpost.kr/news/market/395738",
-          "summary": "유피핀테크는 같은 날 미국 증권거래위원회(SEC)에 제출한 6-K 공시에서 일부 자회사가 중국 본토에서... 유피핀테크는 공시에서 2025년 말 기준 중국 본토 개인 고객 자산이 연결 기준 전체 고객 자산의 약 10%였다고...",
+          "title": "디나우 집단소송, 대표원고 10월 2일 마감",
+          "link": "https://www.tokenpost.kr/news/policy/395737",
+          "summary": "소송의 쟁점은 디나우의 MRC글로벌(MRC Global) 인수 과정에서 나온 공시와 설명이다. 원고 측은 디나우가 MRC글로벌의 새 전사적자원관리시스템(ERP) 문제로 인수 통합에 어려움이 있었는데도 이를 충분히 설명하지...",
           "pubDate": "Sun, 23 Aug 2026 00:48:00 +0900",
           "matched_stocks": []
         },
@@ -4394,20 +4390,6 @@
           "summary": "23일 금융감독원 전자공시시스템(DART)에 따르면 대백은 2차 중도금 미납으로 인한 매수자 변경과 중도금 일자 변경 내용을 포함한 '투자판단 관련 주요 경영사항'을 지난 21일 정정 공시했다.공시에 따르면 대백은 \"8월...",
           "pubDate": "Sat, 22 Aug 2026 17:04:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "국일신동, 소수계좌 거래집중 사유로 투자주의종목 지정",
-          "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170397",
-          "summary": "이번 조치는 2026년 8월 24일 단 하루 동안 적용되며, 투자자들에게 해당 종목의 거래에 각별한 주의가 요구된다고 공시했다. 한국거래소 공시에 따르면 국일신동의 3일간 주가변동률은 26.06%, 3일간 상위 10개 계좌의...",
-          "pubDate": "Sat, 22 Aug 2026 16:58:00 +0900",
-          "matched_stocks": []
-        },
-        {
-          "title": "포니링크, 소수계좌 거래집중 종목 지정",
-          "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170395",
-          "summary": "회사는 매수 상위 10개 계좌의 관여율이 44.74%에 달해 투자자 주의가 필요하다고 공시했다. 한국거래소 공시에 따르면 포니링크는 3일간 주가변동률 16.95%를 기록했고, 같은 기간 최대 계좌 관여율 9.77%, 매수 상위...",
-          "pubDate": "Sat, 22 Aug 2026 16:56:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -4427,6 +4409,13 @@
         }
       ],
       "news": [
+        {
+          "title": "장성군 \"하나 된 전남광주 발전 '북·광·담·장'이 견인\"",
+          "link": "https://www.pointdaily.co.kr/news/articleView.html?idxno=316416",
+          "summary": "선언문에는 북부권 공동 발전 및 균형발전 협력, 인공지능(AI)·반도체·모빌리티 등 미래 성장산업 공동 육성, 교통·문화·관광 분야 협력 확대, 지속 가능한 협력체계 구축 등이 담겼다. (우측부터) 김한종 장성군수...",
+          "pubDate": "Sun, 23 Aug 2026 01:56:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "임지락 화순군수, 민형배 시장에 동복댐·반도체 현안 건의",
           "link": "https://www.pointdaily.co.kr/news/articleView.html?idxno=316415",
@@ -4528,16 +4517,16 @@
           "matched_stocks": []
         },
         {
-          "title": "여야, 미래대응기금 신설 충돌… \"재정 안정\" vs \"재정 꼼수\"",
-          "link": "https://www.daejonilbo.com/news/articleView.html?idxno=2295918",
-          "summary": "여야는 정부가 반도체 호황으로 걷힌 초과 세수를 활용하는 미래대응기금을 신설하기로 하자 상반된 입장을 내놨다. 신현영 더불어민주당 대변인은 22일 서면브리핑을 통해 \"우리 경제의 체질을 개선하고 미래 성장 동력을...",
+          "title": "여야, '미래대응기금' 충돌… \"재정안정화 저수지\" vs \"짝퉁 슈퍼 예비비...",
+          "link": "https://m.skyedaily.com/news_view.html?ID=310234",
+          "summary": "연합뉴스 정부가 반도체 호황 등에 따른 추가세수를 재원으로 100조원 규모의 '미래대응기금'을 신설하기로 한 것과 관련 여야가 충돌했다. 더불어민주당은 \"재정안정화 저수지\"라며 긍정 평가한 반면, 국민의힘은 \"짝퉁...",
           "pubDate": "Sat, 22 Aug 2026 22:48:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "여야, '미래대응기금' 충돌… \"재정안정화 저수지\" vs \"짝퉁 슈퍼 예비비...",
-          "link": "https://m.skyedaily.com/news_view.html?ID=310234",
-          "summary": "연합뉴스 정부가 반도체 호황 등에 따른 추가세수를 재원으로 100조원 규모의 '미래대응기금'을 신설하기로 한 것과 관련 여야가 충돌했다. 더불어민주당은 \"재정안정화 저수지\"라며 긍정 평가한 반면, 국민의힘은 \"짝퉁...",
+          "title": "여야, 미래대응기금 신설 충돌… \"재정 안정\" vs \"재정 꼼수\"",
+          "link": "https://www.daejonilbo.com/news/articleView.html?idxno=2295918",
+          "summary": "여야는 정부가 반도체 호황으로 걷힌 초과 세수를 활용하는 미래대응기금을 신설하기로 하자 상반된 입장을 내놨다. 신현영 더불어민주당 대변인은 22일 서면브리핑을 통해 \"우리 경제의 체질을 개선하고 미래 성장 동력을...",
           "pubDate": "Sat, 22 Aug 2026 22:48:00 +0900",
           "matched_stocks": []
         },
@@ -4568,22 +4557,6 @@
           "summary": "반도체와 인공지능(AI) 분야는 누가 먼저 혁신적인 기술을 개발하고 상용화하느냐에 따라 국가의 진운과... 그러나 세계 최고 수준의 반도체 제조 역량을 자랑하는 대한민국은 여전히 '주 52시간'이라는 획일적이고 경직된...",
           "pubDate": "Sat, 22 Aug 2026 22:24:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "[용인 민선 9기 연속기획⑦·총정리] 이상일 시장, 민선 8기 성과 넘어 ...",
-          "link": "http://www.newstown.co.kr/news/articleView.html?idxno=713262",
-          "summary": "민선 8기 4년 동안 마련한 반도체산업과 도시개발, 교통·교육·문화·복지의 성장 기반을 이어받아 '시민과... 삼성전자 첨단시스템반도체 국가산업단지와 SK하이닉스 반도체클러스터, 경기용인 플랫폼시티가 추진되고...",
-          "pubDate": "Sat, 22 Aug 2026 22:20:00 +0900",
-          "matched_stocks": [
-            {
-              "code": "005930",
-              "name": "삼성전자"
-            },
-            {
-              "code": "000660",
-              "name": "SK하이닉스"
-            }
-          ]
         }
       ]
     },
@@ -4898,6 +4871,13 @@
       ],
       "news": [
         {
+          "title": "건양대 국방 특성화 신입생 전원 해외연수 추진…현장점검단 일본 파견",
+          "link": "http://www.cctimes.kr/news/articleView.html?idxno=922871",
+          "summary": "건양대는 오는 10월에는 국방바이오연구원(원장 이홍우) 소속 학생 약 130명을, 12월에는 국방산학융합원(원장 조규공) 소속 학생 약 100명을 일본 후쿠오카에 파견할 예정이다. 이홍우 원장은 \"이번 현장점검을 통해...",
+          "pubDate": "Sun, 23 Aug 2026 02:26:00 +0900",
+          "matched_stocks": []
+        },
+        {
           "title": "[로봇 온사이트] 휴머노이드 상용화 경쟁, 이제는 손이다",
           "link": "https://www.theguru.co.kr/news/article.html?no=106133",
           "summary": "중국과학원 연구진이 주도해 개발한 '바이오플렉스봇(BioflexBot)'이 대표적이다. 바이오플렉스봇은 복잡한 다관절 골격 대신 코일 스프링과 외골격 셸, 2개의 공압 제어 시스템만으로 얇은 바늘을 안정적으로 집어내는...",
@@ -5029,13 +5009,6 @@
           "summary": "뉴데일리 장해순 기자 = 충북도, 오송첨단의료산업진흥재단(KBIOHealth), GC녹십자가 손잡고 제약·바이오헬스분야의 스타트업을 발굴 육성한다. 22일 충북도와 KBIOHealth에 따르면 글로벌 제약바이오 기업 GC녹십자와...",
           "pubDate": "Sat, 22 Aug 2026 15:50:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "[포토뉴스] 비침습적 뇌자극 치료효과, 제대로 평가하려면?",
-          "link": "https://www.k-health.com/news/articleView.html?idxno=100771",
-          "summary": "김정연 박사는 \"궁극적으로는 이러한 바이오마커를 단순한 '측정값'에 머물게 하지 않고 누가 치료에 잘 반응할지 예측하고, 자극 용량과 방법을 조절하며, 치료가 어떤 기전으로 작동하는지 이해하는 데 활용해야...",
-          "pubDate": "Sat, 22 Aug 2026 15:48:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -5070,6 +5043,13 @@
         }
       ],
       "news": [
+        {
+          "title": "전북자치도, '피지컬AI·로봇 거점'으로 도약",
+          "link": "https://www.pointdaily.co.kr/news/articleView.html?idxno=316417",
+          "summary": "전북특별자치도가 피지컬AI와 로봇 산업을 미래 양대 축으로 삼고 주력 제조업 혁신에 나섰다. 전북도에 따르면 피지컬AI와 로봇 기술을 활용해 자동차, 농기계 등 전통 제조업의 경쟁력을 강화하고 전주기 산업...",
+          "pubDate": "Sun, 23 Aug 2026 02:06:00 +0900",
+          "matched_stocks": []
+        },
         {
           "title": "학습과 진화로 더 영리해진 모기와의 전쟁 [KISTI의 과학향기]",
           "link": "https://www.dt.co.kr/article/12079394?ref=naver",
@@ -5202,13 +5182,6 @@
           "summary": "더 나아가 리디아 리우의 『프로이트 로봇』은 바로 그 전제를 훨씬 근본적인 층위에서 흔든다. 인간의... 『프로이트 로봇』을 읽으며 흥미로웠던 것도 인간을 기계와 반대되는 순수한 존재로 복권하는 대신, 자신의...",
           "pubDate": "Sat, 22 Aug 2026 19:50:00 +0900",
           "matched_stocks": []
-        },
-        {
-          "title": "휴머노이드 로봇, 중국이 세계 출하 압도…무대 뒤엔 '데모와 현장의 간...",
-          "link": "https://platum.kr/archives/293058",
-          "summary": "중국 베이징에서 열린 2026 세계로봇대회(WRC 2026)에 설치된 대형 휴머노이드 로봇 조형물 ⓒ플래텀 2026 세계로봇대회(WRC)가 8월 19일부터 23일까지 닷새 일정으로 베이징에서 열리고 있다. 300곳이 넘는 기업이 2,000여...",
-          "pubDate": "Sat, 22 Aug 2026 19:42:00 +0900",
-          "matched_stocks": []
         }
       ]
     },
@@ -5306,16 +5279,16 @@
           "matched_stocks": []
         },
         {
-          "title": "숏 스퀴즈 끝나자 비트코인 흔들…상승 끝났나 숨 고르기인가",
-          "link": "http://coinreaders.com/254262",
-          "summary": "비트코인 현물 ETF의 하루 순유입액이 5억달러를 웃돌 경우 상승세를 뒷받침할 수 있으며, 당분간 76,847~77,465달러 지지 구간과 ETF 자금 흐름이 방향성을 가를 핵심 지표로 꼽힌다.",
+          "title": "비트코인 8만달러 목전서 주말 ETF 공백 맞는다",
+          "link": "https://www.tokenpost.kr/news/breaking/395641",
+          "summary": "현물 ETF 자금 유입과 숏 포지션 강제 청산이 상승세를 키운 것으로 보도됐다. 크립토슬레이트... 미국 현물 비트코인 ETF에는 약 16억 달러(약 2조2176억원)가 순유입됐고, 숏 포지션 강제 청산도 수십억 달러...",
           "pubDate": "Sat, 22 Aug 2026 18:52:00 +0900",
           "matched_stocks": []
         },
         {
-          "title": "비트코인 8만달러 목전서 주말 ETF 공백 맞는다",
-          "link": "https://www.tokenpost.kr/news/breaking/395641",
-          "summary": "현물 ETF 자금 유입과 숏 포지션 강제 청산이 상승세를 키운 것으로 보도됐다. 크립토슬레이트... 미국 현물 비트코인 ETF에는 약 16억 달러(약 2조2176억원)가 순유입됐고, 숏 포지션 강제 청산도 수십억 달러...",
+          "title": "숏 스퀴즈 끝나자 비트코인 흔들…상승 끝났나 숨 고르기인가",
+          "link": "http://coinreaders.com/254262",
+          "summary": "비트코인 현물 ETF의 하루 순유입액이 5억달러를 웃돌 경우 상승세를 뒷받침할 수 있으며, 당분간 76,847~77,465달러 지지 구간과 ETF 자금 흐름이 방향성을 가를 핵심 지표로 꼽힌다.",
           "pubDate": "Sat, 22 Aug 2026 18:52:00 +0900",
           "matched_stocks": []
         },
@@ -5379,7 +5352,7 @@
       "sentiment_pos": 10,
       "sentiment_neg": 0,
       "sentiment_neu": 42,
-      "sentiment_score_sum": 37,
+      "sentiment_score_sum": 36,
       "price": 281500,
       "prev_close": 271000,
       "change": 10500,
@@ -5444,7 +5417,7 @@
       "sentiment_pos": 8,
       "sentiment_neg": 0,
       "sentiment_neu": 38,
-      "sentiment_score_sum": 32,
+      "sentiment_score_sum": 31,
       "price": 1730000,
       "prev_close": 1691000,
       "change": 39000,
@@ -5633,71 +5606,6 @@
       ]
     },
     {
-      "code": "069500",
-      "name": "KODEX 200",
-      "news_count": 11,
-      "sentiment_pos": 5,
-      "sentiment_neg": 0,
-      "sentiment_neu": 6,
-      "sentiment_score_sum": 16,
-      "price": 109980,
-      "prev_close": 108190,
-      "change": 1790,
-      "change_pct": 1.65,
-      "foreign_net": -346174,
-      "organ_net": 950646,
-      "individual_net": -459611,
-      "foreign_hold_ratio": "21.84%",
-      "as_of": "2026-08-21",
-      "news": [
-        {
-          "title": "서학개미, '삼전닉스' 담은 美ETF 1000억 넘게 샀다",
-          "link": "http://www.inews24.com/view/1997359",
-          "summary": "같은 기간 코스피 상승률(10.45%)을 두배 이상 웃도는 수치다. 한편, 국내 ETF 중에서는 미국 대표지수에... 3위는 'KODEX 코스피'(1205억원), 4위는 'KODEX 200선물인버스2X'(1102억원)이 각각 이름을 올렸다. KODEX",
-          "pubDate": "Sat, 22 Aug 2026 22:03:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 1
-        },
-        {
-          "title": "서학개미, '삼전·하이닉스·마이크론' 담은 라운드힐 메모리 ETF에 1천억...",
-          "link": "http://www.newsroad.co.kr/news/articleView.html?idxno=63220",
-          "summary": "이는 같은 기간 코스피 상승률(10.45%)의 두 배를 넘는 수준이다. 미국 시장에서도 메모리주 강세가... 'KODEX 코스피'(1천205억원)와 'KODEX 200선물인버스2X'(1천102억원)가 각각 3, 4위에 올랐다. KODEX 코스피는 코스",
-          "pubDate": "Sat, 22 Aug 2026 19:40:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "positive",
-          "sentiment_score": 2
-        },
-        {
-          "title": "서학개미, 라운드힐 메모리 ETF 1185억 순매수",
-          "link": "http://www.hansbiz.co.kr/news/articleView.html?idxno=858694",
-          "summary": "같은 기간 코스피 상승률인 10.45%를 두 배 이상 웃도는 수치다. 마이크론, 샌디스크도 지난 10∼20일... 3, 4위에는 'KODEX 코스피'(1205억원)와 'KODEX 200선물인버스2X'(1102억원)이 각각 이름을 올렸다. KODEX 코",
-          "pubDate": "Sat, 22 Aug 2026 18:28:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 1
-        },
-        {
-          "title": "삼성전자·SK하이닉스 ETF에 1천억 몰렸다",
-          "link": "http://www.kjdaily.com/article.php?aid=1787368568684961227",
-          "summary": "같은 기간 코스피 상승률 10.45%의 두 배를 웃도는 수준이다. 미국 반도체주도 강세를 나타냈다.... 'KODEX 코스피'에는 1천205억원, 'KODEX 200선물인버스2X'에는 1천102억원이 각각 순유입됐다. 두 상품의 투자 방향은...",
-          "pubDate": "Sat, 22 Aug 2026 12:18:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "positive",
-          "sentiment_score": 2
-        },
-        {
-          "title": "삼전닉스 반등하자 서학개미 움직였다…한주간 라운드힐 ETF 1천억 사들...",
-          "link": "https://www.etnews.com/20260822000001",
-          "summary": "지난 10일부터 21일까지 SK하이닉스와 삼성전자는 각각 21.66%, 21.86% 상승하며 같은 기간 코스피 상승률인... KODEX 코스피와 KODEX 200선물인버스2X도 각각 1천205억원, 1천102억원의 순유입을 기록했다. 코스피 상승을..",
-          "pubDate": "Sat, 22 Aug 2026 11:41:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "positive",
-          "sentiment_score": 2
-        }
-      ]
-    },
-    {
       "code": "006400",
       "name": "삼성SDI",
       "news_count": 11,
@@ -5824,6 +5732,71 @@
           "matched_keyword": "2차전지",
           "sentiment": "neutral",
           "sentiment_score": 1
+        }
+      ]
+    },
+    {
+      "code": "069500",
+      "name": "KODEX 200",
+      "news_count": 10,
+      "sentiment_pos": 5,
+      "sentiment_neg": 0,
+      "sentiment_neu": 5,
+      "sentiment_score_sum": 15,
+      "price": 109980,
+      "prev_close": 108190,
+      "change": 1790,
+      "change_pct": 1.65,
+      "foreign_net": -346174,
+      "organ_net": 950646,
+      "individual_net": -459611,
+      "foreign_hold_ratio": "21.84%",
+      "as_of": "2026-08-21",
+      "news": [
+        {
+          "title": "서학개미, '삼전닉스' 담은 美ETF 1000억 넘게 샀다",
+          "link": "http://www.inews24.com/view/1997359",
+          "summary": "같은 기간 코스피 상승률(10.45%)을 두배 이상 웃도는 수치다. 한편, 국내 ETF 중에서는 미국 대표지수에... 3위는 'KODEX 코스피'(1205억원), 4위는 'KODEX 200선물인버스2X'(1102억원)이 각각 이름을 올렸다. KODEX",
+          "pubDate": "Sat, 22 Aug 2026 22:03:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 1
+        },
+        {
+          "title": "서학개미, '삼전·하이닉스·마이크론' 담은 라운드힐 메모리 ETF에 1천억...",
+          "link": "http://www.newsroad.co.kr/news/articleView.html?idxno=63220",
+          "summary": "이는 같은 기간 코스피 상승률(10.45%)의 두 배를 넘는 수준이다. 미국 시장에서도 메모리주 강세가... 'KODEX 코스피'(1천205억원)와 'KODEX 200선물인버스2X'(1천102억원)가 각각 3, 4위에 올랐다. KODEX 코스피는 코스",
+          "pubDate": "Sat, 22 Aug 2026 19:40:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "positive",
+          "sentiment_score": 2
+        },
+        {
+          "title": "서학개미, 라운드힐 메모리 ETF 1185억 순매수",
+          "link": "http://www.hansbiz.co.kr/news/articleView.html?idxno=858694",
+          "summary": "같은 기간 코스피 상승률인 10.45%를 두 배 이상 웃도는 수치다. 마이크론, 샌디스크도 지난 10∼20일... 3, 4위에는 'KODEX 코스피'(1205억원)와 'KODEX 200선물인버스2X'(1102억원)이 각각 이름을 올렸다. KODEX 코",
+          "pubDate": "Sat, 22 Aug 2026 18:28:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 1
+        },
+        {
+          "title": "삼성전자·SK하이닉스 ETF에 1천억 몰렸다",
+          "link": "http://www.kjdaily.com/article.php?aid=1787368568684961227",
+          "summary": "같은 기간 코스피 상승률 10.45%의 두 배를 웃도는 수준이다. 미국 반도체주도 강세를 나타냈다.... 'KODEX 코스피'에는 1천205억원, 'KODEX 200선물인버스2X'에는 1천102억원이 각각 순유입됐다. 두 상품의 투자 방향은...",
+          "pubDate": "Sat, 22 Aug 2026 12:18:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "positive",
+          "sentiment_score": 2
+        },
+        {
+          "title": "삼전닉스 반등하자 서학개미 움직였다…한주간 라운드힐 ETF 1천억 사들...",
+          "link": "https://www.etnews.com/20260822000001",
+          "summary": "지난 10일부터 21일까지 SK하이닉스와 삼성전자는 각각 21.66%, 21.86% 상승하며 같은 기간 코스피 상승률인... KODEX 코스피와 KODEX 200선물인버스2X도 각각 1천205억원, 1천102억원의 순유입을 기록했다. 코스피 상승을..",
+          "pubDate": "Sat, 22 Aug 2026 11:41:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "positive",
+          "sentiment_score": 2
         }
       ]
     },
@@ -6144,62 +6117,6 @@
       ]
     },
     {
-      "code": "035720",
-      "name": "카카오",
-      "news_count": 4,
-      "sentiment_pos": 0,
-      "sentiment_neg": 0,
-      "sentiment_neu": 4,
-      "sentiment_score_sum": 0,
-      "price": 35800,
-      "prev_close": 38700,
-      "change": -2900,
-      "change_pct": -7.49,
-      "foreign_net": -1490636,
-      "organ_net": -1300761,
-      "individual_net": 2789870,
-      "foreign_hold_ratio": "28.77%",
-      "as_of": "2026-08-21",
-      "news": [
-        {
-          "title": "최근 5거래일 카카오 주가 4만원대 이탈 후 급락세",
-          "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170187",
-          "summary": "현재 카카오는 코스피 시가총액 순위 51위에 위치해 있으며, 총 시가총액은 15조 8,587억 원을 기록했다. 주가수익비율 PER은 32.22배로 나타났으며, 동일 업종의 PER은 22.48배를 기록했다. 외국인 투자자들의 보유...",
-          "pubDate": "Sat, 22 Aug 2026 11:22:00 +0900",
-          "matched_keyword": "코스피",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "[타임라인] '다음+카카오'에서 '카카오X+AI'로…분화·통합 31년史",
-          "link": "https://www.ddaily.co.kr/page/view/2026082117414629868",
-          "summary": "같은 해 11월9일 코스닥시장에 상장했다. ◆2006년 11월29일, 아이위랩 설립: 카카오 서비스의 모태가 된 아이위랩이 출범했다. 초기 웹서비스의 잇단 시행착오를 거쳐 스마트폰을 기반으로 한 모바일 소통 서비스에...",
-          "pubDate": "Sat, 22 Aug 2026 07:00:00 +0900",
-          "matched_keyword": "코스닥",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "\"쪼개기 그만\"…인적분할에도 주가 내렸다 [노정동의 어쩌다 투자자]",
-          "link": "https://www.hankyung.com/article/2026082151176",
-          "summary": "카카오그룹은 과거 카카오게임즈(2020년)·카카오뱅크(2021년)·카카오페이(2021년) 등 계열사를 잇달아 증시에 입성시키며 '문어발식 상장 아니냐'는 비판을 받았다. 주주 입장에선 핵심 사업을 여러 상장사로...",
-          "pubDate": "Sat, 22 Aug 2026 10:31:00 +0900",
-          "matched_keyword": "증시",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        },
-        {
-          "title": "[이슈]\"17조 찾는다더니 1.3조 날아갔다\"…정신아 '카카오 쪼개기' 역풍",
-          "link": "https://www.the-today.com/news/articleView.html?idxno=88767",
-          "summary": "분할 공시로 30분간 거래가 정지된 뒤 주가는 장중 3만3600원까지 밀리며 한때 13.18% 급락했다. 장중 기준으로는 시가총액 2조원 이상이 사라졌다가 낙폭을 일부 회복했다. 주가 급락의 직접적인 원인은 카카오AI와...",
-          "pubDate": "Sat, 22 Aug 2026 11:44:00 +0900",
-          "matched_keyword": "공시",
-          "sentiment": "neutral",
-          "sentiment_score": 0
-        }
-      ]
-    },
-    {
       "code": "028300",
       "name": "HLB",
       "news_count": 4,
@@ -6252,6 +6169,53 @@
           "matched_keyword": "2차전지",
           "sentiment": "neutral",
           "sentiment_score": -1
+        }
+      ]
+    },
+    {
+      "code": "035720",
+      "name": "카카오",
+      "news_count": 3,
+      "sentiment_pos": 0,
+      "sentiment_neg": 0,
+      "sentiment_neu": 3,
+      "sentiment_score_sum": 0,
+      "price": 35800,
+      "prev_close": 38700,
+      "change": -2900,
+      "change_pct": -7.49,
+      "foreign_net": -1490636,
+      "organ_net": -1300761,
+      "individual_net": 2789870,
+      "foreign_hold_ratio": "28.77%",
+      "as_of": "2026-08-21",
+      "news": [
+        {
+          "title": "최근 5거래일 카카오 주가 4만원대 이탈 후 급락세",
+          "link": "https://www.topstarnews.net/news/articleView.html?idxno=16170187",
+          "summary": "현재 카카오는 코스피 시가총액 순위 51위에 위치해 있으며, 총 시가총액은 15조 8,587억 원을 기록했다. 주가수익비율 PER은 32.22배로 나타났으며, 동일 업종의 PER은 22.48배를 기록했다. 외국인 투자자들의 보유...",
+          "pubDate": "Sat, 22 Aug 2026 11:22:00 +0900",
+          "matched_keyword": "코스피",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "[타임라인] '다음+카카오'에서 '카카오X+AI'로…분화·통합 31년史",
+          "link": "https://www.ddaily.co.kr/page/view/2026082117414629868",
+          "summary": "같은 해 11월9일 코스닥시장에 상장했다. ◆2006년 11월29일, 아이위랩 설립: 카카오 서비스의 모태가 된 아이위랩이 출범했다. 초기 웹서비스의 잇단 시행착오를 거쳐 스마트폰을 기반으로 한 모바일 소통 서비스에...",
+          "pubDate": "Sat, 22 Aug 2026 07:00:00 +0900",
+          "matched_keyword": "코스닥",
+          "sentiment": "neutral",
+          "sentiment_score": 0
+        },
+        {
+          "title": "[이슈]\"17조 찾는다더니 1.3조 날아갔다\"…정신아 '카카오 쪼개기' 역풍",
+          "link": "https://www.the-today.com/news/articleView.html?idxno=88767",
+          "summary": "분할 공시로 30분간 거래가 정지된 뒤 주가는 장중 3만3600원까지 밀리며 한때 13.18% 급락했다. 장중 기준으로는 시가총액 2조원 이상이 사라졌다가 낙폭을 일부 회복했다. 주가 급락의 직접적인 원인은 카카오AI와...",
+          "pubDate": "Sat, 22 Aug 2026 11:44:00 +0900",
+          "matched_keyword": "공시",
+          "sentiment": "neutral",
+          "sentiment_score": 0
         }
       ]
     },
